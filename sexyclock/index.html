@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sunny Clock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="sky">
+    <span class="cloud c1"></span>
+    <span class="cloud c2"></span>
+    <span class="cloud c3"></span>
+    <span class="spark s1">✦</span>
+    <span class="spark s2">✧</span>
+    <span class="spark s3">✦</span>
+    <span class="spark s4">✧</span>
+  </div>
+
+  <main class="widget" id="widget" data-mode="digital" data-period="day" title="click to flip the clock">
+    <!-- GIF banner -->
+    <header class="banner">
+      <img src="assets/luffy.gif" alt="" onerror="this.parentElement.classList.add('no-gif')" />
+      <span class="greeting" id="greeting">hello ✨</span>
+    </header>
+
+    <!-- DIGITAL FACE -->
+    <section class="face digital" id="digital">
+      <div class="time-row">
+        <div class="time">
+          <span id="hh">00</span><span class="colon">:</span><span id="mm">00</span>
+        </div>
+        <div class="side">
+          <span class="ampm" id="ampm">PM</span>
+          <span class="secs" id="ss">00</span>
+        </div>
+      </div>
+
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+
+      <div class="date" id="date">Monday · Jan 1</div>
+      <div class="week" id="week"></div>
+    </section>
+
+    <!-- ANALOG FACE -->
+    <section class="face analog" id="analog">
+      <svg viewBox="0 0 200 200" class="dial" aria-hidden="true">
+        <circle cx="100" cy="100" r="92" class="dial-bg" />
+        <circle cx="100" cy="100" r="92" class="dial-ring" />
+        <g id="ticks"></g>
+        <text x="100" y="40" class="num">12</text>
+        <text x="162" y="106" class="num">3</text>
+        <text x="100" y="172" class="num">6</text>
+        <text x="38" y="106" class="num">9</text>
+        <line id="hand-h" x1="100" y1="100" x2="100" y2="58" class="hand hour" />
+        <line id="hand-m" x1="100" y1="100" x2="100" y2="40" class="hand minute" />
+        <line id="hand-s" x1="100" y1="112" x2="100" y2="34" class="hand second" />
+        <circle cx="100" cy="100" r="6" class="pin" />
+        <circle cx="100" cy="100" r="2.4" class="pin-dot" />
+      </svg>
+      <div class="date small" id="dateA">Monday · Jan 1</div>
+    </section>
+
+    <footer class="hint">tap to flip ↻</footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

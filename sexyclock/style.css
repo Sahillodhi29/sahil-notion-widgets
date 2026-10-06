@@ -1,0 +1,239 @@
+/* ---------- Theme tokens ---------- */
+:root {
+  --sky-1: #5fb4ff;
+  --sky-2: #a9dcff;
+  --card: rgba(255, 252, 244, 0.92);
+  --ink: #3b2a2a;
+  --soft: #8c7b7b;
+  --red: #ff5a5f;
+  --red-deep: #e23d49;
+  --straw: #ffd98a;
+  --straw-deep: #f5b94a;
+  --blue: #3c8dff;
+  --shadow: 0 18px 40px rgba(30, 80, 160, 0.28);
+}
+
+/* time-of-day palettes (set from script.js) */
+[data-period="morning"] { --sky-1: #ffb48a; --sky-2: #ffe3b8; }
+[data-period="day"]     { --sky-1: #5fb4ff; --sky-2: #a9dcff; }
+[data-period="evening"] { --sky-1: #ff8fa3; --sky-2: #ffcf9e; }
+[data-period="night"]   { --sky-1: #2c3a78; --sky-2: #6b78c9; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  display: grid;
+  place-items: center;
+  font-family: "Quicksand", system-ui, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(160deg, var(--sky-1), var(--sky-2));
+  overflow: hidden;
+  transition: background 1.2s ease;
+}
+
+/* ---------- Floating sky decoration ---------- */
+.sky { position: fixed; inset: 0; pointer-events: none; }
+
+.cloud {
+  position: absolute;
+  width: 120px; height: 36px;
+  background: #fff;
+  border-radius: 50px;
+  opacity: 0.85;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.06));
+  animation: drift linear infinite;
+}
+.cloud::before, .cloud::after {
+  content: ""; position: absolute; background: #fff; border-radius: 50%;
+}
+.cloud::before { width: 54px; height: 54px; top: -26px; left: 18px; }
+.cloud::after  { width: 40px; height: 40px; top: -18px; left: 62px; }
+.c1 { top: 12%; left: -150px; animation-duration: 48s; }
+.c2 { top: 68%; left: -150px; animation-duration: 64s; animation-delay: -20s; transform: scale(0.8); }
+.c3 { top: 38%; left: -150px; animation-duration: 80s; animation-delay: -45s; transform: scale(0.6); opacity: 0.6; }
+
+@keyframes drift { to { left: calc(100% + 150px); } }
+
+.spark {
+  position: absolute;
+  color: #fff;
+  font-size: 18px;
+  animation: twinkle 3s ease-in-out infinite;
+}
+.s1 { top: 14%; left: 18%; }
+.s2 { top: 24%; right: 16%; animation-delay: -1s; font-size: 14px; }
+.s3 { bottom: 18%; left: 14%; animation-delay: -2s; font-size: 22px; }
+.s4 { bottom: 26%; right: 20%; animation-delay: -0.5s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8) rotate(0deg); }
+  50%      { opacity: 1;    transform: scale(1.25) rotate(20deg); }
+}
+
+/* ---------- Widget card ---------- */
+.widget {
+  position: relative;
+  width: min(380px, 92vw);
+  background: var(--card);
+  border-radius: 32px;
+  border: 4px solid #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  animation: floaty 5s ease-in-out infinite;
+  backdrop-filter: blur(6px);
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.widget:hover { box-shadow: 0 22px 46px rgba(30, 80, 160, 0.36); }
+
+/* ---------- Banner (gif) ---------- */
+.banner {
+  position: relative;
+  height: 150px;
+  background: linear-gradient(180deg, var(--blue), var(--sky-2));
+  overflow: hidden;
+}
+.banner img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.banner.no-gif img { display: none; }
+
+.banner::after {              /* soft fade into the card */
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0; height: 36px;
+  background: linear-gradient(to top, var(--card), transparent);
+}
+
+.greeting {
+  position: absolute;
+  top: 12px; left: 12px;
+  z-index: 2;
+  padding: 5px 12px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--red-deep);
+  background: rgba(255,255,255,0.88);
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* ---------- Faces ---------- */
+.face { padding: 6px 24px 8px; text-align: center; }
+
+.widget[data-mode="digital"] .analog { display: none; }
+.widget[data-mode="analog"]  .digital { display: none; }
+
+.face { animation: pop 0.45s cubic-bezier(.2,1.4,.4,1); }
+@keyframes pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+/* digital */
+.time-row {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+}
+.time {
+  font-family: "Fredoka", sans-serif;
+  font-weight: 600;
+  font-size: 84px;
+  line-height: 1;
+  letter-spacing: 1px;
+  color: var(--red);
+  text-shadow: 3px 3px 0 var(--straw), 6px 6px 0 rgba(245, 185, 74, 0.35);
+}
+.colon { display: inline-block; margin: 0 2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+.side { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.ampm {
+  font-family: "Fredoka", sans-serif;
+  font-size: 15px; font-weight: 600;
+  padding: 4px 11px;
+  color: #fff;
+  background: var(--blue);
+  border-radius: 999px;
+  box-shadow: 0 3px 0 #2b6fd0;
+}
+.secs {
+  font-family: "Fredoka", sans-serif;
+  font-size: 26px; font-weight: 500;
+  color: var(--straw-deep);
+}
+
+/* seconds bar */
+.bar {
+  height: 10px; margin: 12px 4px 10px;
+  background: #ffe9ea;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,0.08);
+}
+.bar-fill {
+  height: 100%; width: 0%;
+  background: repeating-linear-gradient(45deg, var(--red) 0 10px, #ff8a8e 10px 20px);
+  border-radius: 999px;
+  transition: width 0.4s linear;
+}
+
+.date {
+  font-family: "Fredoka", sans-serif;
+  font-size: 17px; font-weight: 500;
+  color: var(--ink);
+}
+.date.small { font-size: 15px; margin-top: 4px; }
+
+/* week dots */
+.week { display: flex; justify-content: center; gap: 8px; margin: 12px 0 4px; }
+.week span {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  font-family: "Fredoka", sans-serif; font-size: 13px; font-weight: 500;
+  color: var(--soft);
+  background: #fff4dc;
+  border-radius: 50%;
+}
+.week span.today {
+  color: #fff;
+  background: var(--red);
+  box-shadow: 0 3px 0 var(--red-deep);
+  transform: translateY(-2px) scale(1.08);
+}
+
+/* analog */
+.dial { width: 210px; height: 210px; display: block; margin: 0 auto; }
+.dial-bg   { fill: #fffaf0; }
+.dial-ring { fill: none; stroke: var(--straw); stroke-width: 8; }
+.num {
+  font-family: "Fredoka", sans-serif; font-size: 16px; font-weight: 600;
+  fill: var(--red); text-anchor: middle; dominant-baseline: middle;
+}
+.tick { stroke: #e7cf9c; stroke-width: 2; stroke-linecap: round; }
+.tick.big { stroke: var(--straw-deep); stroke-width: 3.5; }
+.hand { stroke-linecap: round; transform-origin: 100px 100px; }
+.hand.hour   { stroke: var(--ink);  stroke-width: 6; }
+.hand.minute { stroke: var(--blue); stroke-width: 4.5; }
+.hand.second { stroke: var(--red);  stroke-width: 2.2; }
+.pin     { fill: var(--red); }
+.pin-dot { fill: #fff; }
+
+.hint {
+  text-align: center;
+  font-size: 11px; font-weight: 700;
+  color: var(--soft);
+  opacity: 0.6;
+  padding: 2px 0 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Small widget sizes ---------- */
+@media (max-width: 340px), (max-height: 420px) {
+  .banner { height: 110px; }
+  .time { font-size: 62px; }
+  .dial { width: 160px; height: 160px; }
+}
