@@ -95,21 +95,24 @@ body {
 /* ---------- Banner (gif) ---------- */
 .banner {
   position: relative;
-  height: 150px;
+  aspect-ratio: 540 / 230;      /* matches your gif, so nothing gets cropped */
   background: linear-gradient(180deg, var(--blue), var(--sky-2));
   overflow: hidden;
 }
 .banner img {
   width: 100%; height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
 }
+.banner.no-gif { min-height: 150px; }
 .banner.no-gif img { display: none; }
 
-.banner::after {              /* soft fade into the card */
+.banner::after {              /* very soft fade into the card */
   content: "";
-  position: absolute; left: 0; right: 0; bottom: 0; height: 36px;
+  position: absolute; left: 0; right: 0; bottom: 0; height: 14px;
   background: linear-gradient(to top, var(--card), transparent);
+  pointer-events: none;
 }
 
 .greeting {
@@ -233,7 +236,6 @@ body {
 
 /* ---------- Small widget sizes ---------- */
 @media (max-width: 340px), (max-height: 420px) {
-  .banner { height: 110px; }
   .time { font-size: 62px; }
   .dial { width: 160px; height: 160px; }
 }
