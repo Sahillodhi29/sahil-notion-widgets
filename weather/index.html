@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Weather</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="weather-card">
+
+    <div class="top-row">
+
+      <div class="location">
+        <span class="location-dot"></span>
+        <span id="location">Loading...</span>
+      </div>
+
+      <div id="weather-icon" class="weather-icon">
+        ☁
+      </div>
+
+    </div>
+
+
+    <div class="temperature-row">
+
+      <div id="temperature" class="temperature">
+        --°
+      </div>
+
+      <div class="condition-block">
+
+        <div id="condition" class="condition">
+          Loading...
+        </div>
+
+        <div id="feels-like" class="feels-like">
+          Feels like --°
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="weather-details">
+
+      <div class="detail">
+        <span class="detail-label">HUMIDITY</span>
+        <span id="humidity">--%</span>
+      </div>
+
+      <div class="detail">
+        <span class="detail-label">WIND</span>
+        <span id="wind">-- km/h</span>
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <script src="script.js"></script>
+
+</body>
+</html>
