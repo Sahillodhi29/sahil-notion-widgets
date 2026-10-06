@@ -21,9 +21,7 @@
     align-items: center;
     justify-content: center;
   
-    /* IMPORTANT:
-       Keeps the Notion background visible */
-    background: transparent;
+    background: #191919;
   
     font-family:
       Inter,
