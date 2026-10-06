@@ -1,0 +1,20 @@
+{
+    "rewrites": [
+      {
+        "source": "/clock",
+        "destination": "/clock/index.html"
+      },
+      {
+        "source": "/clock/",
+        "destination": "/clock/index.html"
+      },
+      {
+        "source": "/weather",
+        "destination": "/weather/index.html"
+      },
+      {
+        "source": "/weather/",
+        "destination": "/weather/index.html"
+      }
+    ]
+  }
