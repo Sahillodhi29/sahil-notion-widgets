@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sky Banner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="banner" id="banner">
+
+    <!-- sky -->
+    <div class="sky"></div>
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="stars" id="stars"></div>
+    <div class="orb sun" id="sun"><div class="halo"></div><div class="disk"></div></div>
+    <div class="orb moon" id="moon"><div class="halo"></div><div class="disk"></div></div>
+    <div class="clouds" id="clouds"></div>
+    <div class="birds" id="birds"></div>
+    <div class="wildlife" id="wildlife"></div>
+    <div class="mist"></div>
+
+    <!-- sea -->
+    <div class="sea" id="sea">
+      <div class="glitter" id="glitter"></div>
+    </div>
+
+    <!-- ship sticker (assets/merry.gif) -->
+    <div class="ship-wrap" id="shipWrap">
+      <div class="ship" id="ship"></div>
+      <div class="ship reflect" id="reflect"></div>
+    </div>
+
+    <div class="sparkles" id="sparkles"></div>
+    <div class="rain" id="rain"></div>
+    <div class="scrim"></div>
+    <div class="grain"></div>
+
+    <!-- date, time and weather -->
+    <div class="hud">
+      <div class="clock">
+        <div class="time"><span id="hm">--:--</span><span class="ampm" id="ampm"></span></div>
+        <div class="date" id="date"></div>
+      </div>
+      <div class="weather" id="weather" hidden>
+        <span class="wicon" id="wicon"></span>
+        <div class="wtext">
+          <div class="temp" id="temp"></div>
+          <div class="wlabel" id="wlabel"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
