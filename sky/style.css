@@ -38,7 +38,7 @@
 
 html, body {
   height: 100%;
-  background: transparent;
+  background: #191919;
   overflow: hidden;
   font-family: 'Quicksand', ui-rounded, 'SF Pro Rounded', 'Nunito', system-ui, sans-serif;
 }
@@ -51,7 +51,7 @@ html, body {
   border-radius: 20px;
   container-type: size;
   isolation: isolate;
-  background: rgb(var(--sky-mid));
+  background: transparent;
 }
 
 /* ---------- sky ---------- */
@@ -264,7 +264,7 @@ html, body {
 /* ---------- date, time, weather ---------- */
 .hud {
   position: absolute; inset: 0; z-index: 10; pointer-events: none;
-  padding: clamp(14px, 4.5cqh, 30px) clamp(18px, 4cqw, 36px);
+  padding: clamp(24px, 5.5cqh, 44px) clamp(24px, 4.5cqw, 48px);
   display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
   color: rgb(255 248 236);
   text-shadow: 0 2px 16px rgb(4 18 46 / .45), 0 1px 2px rgb(4 18 46 / .25);

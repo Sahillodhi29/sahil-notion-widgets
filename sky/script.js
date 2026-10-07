@@ -10,7 +10,7 @@
      weather=clear|partly|cloudy|fog|rain|storm|snow   preview weather
      temp=27           preview temperature
      lat=  lon=  city= change the weather location
-     ship=assets/merry.gif   sticker file
+     ship=assets/merry.png   sticker file
      shipx=58  shipy=5  shipsize=38   sticker position / size tuning
    ============================================================ */
 (() => {
@@ -21,13 +21,13 @@
   const num = (k, d) => { const v = parseFloat(q.get(k)); return Number.isFinite(v) ? v : d; };
 
   const CFG = {
-    lat: num('lat', 22.7196),
-    lon: num('lon', 75.8577),
-    city: q.get('city') ?? 'Indore',
-    ship: q.get('ship') || 'assets/merry.gif',
+    lat: num('lat', 26.2183),
+    lon: num('lon', 78.1828),
+    city: q.get('city') ?? 'Gwalior',
+    ship: q.get('ship') || 'assets/merry.png',
     shipX: num('shipx', 58),
     shipY: num('shipy', 5),
-    shipSize: num('shipsize', 38),
+    shipSize: num('shipsize', 30),
   };
 
   const root = document.documentElement;
@@ -290,21 +290,15 @@
     rainBox.appendChild(d);
   }
 
-  // ship sticker (falls back to a plain little boat until the sticker exists)
-  const FALLBACK_SHIP = `<svg viewBox="0 0 240 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M26 150 Q120 196 218 150 L204 184 Q120 210 42 184 Z" fill="#7a4a2b"/>
-    <path d="M26 150 L218 150 L210 164 L34 164 Z" fill="#a8693a"/>
-    <rect x="116" y="38" width="6" height="114" fill="#6b4226"/>
-    <path d="M125 46 Q198 74 188 134 L125 134 Z" fill="#f4ead6"/>
-    <path d="M113 52 Q58 74 64 122 L113 122 Z" fill="#ecdfc2"/>
-    <path d="M122 38 l30 -9 l-30 -9 z" fill="#c8553d"/></svg>`;
+  // ship sticker (Merry from assets/merry.png)
   {
+
     const targets = [$('ship'), $('reflect')];
     const probe = new Image();
     probe.onload = () => targets.forEach(t => {
       const im = new Image(); im.src = CFG.ship; im.alt = ''; im.draggable = false; t.appendChild(im);
     });
-    probe.onerror = () => targets.forEach(t => { t.innerHTML = FALLBACK_SHIP; });
+    probe.onerror = () => targets.forEach(t => { t.innerHTML = ''; });
     probe.src = CFG.ship;
 
     setVar('--ship-x', CFG.shipX + '%');
