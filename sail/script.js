@@ -240,42 +240,6 @@
   }
   const clock = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-  /* ---------- time-synced sky palette (Gwalior local time) ---------- */
-  function updateSkyMood() {
-    const hour = new Date().getHours() + new Date().getMinutes() / 60;
-    const stops = [
-      { h: 0,    sky: [10, 22, 48],   mid: [20, 48, 76],   sea: [18, 64, 79],   glow: [63, 128, 133] },
-      { h: 5.2,  sky: [38, 49, 91],   mid: [115, 83, 126], sea: [37, 75, 111],  glow: [177, 112, 148] },
-      { h: 6.3,  sky: [104, 125, 173],mid: [225, 163, 151],sea: [60, 116, 143],  glow: [255, 194, 154] },
-      { h: 8.0,  sky: [117, 174, 209],mid: [211, 221, 215],sea: [42, 117, 147],  glow: [255, 222, 177] },
-      { h: 12.0, sky: [68, 133, 190], mid: [143, 190, 213],sea: [31, 112, 142],  glow: [174, 225, 220] },
-      { h: 16.0, sky: [93, 143, 182], mid: [231, 190, 139],sea: [40, 119, 139],  glow: [255, 207, 151] },
-      { h: 18.1, sky: [115, 120, 157],mid: [240, 142, 111],sea: [34, 111, 125],  glow: [255, 157, 124] },
-      { h: 20.2, sky: [34, 38, 79],   mid: [85, 55, 102],   sea: [16, 61, 79],   glow: [177, 123, 174] },
-      { h: 24,   sky: [10, 22, 48],   mid: [20, 48, 76],   sea: [18, 64, 79],   glow: [63, 128, 133] }
-    ];
-    let a = stops[0], b = stops[stops.length - 1];
-    for (let i = 0; i < stops.length - 1; i++) {
-      if (hour >= stops[i].h && hour <= stops[i+1].h) {
-        a = stops[i]; b = stops[i+1]; break;
-      }
-    }
-    const t = Math.max(0, Math.min(1, (hour - a.h) / Math.max(.001, b.h - a.h)));
-    const smooth = t * t * (3 - 2 * t);
-    const mix = (x, y) => x.map((v, i) => Math.round(v + (y[i] - v) * smooth)).join(' ');
-    const root = document.documentElement;
-    root.style.setProperty('--sky-top', mix(a.sky, b.sky));
-    root.style.setProperty('--sky-mid', mix(a.mid, b.mid));
-    root.style.setProperty('--sea-tone', mix(a.sea, b.sea));
-    root.style.setProperty('--sky-glow', mix(a.glow, b.glow));
-    root.dataset.skyPhase = hour < 5.2 || hour >= 20.2 ? 'night' :
-      hour < 6.3 ? 'dawn' : hour < 10 ? 'morning' :
-      hour < 16 ? 'day' : hour < 18.1 ? 'golden' : 'sunset';
-  }
-  updateSkyMood();
-  setInterval(updateSkyMood, 60000);
-
-
   /* ---------- toast ---------- */
   let toastTimer = null;
   let toastUndo = null;
