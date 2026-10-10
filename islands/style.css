@@ -1,0 +1,106 @@
+/* ============================================================
+   Island Map: six little islands on the live, time-synced sea
+   Solid Notion dark (#191919) behind the scene.
+   ============================================================ */
+:root {
+  color-scheme: dark;
+  --sky-top: 66 148 224; --sky-mid: 122 190 236; --sky-bot: 196 228 242;
+  --sea-top: 62 152 208; --sea-bot: 28 96 162;
+  --spark: 255 255 255; --stars: 0; --aurora: 0;
+  --cloud: 255 255 255; --cloud-a: .9;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #191919; }
+body { font-family: 'Quicksand', ui-rounded, 'Nunito', 'Segoe UI', system-ui, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+
+.scene {
+  position: relative; margin: 4px; border-radius: 26px; overflow: hidden; isolation: isolate;
+  border: 1px solid rgb(255 255 255 / .16);
+  box-shadow: 0 10px 30px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 255 255 / .16);
+  background: linear-gradient(180deg,
+    rgb(var(--sky-top)) 0%, rgb(var(--sky-mid)) 9%, rgb(var(--sky-bot)) 17%,
+    rgb(var(--sea-top)) 18.6%, rgb(var(--sea-bot)) 100%);
+}
+.horizon { position: absolute; left: 0; right: 0; top: 17.2%; height: 3px; z-index: 1;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / .55), transparent); opacity: .5; filter: blur(1px); }
+
+/* decorations */
+.deco { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.deco .star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; animation: twk var(--d, 3s) ease-in-out infinite var(--dl, 0s); }
+.deco .cld { position: absolute; border-radius: 50%; background: rgb(var(--cloud)); opacity: calc(var(--cloud-a) * .5); filter: blur(7px);
+  width: var(--w, 120px); height: var(--h, 22px); animation: drift var(--d, 90s) linear infinite var(--dl, 0s); }
+.deco .glint { position: absolute; width: var(--w, 26px); height: 2px; border-radius: 2px; background: rgb(var(--spark)); opacity: 0; animation: glint var(--d, 5s) ease-in-out infinite var(--dl, 0s); }
+.deco .spk { position: absolute; width: var(--s, 6px); height: var(--s, 6px); rotate: 45deg; border-radius: 1.5px; background: rgb(var(--spark)); box-shadow: 0 0 8px rgb(var(--spark) / .9); opacity: 0; animation: twinkle var(--d, 3.4s) ease-in-out infinite var(--dl, 0s); }
+
+/* grid: loose, scattered, never a table */
+.grid { position: relative; z-index: 3; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 6px; padding: 34px 14px 80px; }
+.grid.single { grid-template-columns: 1fr; justify-items: center; padding-top: 24px; }
+@media (max-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); padding: 34px 8px 80px; } }
+
+.isle {
+  --glow: 255 255 255;
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-self: center;
+  width: min(100%, 236px); padding-bottom: 6px;
+  transform: translate(var(--dx, 0), var(--dy, 0)) rotate(var(--rot, 0deg));
+  outline: none; -webkit-tap-highlight-color: transparent;
+}
+@media (max-width: 640px) { .isle { transform: translate(var(--nx, 0), var(--ny, 0)) rotate(var(--rot, 0deg)); width: min(100%, 176px); } }
+
+.ripples { position: absolute; left: 0; right: 0; top: 0; width: 100%; aspect-ratio: 200 / 156; pointer-events: none; overflow: visible; }
+.ripples ellipse { fill: none; stroke: rgb(255 255 255 / .5); stroke-width: 1.6; transform-box: fill-box; transform-origin: center; animation: ripple 4.2s ease-out infinite; opacity: 0; }
+.ripples ellipse:nth-child(2) { animation-delay: 1.4s; }
+.ripples ellipse:nth-child(3) { animation-delay: 2.8s; }
+
+.body { position: relative; width: 100%; aspect-ratio: 200 / 156; animation: float 5.2s ease-in-out infinite var(--dl, 0s); transition: filter .3s, scale .3s; }
+.body > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 8px 6px rgb(0 0 0 / .22)); }
+.isle:hover .body, .isle:focus-visible .body { filter: drop-shadow(0 0 18px rgb(var(--glow) / .85)); scale: 1.05; }
+
+.sticker { position: absolute; left: 50%; bottom: 56%; height: 44%; transform: translateX(-50%); display: flex; align-items: flex-end; justify-content: center; pointer-events: none; z-index: 2; }
+.sticker img { height: 100%; width: auto; max-width: 80px; object-fit: contain; display: block; filter: drop-shadow(0 3px 3px rgb(0 0 0 / .35)); transform-origin: 50% 90%; animation: sway 3.4s ease-in-out infinite var(--dl, 0s); }
+.isle:hover .sticker img, .isle:focus-visible .sticker img, .isle:hover .ph, .isle:focus-visible .ph { animation: hop .7s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+.ph { width: 34px; height: 34px; margin-bottom: 4px; fill: rgb(var(--glow)); filter: drop-shadow(0 0 8px rgb(var(--glow) / .9)) brightness(1.35); animation: pulse 2.6s ease-in-out infinite; transform-origin: 50% 70%; }
+
+.pr { transform-box: fill-box; transform-origin: 50% 100%; }
+.isle:hover .pr, .isle:focus-visible .pr { animation: wiggle .6s ease-in-out; }
+.steam { fill: none; stroke: rgb(255 255 255 / .8); stroke-width: 1.8; stroke-linecap: round; animation: steam 2.6s ease-in-out infinite; }
+.steam.b { animation-delay: 1.2s; }
+
+.fx { position: absolute; inset: -6% -4% 0; pointer-events: none; z-index: 3; }
+.fx i { position: absolute; width: var(--s, 5px); height: var(--s, 5px); rotate: 45deg; border-radius: 1.5px; background: rgb(var(--glow)); filter: brightness(1.5);
+  box-shadow: 0 0 8px rgb(var(--glow) / .9); opacity: 0; animation: rise var(--d, 3.4s) ease-in-out infinite var(--dl, 0s); }
+
+.tag {
+  position: relative; z-index: 4; margin-top: -2px; max-width: 100%; display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 700; letter-spacing: .01em; white-space: nowrap;
+  background: rgb(10 14 30 / .66); border: 1px solid rgb(var(--glow) / .6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-shadow: 0 1px 4px rgb(0 0 0 / .5);
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.tag::before { content: ''; width: 6px; height: 6px; border-radius: 1.5px; rotate: 45deg; background: rgb(var(--glow)); filter: brightness(1.4); box-shadow: 0 0 6px rgb(var(--glow)); flex: none; }
+.isle:hover .tag, .isle:focus-visible .tag { background: rgb(10 14 30 / .82); border-color: rgb(var(--glow)); transform: translateY(2px); }
+@media (max-width: 640px) { .tag { font-size: 11.5px; padding: 4px 10px; } }
+
+/* sea waves at the bottom */
+.sea { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; z-index: 2; pointer-events: none; overflow: hidden; }
+.sea svg { position: absolute; left: 0; bottom: 0; width: 200%; height: 100%; }
+.sea .w1 { fill: rgb(var(--sea-top) / .45); animation: slide 16s linear infinite; }
+.sea .w2 { fill: rgb(var(--sea-bot) / .8); animation: slide 10s linear infinite reverse; bottom: -8px; }
+
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(-.8deg); } 50% { transform: translateY(-7px) rotate(.8deg); } }
+@keyframes ripple { 0% { transform: scale(.55); opacity: 0; } 20% { opacity: .55; } 100% { transform: scale(1.15); opacity: 0; } }
+@keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg) translateY(-1px); } }
+@keyframes hop { 0%, 100% { transform: translateY(0) scale(1); } 40% { transform: translateY(-14px) rotate(-5deg) scale(1.1); } 70% { transform: translateY(1px) scale(.96); } }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-6deg); } 65% { transform: rotate(5deg); } }
+@keyframes pulse { 0%, 100% { transform: scale(.9); opacity: .85; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes steam { 0% { transform: translateY(2px); opacity: 0; } 40% { opacity: .9; } 100% { transform: translateY(-9px); opacity: 0; } }
+@keyframes rise { 0% { transform: translateY(8px) scale(.5); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-34px) scale(1); opacity: 0; } }
+@keyframes twinkle { 0%, 100% { opacity: .1; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes twk { 0%, 100% { opacity: calc(var(--stars) * .25); } 50% { opacity: calc(var(--stars) * .95); } }
+@keyframes drift { from { transform: translateX(-30%); } to { transform: translateX(900%); } }
+@keyframes glint { 0%, 100% { opacity: 0; transform: scaleX(.4); } 50% { opacity: .5; transform: scaleX(1); } }
+@keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+}
