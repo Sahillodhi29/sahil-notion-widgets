@@ -1,7 +1,8 @@
 /* ============================================================
-   Today's Sail
+   Today's Adventure
    Reads today's to-dos and Must Do's through /api/sail and lets you
-   tick them off. Ticked items sail away and the next ones come up.
+   tick them off. Your straw hat rides the progress ribbon, and the
+   cards wear the same live, time-synced sky as the sky banner.
 
    URL options:
      ?key=YOUR_WIDGET_KEY     required (the password set in Vercel)
@@ -9,6 +10,9 @@
      ?demo=1                  sample data, nothing is saved
      ?demo=alldone | calm     preview the "nothing left" states
      ?todoLink= ?mustLink=    where "Open full page" goes
+     ?time=14:30              preview the sky at a time of day
+     ?lat= &lon=              sky location (default Gwalior)
+     ?hat=assets/hat.png      rider image (also ?hatTodo= ?hatMust=)
    ============================================================ */
 (() => {
   'use strict';
@@ -32,10 +36,166 @@
 
   const CARDS = {
     todo: { card: $('todoCard'), list: $('todoList'), empty: $('todoEmpty'), et: $('todoEt'), es: $('todoEs'),
-            count: $('todoCount'), fill: $('todoFill'), bar: $('todoBar'), more: $('todoMore') },
+            count: $('todoCount'), fill: $('todoFill'), bar: $('todoBar'), more: $('todoMore'), cheer: $('todoCheer'), prev: null },
     must: { card: $('mustCard'), list: $('mustList'), empty: $('mustEmpty'), et: $('mustEt'), es: $('mustEs'),
-            count: $('mustCount'), fill: $('mustFill'), bar: $('mustBar'), more: $('mustMore') },
+            count: $('mustCount'), fill: $('mustFill'), bar: $('mustBar'), more: $('mustMore'), cheer: $('mustCheer'), prev: null },
   };
+
+
+  /* ============================================================
+     Time-synced sky (same palette + curve as the sky banner)
+     ============================================================ */
+  const num = (k, d) => { const v = parseFloat(q.get(k)); return Number.isFinite(v) ? v : d; };
+  const LAT = num('lat', 26.2183), LON = num('lon', 78.1828);
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = t => t * t * (3 - 2 * t);
+  const mixC = (a, b, t) => a.map((v, i) => lerp(v, b[i], t));
+  const rgb = c => c.map(v => Math.round(clamp(v, 0, 255))).join(' ');
+  const pal = (top, mid, bot, seaTop, seaBot, cloud, cloudA, stars, aurora, shipB, shipS, spark) =>
+    ({ top, mid, bot, seaTop, seaBot, cloud, cloudA, stars, aurora, shipB, shipS, spark });
+  const P = {
+    night:   pal([9,24,64],[14,52,112],[28,92,158],[20,72,150],[8,30,92],[70,110,165],.5,1,.9,.78,.9,[210,240,255]),
+    dawn:    pal([70,76,140],[196,134,166],[252,190,150],[128,150,196],[52,80,142],[255,205,195],.8,.22,.15,.9,1,[255,235,220]),
+    morning: pal([112,168,214],[176,212,226],[250,226,192],[92,170,204],[40,110,162],[255,244,236],.85,0,0,1,1,[255,255,255]),
+    day:     pal([66,148,224],[122,190,236],[196,228,242],[62,152,208],[28,96,162],[255,255,255],.9,0,0,1,1,[255,255,255]),
+    golden:  pal([96,150,204],[248,208,142],[255,172,112],[104,170,192],[40,108,150],[255,218,176],.85,0,0,.95,1.05,[255,240,210]),
+    sunset:  pal([112,160,172],[250,192,110],[238,102,62],[66,172,172],[20,120,132],[206,92,92],.75,0,0,.8,1.1,[255,236,190]),
+    dusk:    pal([42,52,112],[122,72,132],[232,112,102],[62,72,142],[22,42,102],[156,92,134],.65,.5,.35,.78,1,[255,225,215]),
+  };
+  function blend(a, b, t) {
+    const o = {};
+    for (const k in a) o[k] = Array.isArray(a[k]) ? mixC(a[k], b[k], t) : lerp(a[k], b[k], t);
+    return o;
+  }
+  function skyAt(h, sr, ss) {
+    const ks = [
+      [0, P.night], [sr - 1.5, P.night], [sr - .35, P.dawn], [sr + 1.6, P.morning],
+      [sr + 4.2, P.day], [ss - 3.0, P.day], [ss - 1.2, P.golden], [ss - .05, P.sunset],
+      [ss + .9, P.dusk], [ss + 2.1, P.night], [24, P.night],
+    ];
+    for (let i = 0; i < ks.length - 1; i++) {
+      const [h0, a] = ks[i], [h1, b] = ks[i + 1];
+      if (h >= h0 && h <= h1) return blend(a, b, h1 === h0 ? 0 : smooth((h - h0) / (h1 - h0)));
+    }
+    return P.night;
+  }
+  let SR = 6.3, SS = 18.1;
+  function estimateSun(d) {
+    const rad = Math.PI / 180;
+    const N = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5);
+    const decl = 23.44 * rad * Math.sin(2 * Math.PI * (284 + N) / 365);
+    const phi = LAT * rad;
+    const cosH = (Math.sin(-0.833 * rad) - Math.sin(phi) * Math.sin(decl)) / (Math.cos(phi) * Math.cos(decl));
+    const H = Math.acos(clamp(cosH, -1, 1)) / rad / 15;
+    const B = 2 * Math.PI * (N - 81) / 364;
+    const E = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+    const noon = 12 + (-new Date().getTimezoneOffset() / 4 - LON) / 15 - E / 60;
+    return { sr: noon - H, ss: noon + H };
+  }
+  { const s = estimateSun(new Date()); if (Number.isFinite(s.sr) && Number.isFinite(s.ss)) { SR = s.sr; SS = s.ss; } }
+
+  const PREVIEW = (() => {
+    const t = q.get('time');
+    if (!t) return null;
+    const m = /^(\d{1,2})(?::(\d{2}))?$/.exec(t.trim());
+    return m ? clamp(+m[1] + (m[2] ? +m[2] / 60 : 0), 0, 23.99) : null;
+  })();
+
+  function applySky() {
+    const d = new Date();
+    const h = PREVIEW != null ? PREVIEW : d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
+    const k = skyAt(h, SR, SS);
+    const set = (n, v) => document.documentElement.style.setProperty(n, v);
+    set('--sky-top', rgb(k.top)); set('--sky-mid', rgb(k.mid)); set('--sky-bot', rgb(k.bot));
+    set('--sea-top', rgb(k.seaTop)); set('--sea-bot', rgb(k.seaBot));
+    set('--spark', rgb(k.spark)); set('--stars', k.stars.toFixed(3)); set('--aurora', k.aurora.toFixed(3));
+    set('--cloud', rgb(k.cloud)); set('--cloud-a', k.cloudA.toFixed(3));
+  }
+  async function fetchSun() {
+    try {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 8000);
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON +
+        '&daily=sunrise,sunset&timezone=auto&forecast_days=1', { signal: ctl.signal });
+      clearTimeout(t);
+      if (!res.ok) return;
+      const data = await res.json();
+      const parse = s => { const m = /T(\d\d):(\d\d)/.exec(s || ''); return m ? +m[1] + +m[2] / 60 : null; };
+      const sr = parse(data.daily && data.daily.sunrise && data.daily.sunrise[0]);
+      const ss = parse(data.daily && data.daily.sunset && data.daily.sunset[0]);
+      if (sr && ss && ss > sr) { SR = sr; SS = ss; applySky(); }
+    } catch { /* the offline estimate is already good enough */ }
+  }
+
+  /* seeded little decorations inside each card */
+  function seeded(seed) {
+    return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  function decorate(card, seed) {
+    const r = seeded(seed);
+    const deco = el('div', 'deco');
+    deco.appendChild(el('i', 'aur'));
+    for (let i = 0; i < 3; i++) {
+      const c = el('i', 'cld');
+      c.style.cssText = `top:${8 + r() * 42}%;left:0;--w:${90 + r() * 90}px;--h:${22 + r() * 22}px;--d:${55 + r() * 50}s;--dl:${-r() * 80}s`;
+      deco.appendChild(c);
+    }
+    for (let i = 0; i < 22; i++) {
+      const s = el('i', 'star');
+      s.style.cssText = `left:${r() * 100}%;top:${r() * 62}%;--o:${.5 + r() * .5};--d:${2 + r() * 3}s;--dl:${-r() * 4}s`;
+      if (r() > .8) { s.style.width = s.style.height = '3px'; }
+      deco.appendChild(s);
+    }
+    for (let i = 0; i < 6; i++) {
+      const s = el('i', 'spk');
+      s.style.cssText = `left:${6 + r() * 88}%;top:${4 + r() * 50}%;--s:${4 + r() * 4}px;--d:${2.6 + r() * 2.6}s;--dl:${-r() * 4}s`;
+      deco.appendChild(s);
+    }
+    card.insertBefore(deco, card.firstChild);
+
+    const sea = el('div', 'sea');
+    const wave = (cls, amp, off) => {
+      const ns = 'http://www.w3.org/2000/svg';
+      const sv = document.createElementNS(ns, 'svg');
+      sv.setAttribute('viewBox', '0 0 800 60'); sv.setAttribute('preserveAspectRatio', 'none');
+      let d = `M0 ${30 + off}`;
+      for (let x = 0; x < 800; x += 100) d += ` q25 ${-amp} 50 0 t50 0`;
+      d += ' V60 H0 Z';
+      const p = document.createElementNS(ns, 'path');
+      p.setAttribute('d', d);
+      sv.setAttribute('class', cls);
+      sv.appendChild(p);
+      return sv;
+    };
+    sea.append(wave('w1', 16, 4), wave('w2', 12, 14));
+    card.insertBefore(sea, deco.nextSibling);
+  }
+  /* the rider image: user's straw hat, with a tiny drawn fallback */
+  const HAT_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><ellipse cx="24" cy="31" rx="21" ry="8" fill="#f6c453"/>' +
+    '<path d="M10 30c0-14 28-14 28 0z" fill="#fbd873"/><path d="M10.5 28.5c8 3 19 3 27 0l.5 3c-8 3.2-20 3.2-28 0z" fill="#e0262d"/></svg>');
+  function setupHats() {
+    ['todo', 'must'].forEach(k => {
+      const img = CARDS[k].card.querySelector('.hat');
+      const src = q.get(k === 'todo' ? 'hatTodo' : 'hatMust') || q.get('hat') || 'assets/hat.png';
+      img.addEventListener('error', () => { if (img.src !== HAT_FALLBACK) img.src = HAT_FALLBACK; }, { once: true });
+      img.src = src;
+    });
+  }
+  function burst(kind, n) {
+    const box = CARDS[kind].fill.querySelector('.burst');
+    const cols = kind === 'must' ? ['#9ff5e0', '#ffffff', '#f6a8c8', '#5eead4'] : ['#ffe6a8', '#ffffff', '#ff9a8a', '#ffc27a'];
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('i');
+      const a = (Math.PI * 2 * i) / n + Math.random() * .6;
+      const dist = 26 + Math.random() * 30;
+      p.style.cssText = `--dx:${Math.cos(a) * dist}px;--dy:${Math.sin(a) * dist - 10}px;--c:${cols[i % cols.length]};--s:${4 + Math.random() * 4}px;--t:${.7 + Math.random() * .4}s`;
+      box.appendChild(p);
+      setTimeout(() => p.remove(), 1200);
+    }
+  }
 
   /* ---------- state ----------
      item.state: 'open' | 'completing' (animating out) | 'gone' (finished) */
@@ -185,6 +345,24 @@
     c.bar.setAttribute('aria-valuenow', String(pct));
     c.card.classList.toggle('complete', showStats && open === 0);
     c.card.classList.toggle('nostats', !showStats);
+
+    // hat hops (and sparkles) when something just got ticked
+    if (showStats && c.prev && c.prev.total === total && done > c.prev.done) {
+      c.card.classList.remove('hop'); void c.card.offsetWidth; c.card.classList.add('hop');
+      burst(kind, open === 0 ? 16 : 9);
+      setTimeout(() => c.card.classList.remove('hop'), 1500);
+    }
+    c.prev = showStats ? { done, total } : null;
+
+    // cheer line
+    let cheer = '';
+    if (showStats) {
+      if (open === 0) cheer = "All done. Hats off, captain!";
+      else if (done === 0) cheer = 'Hoist the sails. Let\'s go!';
+      else if (done / total >= .75) cheer = open === 1 ? 'One more and you\'re there!' : `Almost there, ${open} to go!`;
+      else cheer = `${open} more to go`;
+    }
+    c.cheer.textContent = cheer;
 
     // footer: how many more are waiting beyond the visible rows
     const hidden = Math.max(0, open - ROWS);
@@ -442,6 +620,11 @@
   }
 
   skeleton();
+  setupHats();
+  decorate(CARDS.todo.card, 7);
+  decorate(CARDS.must.card, 19);
+  applySky();
+  if (PREVIEW == null) { setInterval(applySky, 30000); fetchSun(); }
   $('sub').textContent = fmtDay(localToday());
 
   if (isDemo) {
