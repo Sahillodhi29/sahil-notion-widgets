@@ -148,6 +148,12 @@
       if (r() > .8) { s.style.width = s.style.height = '3px'; }
       deco.appendChild(s);
     }
+    const hz = el('i', 'hz'); deco.appendChild(hz);
+    for (let i = 0; i < 9; i++) {
+      const g = el('i', 'glint');
+      g.style.cssText = `left:${r() * 92}%;top:${34 + r() * 56}%;--w:${14 + r() * 24}px;--d:${3.5 + r() * 4}s;--dl:${-r() * 6}s`;
+      deco.appendChild(g);
+    }
     for (let i = 0; i < 6; i++) {
       const s = el('i', 'spk');
       s.style.cssText = `left:${6 + r() * 88}%;top:${4 + r() * 50}%;--s:${4 + r() * 4}px;--d:${2.6 + r() * 2.6}s;--dl:${-r() * 4}s`;
@@ -410,12 +416,7 @@
   }
 
   /* ---------- header / sync dot ---------- */
-  function setSync(state, text, tip) {
-    const s = $('sync');
-    s.className = 'sync ' + state;
-    $('syncText').textContent = text;
-    s.title = tip || '';
-  }
+  function setSync() { /* the little status line was removed on purpose */ }
   const clock = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
   /* ---------- toast ---------- */
@@ -458,7 +459,6 @@
 
   function applyServer(d) {
     S.today = d.today || localToday();
-    $('sub').textContent = d.label || fmtDay(S.today);
 
     if (d.todos && d.todos.error) {
       S.todo = { ...S.todo, items: [], error: d.todos.error, hint: d.todos.hint, ready: true };
@@ -503,7 +503,6 @@
   async function load() {
     if (isDemo || inflight > 0 || loading) return schedule();
     loading = true;
-    $('sync').classList.add('busy');
     try {
       const d = await api('GET');
       failures = 0;
@@ -625,7 +624,6 @@
   decorate(CARDS.must.card, 19);
   applySky();
   if (PREVIEW == null) { setInterval(applySky, 30000); fetchSun(); }
-  $('sub').textContent = fmtDay(localToday());
 
   if (isDemo) {
     setSync('demo', 'Demo mode', 'Sample data. Nothing is saved.');
