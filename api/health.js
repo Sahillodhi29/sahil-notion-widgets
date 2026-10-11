@@ -6,6 +6,7 @@
    the integration, and whether the property names match.
    ============================================================ */
 const { DBS, TZ, VERSION, notion, wrap, todayStr } = require('../lib/notion');
+const { LOGS } = require('./status');
 
 const EXPECT_TODO = {
   Name: 'title', Status: 'status', 'Due Date': 'date', Priority: 'select',
@@ -24,7 +25,11 @@ async function inspect(id, kind) {
   out.title = (db.title || []).map(t => t.plain_text).join('') || '(untitled)';
   const props = db.properties || {};
 
-  if (kind === 'todo') {
+  if (kind === 'log') {
+    if (!props.Date || props.Date.type !== 'date') out.problems.push('Missing date property "Date".');
+    out.checkboxes = Object.keys(props).filter(k => props[k].type === 'checkbox').map(k => k.trim());
+    if (!out.checkboxes.length) out.problems.push('No checkbox properties found.');
+  } else if (kind === 'todo') {
     for (const [name, type] of Object.entries(EXPECT_TODO)) {
       if (!props[name]) out.problems.push(`Missing property "${name}".`);
       else if (props[name].type !== type) out.problems.push(`Property "${name}" should be type ${type} but is ${props[name].type}.`);
@@ -44,12 +49,14 @@ async function inspect(id, kind) {
 }
 
 module.exports = wrap(async (req, res) => {
-  const [mustdo, general, self] = await Promise.all([
+  const [mustdo, general, self, workout, meal] = await Promise.all([
     inspect(DBS.mustdo, 'must'),
     inspect(DBS.todoGeneral, 'todo'),
     inspect(DBS.todoSelf, 'todo'),
+    inspect(LOGS.workout, 'log'),
+    inspect(LOGS.meal, 'log'),
   ]);
-  const databases = { mustdo, todoGeneral: general, todoSelf: self };
+  const databases = { mustdo, todoGeneral: general, todoSelf: self, workoutLog: workout, mealLog: meal };
   const ok = Object.values(databases).every(d => d.ok);
   res.status(200).json({
     ok,

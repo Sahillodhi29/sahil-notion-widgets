@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#191919">
+  <title>Current Status</title>
+  <style>html,body{background:#191919;color-scheme:dark}</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <div class="ttl"><i class="tw l" aria-hidden="true"></i><h1>Current Status</h1><i class="tw r" aria-hidden="true"></i></div>
+      <div class="seg" role="tablist" aria-label="Range">
+        <button type="button" role="tab" id="bWeek" data-r="week">Week</button>
+        <button type="button" role="tab" id="bMonth" data-r="month">Month</button>
+        <i class="knob" id="knob"></i>
+      </div>
+    </header>
+
+    <div class="cards" id="cards"></div>
+    <div class="msg" id="msg" hidden><div class="mt" id="msgT"></div><div class="ms" id="msgS"></div></div>
+    <div class="tip" id="tip" role="tooltip"></div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
