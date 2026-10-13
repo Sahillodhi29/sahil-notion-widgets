@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workout widgets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/workout/style.css">
+</head>
+<body>
+  <main id="stage">
+
+    <article class="card" data-w="ripple" hidden>
+      <div class="ring-layout">
+        <div class="ring-wrap">
+          <svg id="ring" viewBox="0 0 200 200" role="img" aria-label="Session progress"></svg>
+          <div class="ring-center"><span id="ringDone" class="ring-num">–</span><span id="ringOf" class="ring-of"></span></div>
+        </div>
+        <div class="ring-text">
+          <h1 id="rTitle">Today's session</h1>
+          <p id="dateLine" class="date"></p>
+          <p id="statusLine" class="status"></p>
+        </div>
+      </div>
+      <img id="sticker" class="sticker" src="/workout/assets/plum.svg" alt="" hidden>
+    </article>
+
+    <article class="card" data-w="session" hidden>
+      <div class="head"><h2 id="sTitle">Today's session</h2><span id="sCount" class="muted"></span></div>
+      <div id="tiles" class="tiles"></div>
+      <p id="sFoot" class="muted foot"></p>
+    </article>
+
+    <article class="card" data-w="week" hidden>
+      <h2>This week</h2>
+      <div id="week" class="week"></div>
+      <p id="weekNote" class="muted foot"></p>
+    </article>
+
+    <article class="card" data-w="streak" hidden>
+      <h2>Streak</h2>
+      <p class="streak-main"><span id="stNum" class="stnum">–</span><span id="stUnit" class="stunit"></span></p>
+      <p id="stLine" class="muted"></p>
+      <div id="stDots" class="dots"></div>
+      <p id="stBest" class="muted"></p>
+    </article>
+
+    <article class="card" data-w="mosaic" hidden>
+      <h2>Last five weeks</h2>
+      <div id="mosaic" class="mosaic"></div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="c0"></i>No log</span><span><i class="rs"></i>Rest day</span><span><i class="c1"></i>Under half</span><span><i class="c2"></i>Half or more</span><span><i class="c3"></i>Session done</span><span><i class="cr"></i>Rest day done</span>
+      </div>
+    </article>
+
+    <article class="card" data-w="balance" hidden>
+      <h2>Push, pull, legs</h2>
+      <p id="balNote" class="muted"></p>
+      <div id="groups" class="groups"></div>
+      <h3 id="skipHead" hidden>Skipped most</h3>
+      <div id="skipped" class="skipped"></div>
+    </article>
+
+    <article class="card" data-w="fuel" hidden>
+      <h2>Fuel check</h2>
+      <p id="fuelNote" class="muted"></p>
+      <div id="fuel" class="fuel"></div>
+      <p id="fuelToday" class="fuel-today"></p>
+    </article>
+
+    <article class="card" id="bad" hidden></article>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/workout/script.js"></script>
+</body>
+</html>
