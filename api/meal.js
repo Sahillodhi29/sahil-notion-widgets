@@ -4,6 +4,7 @@
 
    GET  /api/meal?days=35  -> Meal Log rows (with page ids) for the last N days
    POST /api/meal          -> { action: 'toggle', pageId, prop, value }
+                              { action: 'start-day' }  (creates today's row if it doesn't exist yet)
 
    Same rules as /api/sail: reads take ?key=, writes need the
    x-widget-key header. Locked down to pages inside the Meal Log.
@@ -13,6 +14,8 @@ const { LOGS } = require('./status');
 
 const DATE_PROP = 'Date';
 const MAX_DAYS = 120;
+const TITLE_FALLBACK = 'Session';     // the Meal Log's title property
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function shape(rows) {
   const out = [];
@@ -38,6 +41,33 @@ async function toggle(pageId, prop, value) {
   return { ok: true };
 }
 
+/* Does the same job as the Notion "New Day" button: one row per day, titled "<Weekday>'s Meals". */
+async function startDay(today) {
+  const found = await queryAll(LOGS.meal, { filter: { property: DATE_PROP, date: { equals: today } } }, 5);
+  if (found.length) return { ok: true, created: false, row: shape([found[0]])[0] };   // never makes a second row for the day
+
+  let titleProp = TITLE_FALLBACK;
+  try {
+    const db = await notion(`/databases/${LOGS.meal}`);
+    titleProp = Object.keys(db.properties || {}).find(k => db.properties[k].type === 'title') || TITLE_FALLBACK;
+  } catch (e) { /* keep the fallback */ }
+
+  const name = `${WEEKDAYS[new Date(today + 'T00:00:00Z').getUTCDay()]}'s Meals`;
+  const page = await notion('/pages', {
+    method: 'POST',
+    body: {
+      parent: { database_id: LOGS.meal },
+      properties: {
+        [titleProp]: { title: [{ type: 'text', text: { content: name } }] },
+        [DATE_PROP]: { date: { start: today } },
+      },
+    },
+  });
+  let row = shape([page])[0];
+  if (!row || !row.items.length) row = shape([await notion(`/pages/${page.id}`)])[0];
+  return { ok: true, created: true, row };
+}
+
 module.exports = wrap(async (req, res) => {
   const today = todayStr();
 
@@ -58,6 +88,7 @@ module.exports = wrap(async (req, res) => {
   if (req.method === 'POST') {
     const b = readBody(req);
     if (b.action === 'toggle') return res.status(200).json(await toggle(b.pageId, String(b.prop || ''), b.value));
+    if (b.action === 'start-day') return res.status(200).json(await startDay(today));
     throw new HttpError(400, 'Unknown action.');
   }
 

@@ -72,6 +72,13 @@ h2 { font-size: 24px; color: var(--ivory); margin-bottom: 12px; line-height: 1.1
 .chip[aria-pressed="true"] .box { background: var(--oxblood); border-color: var(--oxblood); }
 .chip[aria-pressed="true"] .box svg { opacity: 1; stroke: var(--stone); }
 .empty { color: var(--taupe); grid-column: 1 / -1; }
+.start { grid-column: 1 / -1; display: grid; justify-items: start; gap: 12px; padding: 4px 0 2px; }
+.start-text { font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--ivory); }
+.btn { font: inherit; font-weight: 600; font-size: 15px; color: var(--oxblood); background: var(--stone); border: 0; border-bottom: 3px solid var(--taupe);
+  border-radius: 12px; padding: 11px 22px; cursor: pointer; transition: background .2s, transform .1s, border-bottom-width .1s; }
+.btn:hover { background: var(--ivory); }
+.btn:active { transform: translateY(2px); border-bottom-width: 1px; }
+.btn:disabled { opacity: .7; cursor: default; }
 
 /* week */
 .week { flex: 1; min-height: 130px; max-width: 560px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }

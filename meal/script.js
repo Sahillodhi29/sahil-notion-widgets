@@ -81,7 +81,7 @@
     $('ringDone').textContent = state.todayRow ? c.done : '–';
     $('ringOf').textContent = state.todayRow ? `of ${c.total}` : 'no log yet';
     $('dateLine').textContent = fmtDate(state.today);
-    if (!state.todayRow) $('statusLine').textContent = 'No log for today yet. Press New Day in Notion to start.';
+    if (!state.todayRow) $('statusLine').textContent = 'No plate for today yet. Start it from the checklist.';
     else { const left = c.total - c.done; $('statusLine').textContent = left === 0 ? 'Everything on the plate is done.' : `${c.done} done, ${left} still to go.`; }
   }
 
@@ -102,7 +102,13 @@
   const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>';
   function renderPlate() {
     const el = $('chips');
-    if (!state.todayRow) { $('plateCount').textContent = ''; el.innerHTML = '<p class="empty">Nothing to tick yet. Today\'s log appears here once you press New Day in Notion.</p>'; return; }
+    if (!state.todayRow) {
+      $('plateCount').textContent = '';
+      el.innerHTML = `<div class="start"><p class="start-text">Nothing on the plate yet today.</p>
+        <button class="btn" id="startBtn" type="button">Start today's plate</button>
+        <p class="muted">Adds today's row with every item unticked. Tick each one as you eat it.</p></div>`;
+      return;
+    }
     const c = counts(state.todayRow);
     $('plateCount').textContent = `${c.done} of ${c.total}`;
     el.innerHTML = state.todayRow.items.map(it =>
@@ -194,7 +200,29 @@
     } finally { state.pending--; }
   }
 
-  if (has('plate')) $('chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) toggle(b.dataset.key); });
+  async function startDay() {
+    const btn = $('startBtn'); if (!btn || state.pending) return;
+    state.pending++; btn.disabled = true; btn.textContent = 'Setting the table…';
+    try {
+      const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-widget-key': KEY }, body: JSON.stringify({ action: 'start-day' }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || j.error || !j.row) { const e = new Error(j.error || `HTTP ${r.status}`); e.hint = j.hint; throw e; }
+      state.rows = state.rows.filter(x => x.date !== j.row.date).concat(j.row).sort((a, b) => a.date.localeCompare(b.date));
+      state.todayRow = j.row;
+      renderAll();
+      if (!j.created) toast("Today's plate was already started.");
+      if (bc) bc.postMessage('changed');
+    } catch (e) {
+      console.error('Start day failed:', e);
+      btn.disabled = false; btn.textContent = "Start today's plate";
+      toast(`Couldn't start the plate: ${e.message}${e.hint ? ' ' + e.hint : ''}`, 7000);
+    } finally { state.pending--; }
+  }
+
+  if (has('plate')) $('chips').addEventListener('click', e => {
+    if (e.target.closest('#startBtn')) return startDay();
+    const b = e.target.closest('.chip'); if (b) toggle(b.dataset.key);
+  });
   $('sticker').addEventListener('load', e => { e.target.hidden = false; });
 
   refresh();
