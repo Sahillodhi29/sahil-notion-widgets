@@ -13,6 +13,13 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  /* ---------- background: Notion dark by default; &bg=transparent or &bg=HEX to change ---------- */
+  const bgParam = params.get('bg');
+  if (bgParam) {
+    const v = bgParam === 'transparent' ? 'transparent' : /^[0-9a-f]{3,8}$/i.test(bgParam) ? '#' + bgParam : null;
+    if (v) { document.documentElement.style.background = v; document.body.style.background = v; }
+  }
+
   /* ---------- which widgets? ---------- */
   const asked = (params.get('w') || 'all').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
   const wantAll = asked.includes('all');
@@ -174,8 +181,8 @@
     if (!it) return;
     const next = !it.done; it.done = next; state.pending++; renderAll();
     try {
-      // text/plain keeps this a "simple" request, so Notion's sandboxed embed needs no CORS preflight
-      const r = await fetch(`${API}${keyQ('?')}`, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      // Writes authenticate with the x-widget-key header (same as the Sail widget); ?key= only works for reads.
+      const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-widget-key': KEY },
         body: JSON.stringify({ action: 'toggle', pageId: state.todayRow.id, prop: key, value: next }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || j.error) { const e = new Error(j.error || `HTTP ${r.status}`); e.hint = j.hint; throw e; }

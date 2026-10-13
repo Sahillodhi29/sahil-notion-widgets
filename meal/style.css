@@ -13,9 +13,9 @@
 }
 * { box-sizing: border-box; margin: 0; }
 [hidden] { display: none !important; }
-/* transparent page so each card's rounded corners sit on Notion's own background */
-html, body { background: transparent; height: 100%; color: var(--stone); }
-body { font-family: var(--sans); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+/* Notion's dark page color, so the card corners blend in (use &bg=transparent for other themes) */
+html, body { background: #191919; height: 100%; color: var(--stone); }
+body { font-variant-numeric: lining-nums; font-family: var(--sans); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 
 #stage { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); }
 body[data-mode="multi"] #stage { height: auto; grid-template-rows: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 2px; }
@@ -40,7 +40,7 @@ h2 { font-size: 24px; color: var(--ivory); margin-bottom: 12px; line-height: 1.1
 #ring .step.done { fill: var(--stone); }
 #ring .rail { fill: none; stroke: var(--taupe); stroke-width: .8; opacity: .55; }
 .ring-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
-.ring-num { font-family: var(--serif); font-size: clamp(32px, 9cqw, 48px); font-weight: 500; line-height: 1; }
+.ring-num { font-family: var(--sans); font-size: clamp(30px, 8cqw, 42px); font-weight: 500; line-height: 1; }
 .ring-of { font-size: 12px; color: var(--taupe); margin-top: 2px; }
 .ring-text { display: grid; gap: 6px; }
 .date { font-family: var(--serif); font-size: 20px; color: var(--ivory); }
@@ -52,7 +52,7 @@ h2 { font-size: 24px; color: var(--ivory); margin-bottom: 12px; line-height: 1.1
 
 /* streak */
 .streak-main { display: flex; align-items: baseline; gap: 10px; }
-.stnum { font-family: var(--serif); font-size: 64px; line-height: 1; font-weight: 500; }
+.stnum { font-family: var(--sans); font-size: 56px; line-height: 1; font-weight: 500; }
 .stunit { font-family: var(--serif); font-style: italic; font-size: 24px; color: var(--ivory); }
 .dots { display: flex; gap: 9px; margin: 16px 0 12px; }
 .dot { display: grid; justify-items: center; gap: 5px; font-size: 11.5px; color: var(--taupe); }
