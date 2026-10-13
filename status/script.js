@@ -48,6 +48,20 @@
   const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  /* Workout days: Mon, Wed, Fri, Sun. Change with ?wdays=mon,tue,thu  (a day that has a log row is always shown) */
+  const SCHED = (() => {
+    const names = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const raw = (q.get('wdays') || 'mon,wed,fri,sun').toLowerCase().split(',').map(x => x.trim().slice(0, 3));
+    const set = new Set(raw.map(x => names.indexOf(x)).filter(i => i >= 0));
+    return set.size ? set : new Set([0, 2, 4, 6]);
+  })();
+  /* Which cards to show: ?cards=mustdo,workout  or  ?cards=meal  (to use two separate embeds) */
+  const SHOW = (() => {
+    const c = (q.get('cards') || '').split(',').map(x => x.trim());
+    const list = ORDER.filter(k => c.includes(k));
+    return list.length ? list : ORDER;
+  })();
+
   let RANGE = q.get('range') === 'month' ? 'month' : 'week';
   let DATA = null;
   let animateNext = true;
@@ -81,7 +95,7 @@
       const date = addDays(per.start, i);
       const row = byDate.get(date);
       const isFuture = date > today;
-      const d = { date, i, state: 'future', pct: 0, done: 0, total: 0, missed: [], map: null, isToday: date === today };
+      const d = { date, i, k: i, dow: dowMon(date), state: 'future', pct: 0, done: 0, total: 0, missed: [], map: null, isToday: date === today };
       if (row) {
         d.map = new Map(row.items.map(x => [x.label, x.done]));
         d.total = row.items.length;
@@ -100,6 +114,10 @@
         else d.state = 'missing';
       }
       days.push(d);
+    }
+    if (kind === 'workout') {
+      const keep = days.filter(d => SCHED.has(d.dow) || d.map);
+      days.length = 0; keep.forEach((d, idx) => { d.i = idx; days.push(d); });
     }
     const out = { per, days, avg: counted ? Math.round((sum / counted) * 100) : null, counted, logged, sessions, planned, tally, rowsUsed: logged };
 
@@ -154,7 +172,8 @@
 
   /* week: glass columns with value pills (like the slider chart in your reference) */
   function columnsHTML(kind, comp) {
-    let h = '<div class="cols">';
+    let h = `<div class="cols" style="--n:${comp.days.length}">`;
+    const long = comp.days.length < 7;
     comp.days.forEach(d => {
       const has = d.state === 'row' && !d.noRow;
       const p = has ? d.pct : 0;
@@ -164,7 +183,7 @@
         ${has ? `<div class="pill" style="--p:${p}">${Math.round(p * 100)}</div>` : ''}
         ${d.state === 'plan' ? '<div class="pill ghost">plan</div>' : ''}
         ${d.isToday ? `<img class="hat" alt="" src="${HAT}" style="--p:${p}">` : ''}
-        <div class="dn">${WD[d.i][0]}</div></div>`;
+        <div class="dn">${long ? WD[d.dow] : WD[d.dow][0]}</div></div>`;
     });
     return h + '</div>';
   }
@@ -200,8 +219,8 @@
       if (d.state === 'plan') s += `<circle class="planpt" cx="${x(d.i).toFixed(1)}" cy="${base - 5}" r="3.4"/>`;
     });
     comp.days.forEach(d => {
-      const dn = d.i + 1;
-      if (dn === 1 || dn % 5 === 0 || d.isToday) s += `<text class="xl${d.isToday ? ' today' : ''}" x="${x(d.i).toFixed(1)}" y="${base + 18}">${dn}</text>`;
+      const dn = +d.date.slice(8);
+      if ((kind === 'workout' ? n <= 20 : (dn === 1 || dn % 5 === 0)) || d.isToday) s += `<text class="xl${d.isToday ? ' today' : ''}" x="${x(d.i).toFixed(1)}" y="${base + 18}">${dn}</text>`;
     });
     const today = comp.days.find(d => d.isToday);
     if (today) {
@@ -226,8 +245,8 @@
     const n = comp.days.length;
     let h = `<div class="hgrid" style="--n:${n}"><div class="hrow hh"><div class="hl"></div><div class="hd">`;
     comp.days.forEach(d => {
-      const show = RANGE === 'week' || d.i === 0 || (d.i + 1) % 5 === 0 || d.isToday;
-      h += `<span class="${d.isToday ? 'today' : ''}">${show ? (RANGE === 'week' ? WD[d.i][0] : d.i + 1) : ''}</span>`;
+      const show = RANGE === 'week' || d.k === 0 || (d.k + 1) % 5 === 0 || d.isToday;
+      h += `<span class="${d.isToday ? 'today' : ''}">${show ? (RANGE === 'week' ? WD[d.dow][0] : d.k + 1) : ''}</span>`;
     });
     h += '</div></div>';
     comp.habits.forEach((hb, hi) => {
@@ -257,6 +276,7 @@
     if (comp.error) return `<div class="panel"><div class="note"><b>Could not load</b><br>${esc(comp.error)}${comp.hint ? '<br>' + esc(comp.hint) : ''}</div></div>`;
     const noLogs = comp.logged === 0 && kind !== 'mustdo';
     let h = `<div class="panel chart ${RANGE}">${chartHTML(kind, comp)}${noLogs ? `<div class="note over">No logs ${comp.per.label} yet</div>` : ''}</div>`;
+    if (kind === 'meal') h = '<div class="two">' + h;
     const arr = [...comp.tally.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     if (kind === 'mustdo') {
       h += `<div class="streak">${comp.streak ? `<i class="sp"></i><span>Best streak</span> <b>${esc(comp.streak.label)}</b> <span>· ${comp.streak.n} days</span>` : '<i class="sp"></i><span>No streak yet. A few days in a row will light this up.</span>'}</div>`;
@@ -267,8 +287,8 @@
     } else {
       const top = arr.slice(0, 3);
       const low = arr.slice(-4).reverse().filter(x => !top.includes(x));
-      const b = barsHTML(top, comp.rowsUsed, 'days', 'Most eaten') + barsHTML(low, comp.rowsUsed, 'days', 'Most skipped');
-      h += `<div class="panel bars">${b || '<div class="note">Foods appear here once you log a day.</div>'}</div>`;
+      const b = barsHTML(top, comp.rowsUsed, 'days', 'Most eaten') + barsHTML(low.slice(0, 3), comp.rowsUsed, 'days', 'Most skipped');
+      h += `<div class="panel bars">${b || '<div class="note">Foods appear here once you log a day.</div>'}</div></div>`;
     }
     return h;
   }
@@ -277,7 +297,7 @@
   function build() {
     const wrap = $('cards');
     wrap.textContent = '';
-    ORDER.forEach((kind, idx) => {
+    SHOW.forEach((kind, idx) => {
       const K = KINDS[kind];
       const card = document.createElement('section');
       card.className = 'card ' + kind;
@@ -293,7 +313,7 @@
 
   function draw() {
     const today = (DATA && DATA.today) || localToday();
-    ORDER.forEach(kind => {
+    SHOW.forEach(kind => {
       const comp = DATA ? compute(kind, DATA[kind], today) : null;
       COMPS[kind] = comp;
       $('in-' + kind).innerHTML = headHTML(kind, comp) + bodyHTML(kind, comp);
@@ -301,10 +321,32 @@
       $('in-' + kind).querySelectorAll('.mk').forEach(im => im.addEventListener('error', () => im.remove(), { once: true }));
     });
     $('cards').classList.toggle('anim', animateNext);
+    $('cards').classList.toggle('one', SHOW.length === 1);
     animateNext = false;
     document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.r === RANGE)));
     document.querySelector('.seg').dataset.r = RANGE;
+    refit();
   }
+
+  /* ---------- fit: scale the whole widget to the height of the Notion embed ---------- */
+  /* So there is never a scrollbar inside the widget, whatever height you drag the embed to. */
+  function fit() {
+    const box = $('fitBox'), el = $('fit');
+    el.style.transform = 'none'; el.style.width = ''; box.style.height = '';
+    if (innerWidth < 760) return;                 // phones: just stack and scroll the page
+    let z = 1;
+    for (let k = 0; k < 8; k++) {
+      const h = el.offsetHeight * z;               // height as currently drawn
+      const nz = Math.max(0.55, Math.min(1, z * (innerHeight - 3) / Math.max(1, h)));
+      if (Math.abs(nz - z) < 0.002) break;
+      z = nz;
+      el.style.width = `calc(100% / ${z})`;
+      el.style.transform = `scale(${z})`;
+    }
+    box.style.height = Math.ceil(el.offsetHeight * z) + 'px';
+  }
+  const refit = () => requestAnimationFrame(fit);
+  addEventListener('resize', refit);
 
   /* ---------- tooltip ---------- */
   const tip = $('tip');

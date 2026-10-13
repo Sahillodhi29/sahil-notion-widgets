@@ -15,7 +15,7 @@ body { font-family: 'Quicksand', ui-rounded, 'Nunito', 'Segoe UI', system-ui, sa
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 
 .wrap { padding: 6px 4px 14px; position: relative; }
-.head { text-align: center; padding: 6px 0 14px; }
+.head { text-align: center; padding: 4px 0 10px; }
 .ttl { display: inline-flex; align-items: center; gap: 14px; }
 h1 {
   font-family: 'Pacifico', 'Segoe Script', 'Brush Script MT', cursive; font-weight: 400;
@@ -35,10 +35,13 @@ h1 {
 
 /* ---------- layout: two cards, then one centred underneath ---------- */
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; margin: 4px; }
-.card.meal { grid-column: 1 / -1; justify-self: center; width: calc(50% - 8px); }
+.card.meal { grid-column: 1 / -1; }
+.cards.one { grid-template-columns: 1fr; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
+.two .chart { display: flex; flex-direction: column; justify-content: center; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
   .cards { grid-template-columns: 1fr; }
-  .card.meal { width: 100%; }
 }
 
 /* ---------- a card: live sky strip, sea below ---------- */
@@ -52,7 +55,7 @@ h1 {
   box-shadow: 0 10px 30px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 255 255 / .18);
 }
 .card::before { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(90% 34% at 90% 0%, rgb(var(--c) / .24), transparent 70%); }
-.inner { position: relative; z-index: 5; display: flex; flex-direction: column; gap: 10px; padding: 15px 15px 20px; flex: 1; }
+.inner { position: relative; z-index: 5; display: flex; flex-direction: column; gap: 8px; padding: 14px 14px 18px; flex: 1; }
 
 .deco { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .deco .star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; animation: twk var(--d, 3s) ease-in-out infinite var(--dl, 0s); }
@@ -89,10 +92,10 @@ h2 { font-size: 18px; font-weight: 700; line-height: 1.15; text-shadow: 0 1px 8p
 .note.over { position: absolute; inset: 0; display: grid; place-items: center; padding: 0 20px; background: rgb(var(--sea-bot) / .5); border-radius: 20px; font-weight: 700; font-size: 13px; }
 
 /* ---------- week: glass columns with value pills ---------- */
-.chart { padding: 14px 12px 8px; }
-.cols { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 150px; }
+.chart { padding: 12px 12px 6px; }
+.cols { display: grid; grid-template-columns: repeat(var(--n, 7), 1fr); gap: 8px; height: 112px; }
 .col { position: relative; display: flex; flex-direction: column; align-items: center; }
-.trk { position: relative; flex: 1; width: min(100%, 34px); border-radius: 999px; background: rgb(255 255 255 / .14); box-shadow: inset 0 2px 5px rgb(0 0 0 / .18), 0 0 0 1px rgb(255 255 255 / .12); overflow: hidden; }
+.trk { position: relative; flex: 1; width: min(100%, 38px); border-radius: 999px; background: rgb(255 255 255 / .14); box-shadow: inset 0 2px 5px rgb(0 0 0 / .18), 0 0 0 1px rgb(255 255 255 / .12); overflow: hidden; }
 .fl { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--p) * 100%); min-height: 0; border-radius: 999px;
   background: linear-gradient(180deg, rgb(var(--c2)), rgb(var(--c)) 70%, rgb(var(--c) / .8));
   box-shadow: 0 0 14px rgb(var(--c) / .6), inset 0 2px 4px rgb(255 255 255 / .5); }
@@ -132,13 +135,13 @@ h2 { font-size: 18px; font-weight: 700; line-height: 1.15; text-shadow: 0 1px 8p
 .sp { width: 8px; height: 8px; flex: none; rotate: 45deg; border-radius: 2px; background: rgb(var(--c2)); box-shadow: 0 0 8px rgb(var(--c)); }
 
 /* ---------- habit grid ---------- */
-.hgrid { display: flex; flex-direction: column; gap: 5px; }
+.hgrid { display: flex; flex-direction: column; gap: 3px; }
 .hrow { display: flex; align-items: center; gap: 8px; }
 .hl { flex: none; width: 138px; font-size: 11.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 4px rgb(0 0 0 / .4); }
 .hd { flex: 1; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 3px; align-items: center; }
 .hh .hd span { text-align: center; font-size: 10px; font-weight: 700; opacity: .8; }
 .hh .hd span.today { color: rgb(var(--c2)); opacity: 1; }
-.dot { position: relative; justify-self: center; width: 100%; max-width: 15px; aspect-ratio: 1; border-radius: 50%; }
+.dot { position: relative; justify-self: center; width: 100%; max-width: 13px; aspect-ratio: 1; border-radius: 50%; }
 .dot i { position: absolute; inset: -2px; z-index: 2; cursor: pointer; }
 .dot.done { background: radial-gradient(circle at 35% 30%, rgb(var(--c2)), rgb(var(--c))); box-shadow: 0 0 8px rgb(var(--c) / .8); }
 .dot.miss { background: rgb(255 255 255 / .16); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .22); }
@@ -149,7 +152,7 @@ h2 { font-size: 18px; font-weight: 700; line-height: 1.15; text-shadow: 0 1px 8p
 @media (max-width: 560px) { .hl { width: 104px; font-size: 10.5px; } }
 
 /* ---------- item bars (workout / meals) ---------- */
-.bars { display: flex; flex-direction: column; gap: 5px; }
+.bars { display: flex; flex-direction: column; gap: 4px; }
 .bh, .bt { font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; opacity: .85; margin: 0 2px 1px; text-shadow: 0 1px 4px rgb(0 0 0 / .4); }
 .bt:not(:first-child) { margin-top: 7px; }
 .br { display: flex; align-items: center; gap: 9px; }
@@ -189,3 +192,7 @@ h2 { font-size: 18px; font-weight: 700; line-height: 1.15; text-shadow: 0 1px 8p
 .panel.bars { justify-content: space-evenly; }
 .hl, .bl { width: 150px; }
 @media (max-width: 560px) { .hl, .bl { width: 108px; } }
+
+/* fit-to-embed */
+#fit { transform-origin: 0 0; }
+@media (min-width: 760px) { html, body { overflow: hidden; } }
