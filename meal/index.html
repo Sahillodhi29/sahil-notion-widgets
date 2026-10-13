@@ -3,52 +3,63 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Today's plate</title>
+  <title>Meal widgets</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/meal/style.css">
 </head>
 <body>
-  <main id="app">
-    <section class="hero" aria-label="Today">
-      <div class="ring-wrap">
-        <svg id="ring" viewBox="0 0 200 200" role="img" aria-label="Meal progress"></svg>
-        <div class="ring-center"><span id="ringDone" class="ring-num">–</span><span id="ringOf" class="ring-of"></span></div>
-      </div>
-      <div class="hero-text">
-        <h1>Today's plate</h1>
-        <p id="dateLine" class="date"></p>
-        <p id="statusLine" class="status"></p>
-        <p id="streakLine" class="streak"></p>
+  <main id="stage">
+
+    <article class="card" data-w="ring" hidden>
+      <div class="ring-layout">
+        <div class="ring-wrap">
+          <svg id="ring" viewBox="0 0 200 200" role="img" aria-label="Meal progress"></svg>
+          <div class="ring-center"><span id="ringDone" class="ring-num">–</span><span id="ringOf" class="ring-of"></span></div>
+        </div>
+        <div class="ring-text">
+          <h1>Today's plate</h1>
+          <p id="dateLine" class="date"></p>
+          <p id="statusLine" class="status"></p>
+        </div>
       </div>
       <img id="sticker" class="sticker" src="/meal/assets/sticker.png" alt="" hidden>
-    </section>
+    </article>
 
-    <section aria-label="Checklist">
-      <h2>On the plate</h2>
+    <article class="card" data-w="streak" hidden>
+      <h2>Streak</h2>
+      <p class="streak-main"><span id="stNum" class="stnum">–</span><span id="stUnit" class="stunit"></span></p>
+      <p id="stLine" class="muted"></p>
+      <div id="stDots" class="dots"></div>
+      <p id="stBest" class="muted"></p>
+    </article>
+
+    <article class="card" data-w="plate" hidden>
+      <div class="head"><h2>On the plate</h2><span id="plateCount" class="muted"></span></div>
       <div id="chips" class="chips"></div>
-    </section>
+    </article>
 
-    <div class="two">
-      <section aria-label="This week">
-        <h2>This week</h2>
-        <div id="week" class="week"></div>
-      </section>
-      <section aria-label="Last five weeks">
-        <h2>Last five weeks</h2>
-        <div id="heat" class="heat"></div>
-        <div class="legend" aria-hidden="true">
-          <span><i class="c0"></i>No log</span><span><i class="c1"></i>Under half</span><span><i class="c2"></i>Half or more</span><span><i class="c3"></i>80% or more</span>
-        </div>
-      </section>
-    </div>
+    <article class="card" data-w="week" hidden>
+      <h2>This week</h2>
+      <div id="week" class="week"></div>
+    </article>
 
-    <section aria-label="Most skipped">
+    <article class="card" data-w="heat" hidden>
+      <h2>Last five weeks</h2>
+      <div id="heat" class="heat"></div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="c0"></i>No log</span><span><i class="c1"></i>Under half</span><span><i class="c2"></i>Half or more</span><span><i class="c3"></i>80% or more</span>
+      </div>
+    </article>
+
+    <article class="card" data-w="skipped" hidden>
       <h2>What gets skipped</h2>
-      <p id="skipNote" class="note"></p>
+      <p id="skipNote" class="muted"></p>
       <div id="skipped" class="skipped"></div>
-    </section>
+    </article>
+
+    <article class="card" id="bad" hidden></article>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
   <script src="/meal/script.js"></script>
