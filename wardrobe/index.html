@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wardrobe widgets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500;1,6..96,600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/wardrobe/style.css">
+</head>
+<body>
+  <main id="stage">
+
+    <article class="card form-card" data-w="add" hidden></article>
+
+    <article class="card form-card" data-w="wish" hidden></article>
+
+    <article class="card" data-w="wear" hidden>
+      <div class="head">
+        <h2>Worn today</h2>
+        <span id="wearCount" class="muted"></span>
+      </div>
+      <div class="toolbar">
+        <div class="seg" role="tablist" aria-label="What did you wear">
+          <button type="button" role="tab" data-tab="item" aria-selected="true">Pieces</button>
+          <button type="button" role="tab" data-tab="outfit" aria-selected="false">Outfits</button>
+        </div>
+        <input id="wearSearch" class="inp slim" type="search" placeholder="Search" aria-label="Search" autocomplete="off">
+      </div>
+      <div id="tiles" class="tiles"></div>
+      <p id="tilesNote" class="muted note"></p>
+    </article>
+
+    <article class="card" data-w="closet" hidden>
+      <div class="closet-layout">
+        <div class="gauge-wrap">
+          <svg id="gauge" viewBox="0 0 200 200" role="img" aria-label="How much of your closet you wear"></svg>
+          <div class="gauge-center"><span id="gaugeNum" class="big">–</span><span id="gaugeOf" class="small">pieces</span></div>
+        </div>
+        <div class="closet-text">
+          <h2>Your closet</h2>
+          <div id="legend" class="legend"></div>
+          <div id="cstats" class="cstats"></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" data-w="cats" hidden>
+      <div class="head">
+        <h2>What's in it</h2>
+        <div class="seg" role="tablist" aria-label="Group by">
+          <button type="button" role="tab" data-by="cat" aria-selected="true">Category</button>
+          <button type="button" role="tab" data-by="color" aria-selected="false">Colour</button>
+        </div>
+      </div>
+      <div id="arches" class="arches"></div>
+      <p id="archNote" class="muted note"></p>
+    </article>
+
+    <article class="card" data-w="wishlist" hidden>
+      <div class="head">
+        <h2>Wishlist</h2>
+        <span id="wlTotal" class="muted"></span>
+      </div>
+      <div id="wl" class="wl"></div>
+    </article>
+
+    <article class="card" id="bad" hidden></article>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/wardrobe/script.js"></script>
+</body>
+</html>
