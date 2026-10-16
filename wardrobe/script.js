@@ -29,16 +29,17 @@
   const shown = wantAll ? Object.keys(NEEDS) : asked.filter(w => NEEDS[w]);
   const unknown = asked.filter(w => w !== 'all' && !NEEDS[w]);
   document.querySelectorAll('.card[data-w]').forEach(c => { c.hidden = !shown.includes(c.dataset.w); });
-  document.body.dataset.mode = shown.length === 1 ? 'single' : 'multi';
+  const MULTI = shown.length !== 1;
+  document.body.dataset.mode = MULTI ? 'multi' : 'single';
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
-    b.innerHTML = '<h2>Unknown widget</h2><p class="muted">Use w=add, wish, wear, closet, cats, wishlist or all.</p>';
+    b.innerHTML = '<h2>Unknown widget</h2><p class="muted note">Use w=add, wish, wear, closet, cats, wishlist or all.</p>';
   }
   const has = w => shown.includes(w);
   const need = [...new Set(shown.flatMap(w => NEEDS[w]))];
 
   const state = { today: null, items: [], outfits: [], wishes: [], schema: null, err: {}, pending: 0, loadedAt: 0, gaugeDone: false };
-  const ui = { tab: 'item', q: '', by: 'cat', ask: null };
+  const ui = { tab: 'item', q: '', by: 'cat', ask: null, snap: null, showAll: false, catAnim: true };
   const forms = {};
   const undoMap = new Map();
 
@@ -56,17 +57,14 @@
     if (n < 60) return `${Math.round(n / 7)} weeks ago`;
     return `${Math.round(n / 30)} months ago`;
   };
+  const longDate = d => { try { return new Date(Date.parse(d + 'T00:00:00Z')).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }); } catch (e) { return d; } };
   const money = n => CUR + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
   const initial = s => (String(s).trim()[0] || '?').toUpperCase();
   const errText = e => e.message + (e.hint ? ' ' + e.hint : '');
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : (many || one + 's')}`;
   const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>';
-  const photoHtml = r => (r.photo
-    ? `<img src="${esc(r.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-ini="${esc(initial(r.name))}">`
-    : `<span class="ini">${esc(initial(r.name))}</span>`);
-  document.addEventListener('error', e => {
-    const im = e.target;
-    if (im && im.tagName === 'IMG' && im.dataset.ini) im.parentElement.innerHTML = `<span class="ini">${esc(im.dataset.ini)}</span>`;
-  }, true);
+  const PLUS = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.5v11M1.5 7h11"/></svg>';
+  const ARCH_SVG = c => `<svg viewBox="0 0 46 56" stroke="${c}" aria-hidden="true"><path d="M3 54V21a20 20 0 0 1 40 0v33"/><path d="M12 54V22a11 11 0 0 1 22 0v32" opacity=".55"/></svg>`;
 
   /* Garment colours. These are data, not theme: a "Navy" chip should look navy. */
   const COLORS = {
@@ -82,11 +80,28 @@
     'Soft black': '#26262A', 'Tan': '#C9A36E', 'Taupe': '#8B7B6E', 'Teal': '#1C7C80', 'Terracotta': '#C4653F', 'Turquoise': '#2FC1C1',
     'White': '#F7F7F5', 'Wine': '#5A1226', 'Yellow': '#EFD23B',
   };
+  const COMMON_COLORS = ['Black', 'White', 'Cream', 'Beige', 'Grey', 'Navy', 'Denim blue', 'Blue', 'Red', 'Burgundy', 'Pink', 'Green', 'Olive', 'Brown', 'Camel', 'Multicolor'];
+  const hexOf = name => { const c = COLORS[name]; return c && c[0] === '#' ? c : null; };
+  const lumOf = hex => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; };
   const colorAttr = name => {
     const c = COLORS[name];
     if (!c) return '';
-    return c.startsWith('#') ? ` style="--c:${c}"` : ` data-k="${c}"`;
+    return c[0] === '#' ? ` style="--c:${c}"` : ` data-k="${c}"`;
   };
+
+  /* An arch-shaped photo (or a soft tinted initial when there is no photo). Tint follows the garment's colour. */
+  const archHtml = r => {
+    const hex = r.color ? hexOf(r.color) : null;
+    const cls = 'arch' + (hex ? ' tinted' : '') + (hex && lumOf(hex) > 0.6 ? ' light' : '');
+    const inner = r.photo
+      ? `<img src="${esc(r.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-ini="${esc(initial(r.name))}">`
+      : `<span class="ini">${esc(initial(r.name))}</span>`;
+    return `<span class="${cls}"${hex ? ` style="--c:${hex}"` : ''}>${inner}</span>`;
+  };
+  document.addEventListener('error', e => {
+    const im = e.target;
+    if (im && im.tagName === 'IMG' && im.dataset.ini) im.parentElement.innerHTML = `<span class="ini">${esc(im.dataset.ini)}</span>`;
+  }, true);
 
   /* Which subcategories belong to which category (the Notion list is flat). */
   const SUB_BY_CAT = {
@@ -147,9 +162,10 @@
 
   function showBad(e) {
     const b = $('bad'); b.hidden = false;
-    b.innerHTML = `<h2>Couldn't load your wardrobe</h2><p class="muted">${esc(e.message)}${e.hint ? ' ' + esc(e.hint) : ''}<br>Check the key in the link, then open /api/wardrobe-health to see what's wrong.</p>`;
+    b.innerHTML = `<h2>Couldn't load your wardrobe</h2><p class="muted note">${esc(e.message)}${e.hint ? ' ' + esc(e.hint) : ''}<br>Check the key in the link, then open /api/wardrobe-health to see what's wrong.</p>`;
   }
   const secError = (k, what) => (state.err[k] ? `<p class="empty">Couldn't read ${what}: ${esc(state.err[k].error)}${state.err[k].hint ? ' ' + esc(state.err[k].hint) : ''}</p>` : '');
+  const emptyState = (title, text, form, label) => `<div class="empty-state">${ARCH_SVG('#E2C593')}<strong>${esc(title)}</strong><p>${esc(text)}</p>${form && has(form) ? `<button type="button" class="btn sm primary" data-open-form="${form}">${esc(label)}</button>` : ''}</div>`;
 
   async function refresh() {
     if (state.pending) return;
@@ -170,30 +186,30 @@
       nameProp: 'Name', action: 'item-create', save: 'Add to wardrobe', done: 'Added', dupList: () => state.items,
       sticky: ['Item Category', 'Location', 'Season', 'Item Status', 'Date Acquired', 'Condition'],
       essentials: [
-        { p: 'Name', label: 'Name', kind: 'text', ph: 'Wine silk shirt', req: true, wide: true },
-        { p: 'Item Category', label: 'Category', kind: 'opts', wide: true },
+        { p: 'Name', label: 'Name', kind: 'text', ph: 'Wine silk shirt', req: true, wide: true, lg: true },
+        { p: 'Item Category', label: 'Category', kind: 'opts', chips: true, wide: true },
         { p: 'Item Subcategory', label: 'Type', kind: 'opts', multi: true, wide: true, filter: 'sub' },
-        { p: 'Primary Color', label: 'Colour', kind: 'swatch', wide: true },
-        { p: 'Brand', label: 'Brand', kind: 'text' },
-        { p: 'Price', label: 'Price', kind: 'money' },
+        { p: 'Primary Color', label: 'Colour', kind: 'swatch', wide: true, col2: true },
+        { p: 'Brand', label: 'Brand', kind: 'text', col2: true },
+        { p: 'Price', label: 'Price', kind: 'money', col2: true },
       ],
       more: [
-        { p: 'Secondary Colors', label: 'Other colours', kind: 'swatch', multi: true, wide: true },
+        { p: 'Secondary Colors', label: 'Other colours', kind: 'swatch', multi: true, wide: true, full: true, group: 'Basics' },
         { p: 'Size', label: 'Size', kind: 'text' },
         { p: 'Date Acquired', label: 'Date acquired', kind: 'date', def: 'today' },
         { p: 'Item Status', label: 'Status', kind: 'opts', multi: true, wide: true, def: ['Active'] },
         { p: 'Location', label: 'Where it lives', kind: 'opts', wide: true },
-        { p: 'Season', label: 'Season', kind: 'opts', multi: true, wide: true },
+        { p: 'Wear Count', label: 'Times worn already', kind: 'number', def: 0 },
+        { p: 'Season', label: 'Season', kind: 'opts', multi: true, wide: true, chips: true, group: 'Style' },
         { p: 'Occasion', label: 'Occasion', kind: 'opts', multi: true, wide: true },
-        { p: 'Condition', label: 'Condition', kind: 'opts', multi: true, wide: true },
-        { p: 'Fabric', label: 'Fabric', kind: 'opts', multi: true, wide: true },
-        { p: 'Pattern', label: 'Pattern', kind: 'opts', multi: true, wide: true },
         { p: 'Style/Aesthetic', label: 'Style', kind: 'opts', multi: true, wide: true },
+        { p: 'Pattern', label: 'Pattern', kind: 'opts', multi: true, wide: true },
+        { p: 'Fabric', label: 'Fabric', kind: 'opts', multi: true, wide: true },
+        { p: 'Condition', label: 'Condition', kind: 'opts', multi: true, wide: true, group: 'Care & notes' },
         { p: 'Care', label: 'Care', kind: 'opts', multi: true, wide: true },
         { p: 'Tags', label: 'Tags', kind: 'opts', multi: true, wide: true },
-        { p: 'Notes', label: 'Notes', kind: 'area', wide: true },
-        { p: 'Photo', label: 'Photo link', kind: 'url', ph: 'Paste an image link (https://...)', wide: true },
-        { p: 'Wear Count', label: 'Times worn already', kind: 'number', def: 0 },
+        { p: 'Notes', label: 'Notes', kind: 'area', wide: true, full: true },
+        { p: 'Photo', label: 'Photo link', kind: 'url', ph: 'Paste an image link (https://...)', wide: true, full: true },
       ],
     },
     wish: {
@@ -201,16 +217,16 @@
       nameProp: 'Item Name', action: 'wish-create', save: 'Add to wishlist', done: 'Wish saved', dupList: () => state.wishes,
       sticky: ['Wishlist Priority', 'Wishlist Status', 'Date Added'],
       essentials: [
-        { p: 'Item Name', label: 'Name', kind: 'text', ph: 'Silk slip dress', req: true, wide: true },
-        { p: 'Category', label: 'Category', kind: 'opts', multi: true, wide: true },
-        { p: 'Wishlist Priority', label: 'How much do you want it', kind: 'opts', wide: true },
-        { p: 'Brand', label: 'Brand', kind: 'text' },
-        { p: 'Estimated Price', label: 'Price', kind: 'money' },
-        { p: 'Reason / Gap Filled', label: 'Why you want it', kind: 'area', ph: 'What gap does it fill?', wide: true },
+        { p: 'Item Name', label: 'Name', kind: 'text', ph: 'Silk slip dress', req: true, wide: true, lg: true },
+        { p: 'Category', label: 'Category', kind: 'opts', multi: true, chips: true, wide: true },
+        { p: 'Wishlist Priority', label: 'How much do you want it', kind: 'opts', chips: true, wide: true },
+        { p: 'Brand', label: 'Brand', kind: 'text', col2: true },
+        { p: 'Estimated Price', label: 'Price', kind: 'money', col2: true },
+        { p: 'Reason / Gap Filled', label: 'Why you want it', kind: 'area', ph: 'What gap does it fill?', wide: true, col2: true },
       ],
       more: [
         { p: 'Link', label: 'Link', kind: 'url', ph: 'https://...', wide: true },
-        { p: 'Wishlist Status', label: 'Status', kind: 'opts', wide: true, def: 'Considering' },
+        { p: 'Wishlist Status', label: 'Status', kind: 'opts', wide: true, chips: true, def: 'Considering' },
         { p: 'Date Added', label: 'Date added', kind: 'date', def: 'today' },
         { p: 'Notes', label: 'Notes', kind: 'area', wide: true },
         { p: 'Photo', label: 'Photo link', kind: 'url', ph: 'Paste an image link (https://...)', wide: true },
@@ -219,7 +235,8 @@
   };
 
   const slug = s => String(s).replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-  const CHIP_MAX = 22;      // lists longer than this become search-and-pick
+  const CHIP_MAX = 14;      // lists longer than this become search-and-pick (unless the field says chips: true)
+  const PICK_PEEK = 12;     // how many suggestions a search-and-pick shows before "more"
 
   function defaultFor(F, f) {
     const opts = (F.sch[f.p] && F.sch[f.p].options) || [];
@@ -239,31 +256,52 @@
       root.innerHTML = `<h2>${esc(def.title)}</h2><p class="muted note">Notion has no "${esc(def.nameProp)}" property in this database. Open /api/wardrobe-health to see what's missing.</p>`;
       return;
     }
-    const F = { w, def, root, sch, values: {}, session: 0, showAll: false, search: {} };
+    const F = { w, def, root, sch, values: {}, session: 0, showAll: false, search: {}, exp: {}, open: !MULTI };
     F.fields = [...def.essentials, ...def.more].filter(f => sch[f.p]);
     F.fieldOf = p => F.fields.find(f => f.p === p);
     F.fields.forEach(f => { F.values[f.p] = defaultFor(F, f); });
-    const sect = list => list.filter(f => sch[f.p]).map(f => `<div class="fld${f.wide ? ' wide' : ''}" data-f="${esc(f.p)}">${fieldInner(F, f)}</div>`).join('');
+    const fld = f => `${f.group ? `<h3 class="fgroup">${esc(f.group)}</h3>` : ''}<div class="fld${f.wide ? ' wide' : ''}${f.full ? ' full' : ''}" data-f="${esc(f.p)}">${fieldInner(F, f)}</div>`;
+    const sect = list => list.filter(f => sch[f.p]).map(fld).join('');
+    // the essentials sit in two columns on a wide card, and stack on a narrow one
+    const cols = list => `<div class="fcols"><div class="fgrid">${sect(list.filter(f => !f.col2))}</div><div class="fgrid">${sect(list.filter(f => f.col2))}</div></div>`;
+    const mark = `<svg class="arch-mark" viewBox="0 0 30 38" fill="none" stroke-width="1.8" aria-hidden="true"><path d="M3 37V15a12 12 0 0 1 24 0v22" stroke="#E2C593"/><path d="M9 37V16a6 6 0 0 1 12 0v21" stroke="#D99B96"/></svg>`;
+    const headInner = `${mark}<div class="ftitle"><h2>${esc(def.title)}</h2><p class="muted">${esc(def.blurb)}</p></div><span class="fplus">${PLUS}</span>`;
+    root.classList.toggle('collapsible', MULTI);
+    root.classList.toggle('open', F.open);
     root.innerHTML = `
-      <div class="fhead">
-        <svg class="arch-mark" viewBox="0 0 30 38" fill="none" stroke="#7392B4" stroke-width="2" aria-hidden="true"><path d="M3 37V15a12 12 0 0 1 24 0v22"/><path d="M9 37V16a6 6 0 0 1 12 0v21" stroke="#631223"/></svg>
-        <div><h2>${esc(def.title)}</h2><p class="muted">${esc(def.blurb)}</p></div>
-      </div>
-      <div class="fscroll">
-        <div class="fgrid">${sect(def.essentials)}</div>
-        <button type="button" class="more-toggle" aria-expanded="false">More details</button>
-        <div class="fgrid more" hidden>${sect(def.more)}</div>
-      </div>
-      <div class="ffoot"><span class="msg" data-msg></span><button type="button" class="btn primary" data-save>${esc(def.save)}</button></div>`;
+      ${MULTI ? `<button type="button" class="fhead" data-toggle aria-expanded="${F.open}">${headInner}</button>` : `<div class="fhead">${headInner}</div>`}
+      <div class="fbody"${F.open ? '' : ' hidden'}>
+        <div class="fscroll">
+          ${cols(def.essentials)}
+          <button type="button" class="more-toggle" aria-expanded="false">More details</button>
+          <div class="fgrid more" hidden>${sect(def.more)}</div>
+        </div>
+        <div class="ffoot"><span class="msg" data-msg></span><button type="button" class="btn primary" data-save>${esc(def.save)}</button></div>
+      </div>`;
     forms[w] = F;
     F.fields.filter(f => isPicker(F, f)).forEach(f => refreshPicker(F, f));
     updateMsg(F);
     wireForm(F);
   }
 
-  function labelHtml(F, f) {
-    return `<span class="lab">${esc(f.label)}${f.req ? ' <span class="req" aria-hidden="true">*</span>' : ''}</span>`;
+  function setOpen(F, open) {
+    F.open = open;
+    F.root.classList.toggle('open', open);
+    F.root.querySelector('.fbody').hidden = !open;
+    const t = F.root.querySelector('[data-toggle]'); if (t) t.setAttribute('aria-expanded', open);
+    $('stage').classList.toggle('forms-open', Object.values(forms).some(x => x.open));
   }
+
+  function openForm(w) {
+    const F = forms[w]; if (!F) return;
+    if (!F.open) setOpen(F, true);
+    F.root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const i = F.root.querySelector('input[data-in]'); if (i) setTimeout(() => i.focus({ preventScroll: true }), 120);
+  }
+
+  const labelHtml = (F, f) => `<span class="lab">${esc(f.label)}${f.req ? ' <span class="req" aria-hidden="true">*</span>' : ''}</span>`;
+
+  function isPicker(F, f) { return f.kind === 'opts' && !f.chips && (F.sch[f.p].options || []).length > CHIP_MAX; }
 
   function fieldInner(F, f) {
     const v = F.values[f.p];
@@ -272,7 +310,7 @@
     switch (f.kind) {
       case 'text':
       case 'url':
-        return `<label for="${id}">${lab}</label><input id="${id}" class="inp" type="${f.kind === 'url' ? 'url' : 'text'}" data-in="${esc(f.p)}" value="${esc(v)}" placeholder="${esc(f.ph || '')}" maxlength="${f.kind === 'url' ? 1900 : 200}" autocomplete="off">`;
+        return `<label for="${id}">${lab}</label><input id="${id}" class="inp${f.lg ? ' lg' : ''}" type="${f.kind === 'url' ? 'url' : 'text'}" data-in="${esc(f.p)}" value="${esc(v)}" placeholder="${esc(f.ph || '')}" maxlength="${f.kind === 'url' ? 1900 : 200}" autocomplete="off">`;
       case 'money':
         return `<label for="${id}">${lab}</label><span class="money"><span aria-hidden="true">${esc(CUR)}</span><input id="${id}" class="inp" type="number" inputmode="decimal" min="0" step="any" data-in="${esc(f.p)}" value="${esc(v)}"></span>`;
       case 'number':
@@ -284,24 +322,25 @@
       case 'swatch': {
         const opts = F.sch[f.p].options || [];
         const sel = f.multi ? v : (v ? [v] : []);
-        return `${lab}<div class="sw-grid" role="group" aria-label="${esc(f.label)}">${opts.map(o =>
-          `<button type="button" class="sw" data-o="${esc(o)}"${colorAttr(o)} title="${esc(o)}" aria-label="${esc(o)}" aria-pressed="${sel.includes(o)}"></button>`).join('')}</div>
-          <div class="sw-cap">${esc(sel.join(', '))}</div>`;
+        const open = !!F.exp[f.p];
+        let list = open ? opts : opts.filter(o => COMMON_COLORS.includes(o) || sel.includes(o));
+        if (!open && list.length < 6) list = opts.slice(0, 16);
+        const hidden = opts.length - list.length;
+        return `<div class="lab-row">${lab}<span class="cap">${esc(sel.join(', '))}</span></div><div class="sw-grid" role="group" aria-label="${esc(f.label)}">${list.map(o =>
+          `<button type="button" class="sw" data-o="${esc(o)}"${colorAttr(o)} title="${esc(o)}" aria-label="${esc(o)}" aria-pressed="${sel.includes(o)}"></button>`).join('')}${hidden > 0 || open ? `<button type="button" class="sw-more" data-more="${esc(f.p)}">${open ? 'Fewer' : `+${hidden} more`}</button>` : ''}</div>`;
       }
       case 'opts': {
         const opts = F.sch[f.p].options || [];
-        if (opts.length <= CHIP_MAX) {
+        if (!isPicker(F, f)) {
           const sel = f.multi ? v : (v ? [v] : []);
           return `${lab}<div class="opts" role="group" aria-label="${esc(f.label)}">${opts.map(o =>
             `<button type="button" class="opt" data-o="${esc(o)}" aria-pressed="${sel.includes(o)}">${esc(o)}</button>`).join('')}</div>`;
         }
-        return `${lab}<div class="pk"><div class="pk-sel"></div><input class="inp slim" type="search" data-q="${esc(f.p)}" placeholder="Search ${esc(f.label.toLowerCase())}" aria-label="Search ${esc(f.label.toLowerCase())}" autocomplete="off"><div class="pk-list"></div><button type="button" class="pk-all" hidden></button></div>`;
+        return `${lab}<div class="pk"><div class="pk-sel"></div><input class="inp slim" type="search" data-q="${esc(f.p)}" placeholder="Search ${esc(f.label.toLowerCase())}" aria-label="Search ${esc(f.label.toLowerCase())}" autocomplete="off"><div class="pk-list"></div><div class="pk-foot"></div></div>`;
       }
       default: return '';
     }
   }
-
-  function isPicker(F, f) { return f.kind === 'opts' && (F.sch[f.p].options || []).length > CHIP_MAX; }
 
   function refreshPicker(F, f) {
     const wrap = F.root.querySelector(`[data-f="${CSS.escape(f.p)}"]`);
@@ -309,24 +348,30 @@
     const all = F.sch[f.p].options || [];
     const sel = f.multi ? F.values[f.p] : (F.values[f.p] ? [F.values[f.p]] : []);
     wrap.querySelector('.pk-sel').innerHTML = sel.map(o => `<button type="button" class="opt" data-o="${esc(o)}" aria-pressed="true" aria-label="Remove ${esc(o)}">${esc(o)}</button>`).join('');
-    let pool = all;
-    const allBtn = wrap.querySelector('.pk-all');
-    let narrowed = false;
-    if (f.filter === 'sub') {
-      const cat = F.values['Item Category'];
-      const mapped = cat && SUB_BY_CAT[cat] ? SUB_BY_CAT[cat].filter(o => all.includes(o)) : null;
-      if (mapped && mapped.length) {
-        narrowed = true;
-        allBtn.hidden = false;
-        allBtn.textContent = F.showAll ? `Only show ${cat.toLowerCase()} types` : 'Show all types';
-        if (!F.showAll) pool = mapped;
-      } else allBtn.hidden = true;
-    }
     const q = (F.search[f.p] || '').trim().toLowerCase();
-    const list = pool.filter(o => !sel.includes(o) && (!q || o.toLowerCase().includes(q))).slice(0, 80);
+    let pool = all, cat = null, narrowed = false;
+    if (f.filter === 'sub') {
+      cat = F.values['Item Category'];
+      const mapped = cat && SUB_BY_CAT[cat] ? SUB_BY_CAT[cat].filter(o => all.includes(o)) : null;
+      if (mapped && mapped.length) { narrowed = true; if (!F.showAll) pool = mapped; }
+    }
+    const foot = [];
+    let list = [], hint = '';
+    if (f.filter === 'sub' && !narrowed && !q) {
+      hint = 'Pick a category above, or start typing a type.';
+    } else {
+      const matches = pool.filter(o => !sel.includes(o) && (!q || o.toLowerCase().includes(q)));
+      const lim = q || F.exp[f.p] ? 60 : PICK_PEEK;
+      list = matches.slice(0, lim);
+      if (!q && matches.length > lim) foot.push(`<button type="button" data-more="${esc(f.p)}">Show ${matches.length - lim} more</button>`);
+      else if (!q && F.exp[f.p] && matches.length > PICK_PEEK) foot.push(`<button type="button" data-more="${esc(f.p)}">Show fewer</button>`);
+      if (!list.length) hint = q ? 'No match in your Notion options.' : 'Nothing left to pick.';
+    }
+    if (narrowed) foot.push(`<button type="button" class="pk-all">${F.showAll ? `Only show ${esc(cat.toLowerCase())} types` : 'Show all types'}</button>`);
     wrap.querySelector('.pk-list').innerHTML = list.length
       ? list.map(o => `<button type="button" class="opt" data-o="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join('')
-      : `<span class="none">${q ? 'No match in your Notion options.' : 'Nothing left to pick.'}${narrowed && !F.showAll ? ' Try "Show all types".' : ''}</span>`;
+      : `<span class="hint">${esc(hint)}</span>`;
+    wrap.querySelector('.pk-foot').innerHTML = foot.join('');
   }
 
   function rerenderField(F, f) {
@@ -374,12 +419,14 @@
     root.addEventListener('click', e => {
       const t = e.target.closest('button');
       if (!t || !root.contains(t)) return;
+      if (t.matches('[data-toggle]')) { setOpen(F, !F.open); return; }
       if (t.matches('[data-save]')) { submitForm(F); return; }
       if (t.classList.contains('more-toggle')) {
         const open = t.getAttribute('aria-expanded') !== 'true';
         t.setAttribute('aria-expanded', open); root.querySelector('.fgrid.more').hidden = !open; return;
       }
       if (t.classList.contains('pk-all')) { F.showAll = !F.showAll; const f = F.fieldOf('Item Subcategory'); if (f) refreshPicker(F, f); return; }
+      if (t.dataset.more !== undefined) { const f = F.fieldOf(t.dataset.more); if (f) { F.exp[f.p] = !F.exp[f.p]; rerenderField(F, f); } return; }
       const wrap = t.closest('[data-f]');
       if (wrap && t.dataset.o !== undefined) {
         const f = F.fieldOf(wrap.dataset.f);
@@ -416,8 +463,15 @@
 
   function resetForm(F) {
     F.fields.forEach(f => { if (!F.def.sticky.includes(f.p)) F.values[f.p] = defaultFor(F, f); });
-    F.search = {}; F.showAll = false;
+    F.search = {}; F.showAll = false; F.exp = {};
     F.root.querySelectorAll('[data-q]').forEach(i => { i.value = ''; });
+  }
+
+  function flashSaved(F) {
+    const b = F.root.querySelector('[data-save]'); if (!b) return;
+    b.classList.add('saved'); b.textContent = 'Saved \u2713';
+    clearTimeout(F.flash);
+    F.flash = setTimeout(() => { b.classList.remove('saved'); b.textContent = F.def.save; }, 1500);
   }
 
   async function submitForm(F) {
@@ -436,7 +490,7 @@
     else Object.assign(tmp, { cat: vals.Category || [], price: vals['Estimated Price'] == null ? null : vals['Estimated Price'], priority: vals['Wishlist Priority'] || null, status: vals['Wishlist Status'] || null, link: vals.Link || '', reason: vals['Reason / Gap Filled'] || '', added: vals['Date Added'] || null });
     const list = F.w === 'add' ? state.items : state.wishes;
     list.push(tmp);
-    F.session++; resetForm(F); renderFormAll(F); updateMsg(F); renderLive();
+    F.session++; resetForm(F); renderFormAll(F); updateMsg(F); renderLive(); flashSaved(F);
     state.pending++;
     try {
       await post({ action: F.def.action, values: vals });
@@ -452,31 +506,54 @@
   /* =========================================================
      WORN TODAY
      ========================================================= */
-  function wearList() {
+  const TILE_PEEK = 12, TILE_MAX = 48;
+
+  function wearPool() {
     const q = ui.q.trim().toLowerCase();
     let list = ui.tab === 'item'
       ? state.items.filter(isActive)
       : state.outfits.filter(o => !['Archived', 'Retired'].includes(o.status));
     if (q) list = list.filter(r => `${r.name} ${r.brand || ''} ${r.cat || ''}`.toLowerCase().includes(q));
-    return list.slice().sort((a, b) =>
-      ((b.last === state.today) - (a.last === state.today)) || (b.last || '').localeCompare(a.last || '') || a.name.localeCompare(b.name));
+    return list;
+  }
+  // Order is decided when you open the tab or search, and stays put while you tap, so tiles don't jump under your finger.
+  function wearOrdered() {
+    const pool = wearPool();
+    if (!ui.snap) {
+      ui.snap = pool.slice().sort((a, b) =>
+        ((b.last === state.today) - (a.last === state.today)) || (b.last || '').localeCompare(a.last || '') || a.name.localeCompare(b.name)).map(r => r.id);
+    }
+    const pos = new Map(ui.snap.map((id, i) => [id, i]));
+    return pool.slice().sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : -1) - (pos.has(b.id) ? pos.get(b.id) : -1));
   }
 
   function renderWear() {
     const el = $('tiles');
-    if (state.err[ui.tab === 'item' ? 'items' : 'outfits']) { el.innerHTML = secError(ui.tab === 'item' ? 'items' : 'outfits', ui.tab === 'item' ? 'your pieces' : 'your outfits'); return; }
+    $('wearDate').textContent = state.today ? longDate(state.today) : '';
+    const errKey = ui.tab === 'item' ? 'items' : 'outfits';
+    if (state.err[errKey]) { el.innerHTML = secError(errKey, ui.tab === 'item' ? 'your pieces' : 'your outfits'); $('tilesMore').hidden = true; return; }
     const todayN = state.items.filter(i => i.last === state.today && isActive(i)).length;
-    $('wearCount').textContent = todayN ? `${todayN} ${todayN === 1 ? 'piece' : 'pieces'} logged` : 'Nothing logged yet';
-    const list = wearList();
-    const show = list.slice(0, 48);
+    const wc = $('wearCount');
+    wc.textContent = todayN ? `${plural(todayN, 'piece')} logged` : 'Nothing logged yet';
+    wc.classList.toggle('quiet', !todayN);
+    const list = wearOrdered();
+    const limit = ui.q || ui.showAll ? TILE_MAX : TILE_PEEK;
+    const show = list.slice(0, limit);
     el.innerHTML = show.length ? show.map(r => {
-      const meta = r.last ? `${r.n} ${r.n === 1 ? 'wear' : 'wears'}, ${ago(r.last)}` : (ui.tab === 'outfit' ? `${r.items.length} pieces, never worn` : 'Not worn yet');
+      const meta = r.last ? `${plural(r.n, 'wear')} \u00B7 ${ago(r.last)}` : (ui.tab === 'outfit' ? `${plural(r.items.length, 'piece')}, never worn` : 'Not worn yet');
       return `<button type="button" class="tile" data-id="${esc(r.id)}" aria-pressed="${r.last === state.today}">
-        <span class="arch">${photoHtml(r)}</span>
+        ${archHtml(r)}
         <span class="t-name">${esc(r.name)}</span><span class="t-meta">${esc(meta)}</span>
         <span class="t-check">${CHECK}</span></button>`;
-    }).join('') : `<p class="empty">${ui.q ? 'Nothing matches that search.' : ui.tab === 'item' ? 'No pieces yet. Add one with New piece.' : 'No outfits yet. Build one in Notion.'}</p>`;
-    $('tilesNote').textContent = list.length > show.length ? `Showing ${show.length} of ${list.length}. Search to find the rest.` : '';
+    }).join('') : (ui.q
+      ? '<p class="empty">Nothing matches that search.</p>'
+      : ui.tab === 'item'
+        ? emptyState('Your closet is waiting', 'Add your first piece, then tap it here each day to log what you wore.', 'add', 'Add a piece')
+        : emptyState('No outfits yet', 'Build an outfit in Notion and it will show up here, ready to log in one tap.'));
+    const more = $('tilesMore');
+    if (!ui.q && list.length > TILE_PEEK) { more.hidden = false; more.textContent = ui.showAll ? 'Show fewer' : `Show all ${list.length}`; }
+    else more.hidden = true;
+    $('tilesNote').textContent = list.length > limit && (ui.q || ui.showAll) ? `Showing ${limit} of ${list.length}. Search to find the rest.` : '';
   }
 
   function applyChange(c, useNew) {
@@ -490,6 +567,7 @@
     const kind = ui.tab;
     const row = (kind === 'item' ? state.items : state.outfits).find(r => r.id === id);
     if (!row) return;
+    if (String(id).startsWith('tmp-')) { toast('Still saving. Try again in a second.'); return; }
     if (row.last === state.today) {
       const u = undoMap.get(id);
       if (u) return undoWear(id, u);
@@ -550,19 +628,20 @@
     }
     $('gaugeNum').textContent = total;
     $('gaugeOf').textContent = total === 1 ? 'piece' : 'pieces';
+    $('closetSub').textContent = total ? `${pct(w30)}% worn this month` : '';
     $('legend').innerHTML =
-      `<div class="l7"><i></i>Worn this week<b>${w7} of ${total}</b></div>` +
-      `<div class="l30"><i></i>Worn this month<b>${w30} of ${total}</b></div>` +
-      `<div class="l90"><i></i>Worn in 90 days<b>${w90} of ${total}</b></div>`;
+      `<div class="l7"><i></i>This week<b>${w7} <small>of ${total}</small></b></div>` +
+      `<div class="l30"><i></i>This month<b>${w30} <small>of ${total}</small></b></div>` +
+      `<div class="l90"><i></i>Last 90 days<b>${w90} <small>of ${total}</small></b></div>`;
     const value = act.reduce((s, i) => s + (i.price || 0), 0);
     const never = act.filter(i => !i.last).length;
     $('cstats').innerHTML = total
       ? `<div><span class="num">${money(value)}</span><span class="muted">Closet value</span></div><div><span class="num">${never}</span><span class="muted">Never worn</span></div>`
-      : '<p class="muted">Your closet is empty. Add your first piece with New piece.</p>';
+      : '<p class="hint">Your closet is empty. Add your first piece to see this fill up.</p>';
   }
 
   /* =========================================================
-     ARCHES BY CATEGORY / COLOUR
+     WHAT'S IN IT: ranked bars by category / colour
      ========================================================= */
   function renderCats() {
     const el = $('arches');
@@ -572,21 +651,28 @@
     const counts = new Map();
     act.forEach(i => { const k = (byColor ? i.color : i.cat) || (byColor ? 'No colour' : 'No category'); counts.set(k, (counts.get(k) || 0) + 1); });
     const entries = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-    if (!entries.length) { el.innerHTML = '<p class="empty">Nothing to show yet.</p>'; $('archNote').textContent = ''; return; }
-    const cap = byColor ? 9 : 6;
+    if (!entries.length) {
+      el.innerHTML = emptyState('Nothing here yet', 'Once you add pieces, you will see what your closet is made of.', 'add', 'Add a piece');
+      el.classList.remove('anim'); $('archNote').textContent = ''; return;
+    }
+    const cap = byColor ? 7 : 6;
     const top = entries.slice(0, cap);
     const rest = entries.slice(cap).reduce((s2, e) => s2 + e[1], 0);
-    if (rest && !byColor) top.push(['Others', rest]);
-    const named = top.filter(e => e[0] !== 'Others');
-    const max = Math.max(...(named.length ? named : top).map(e => e[1]));
-    el.innerHTML = top.map(([label, n]) => {
+    const restKinds = entries.length - cap;
+    const max = Math.max(...top.map(e => e[1]));
+    el.classList.toggle('anim', ui.catAnim); ui.catAnim = false;
+    const rows = top.map(([label, n], i) => {
       const c = byColor ? COLORS[label] : null;
-      const kAttr = c && !c.startsWith('#') ? ` data-k="${c}"` : '';
-      const bg = c && c.startsWith('#') ? `;background:${c}` : '';
-      const dim = !byColor && (label === 'Others' || label === 'No category') ? ' dim' : '';
-      return `<div class="col${dim}"><span class="num">${n}</span><span class="stack"><span class="pillar"${kAttr} style="height:${Math.min(100, Math.max(8, Math.round((n / max) * 100)))}%${bg}"></span></span><span class="cl" title="${esc(label)}">${esc(label)}</span></div>`;
-    }).join('');
-    $('archNote').textContent = entries.length > cap ? (byColor ? `Top ${cap} of ${entries.length} colours.` : `Top ${cap} of ${entries.length}. The rest are grouped as Others.`) : '';
+      const hex = c && c[0] === '#';
+      const dim = label === 'No category' || label === 'No colour' ? ' dim' : '';
+      const w = Math.min(100, Math.max(6, Math.round((n / max) * 100)));
+      const dot = byColor ? `<i class="dot"${hex ? ` style="--c:${c}"` : c ? ` data-k="${c}"` : ''}></i>` : '';
+      const fill = byColor && c ? `<i class="col" style="--w:${w}%;--i:${i}${hex ? `;--c:${c}` : ''}"${!hex ? ` data-k="${c}"` : ''}></i>` : `<i style="--w:${w}%;--i:${i}"></i>`;
+      return `<div class="brow${dim}"><span class="bl">${dot}<span title="${esc(label)}">${esc(label)}</span></span><span class="bar">${fill}</span><span class="bn">${n}</span></div>`;
+    });
+    if (rest) rows.push(`<div class="brow dim"><span class="bl"><span>Others</span></span><span class="bar-note">${restKinds} more ${byColor ? (restKinds === 1 ? 'colour' : 'colours') : (restKinds === 1 ? 'category' : 'categories')}</span><span class="bn">${rest}</span></div>`);
+    el.innerHTML = rows.join('');
+    $('archNote').textContent = plural(act.length, 'piece');
   }
 
   /* =========================================================
@@ -602,8 +688,8 @@
     if (document.activeElement && document.activeElement.tagName === 'SELECT' && box.contains(document.activeElement)) return;   // don't close an open dropdown
     const open = state.wishes.filter(w => !FINISHED.includes(w.status));
     const total = open.reduce((s, w) => s + (w.price || 0), 0);
-    $('wlTotal').textContent = open.length ? `${open.length} ${open.length === 1 ? 'wish' : 'wishes'}, ${money(total)}` : '';
-    if (!open.length) { box.innerHTML = '<p class="empty">Nothing on the list. Add a wish with New wish.</p>'; return; }
+    $('wlTotal').textContent = open.length ? `${plural(open.length, 'wish', 'wishes')} \u00B7 ${money(total)}` : '';
+    if (!open.length) { box.innerHTML = emptyState('Nothing on the list', 'Park things you are thinking about here before you buy them.', 'wish', 'Add a wish'); return; }
     const statuses = (state.schema && state.schema.wish && state.schema.wish['Wishlist Status'] && state.schema.wish['Wishlist Status'].options) || FALLBACK_STATUS;
     const groups = new Map();
     open.forEach(w => { const k = w.priority || 'No priority'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(w); });
@@ -611,13 +697,13 @@
     box.innerHTML = [...groups].sort((a, b) => rank(a[0]) - rank(b[0])).map(([k, list]) => {
       const sub = list.reduce((s, w) => s + (w.price || 0), 0);
       return `<div class="wl-group"><h3>${esc(k)}</h3><span>${sub ? money(sub) : ''}</span></div>` + list.map(w => {
-        const sub2 = [w.brand, w.reason].filter(Boolean).join(', ');
-        const opts = `<option value=""${w.status ? '' : ' selected'}>No status</option>` + statuses.map(s => `<option${s === w.status ? ' selected' : ''}>${esc(s)}</option>`).join('');
+        const sub2 = [w.brand, w.reason].filter(Boolean).join(' \u00B7 ');
+        const opts = `<option value=""${w.status ? '' : ' selected'}>Set status</option>` + statuses.map(s => `<option${s === w.status ? ' selected' : ''}>${esc(s)}</option>`).join('');
         const ask = ui.ask === w.id
           ? `<div class="buy-ask"><span>Add it to your wardrobe too?</span><button type="button" class="btn sm primary" data-act="toitem">Add to wardrobe</button><button type="button" class="btn sm ghost" data-act="bought">Just mark bought</button><button type="button" class="btn sm ghost" data-act="cancel">Cancel</button></div>`
-          : `<div class="w-act"><select class="sel" data-act="status" aria-label="Status for ${esc(w.name)}">${opts}</select><button type="button" class="btn sm" data-act="buy">Bought</button>${/^https?:/i.test(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener noreferrer">Open link</a>` : ''}</div>`;
-        return `<div class="wrow" data-id="${esc(w.id)}"><span class="arch">${photoHtml(w)}</span>
-          <div><div class="w-name">${esc(w.name)}</div><div class="w-sub">${esc(sub2)}</div></div>
+          : `<div class="w-act"><select class="sel" data-act="status" aria-label="Status for ${esc(w.name)}">${opts}</select>${/^https?:/i.test(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener noreferrer">Open link</a>` : ''}<button type="button" class="btn sm ghost" data-act="buy">Bought it</button></div>`;
+        return `<div class="wrow" data-id="${esc(w.id)}">${archHtml(w)}
+          <div class="w-main"><div class="w-name">${esc(w.name)}</div><div class="w-sub">${esc(sub2)}</div></div>
           <div class="w-price">${w.price != null ? esc(money(w.price)) : ''}</div>${ask}</div>`;
       }).join('');
     }).join('');
@@ -657,21 +743,23 @@
   if (has('wear')) {
     $('tiles').addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) wearTap(t.dataset.id); });
     document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
-      ui.tab = b.dataset.tab;
+      ui.tab = b.dataset.tab; ui.snap = null; ui.showAll = false;
       document.querySelectorAll('[data-tab]').forEach(x => x.setAttribute('aria-selected', x === b));
       renderWear();
     }));
-    $('wearSearch').addEventListener('input', e => { ui.q = e.target.value; renderWear(); });
+    $('wearSearch').addEventListener('input', e => { ui.q = e.target.value; ui.snap = null; renderWear(); });
+    $('tilesMore').addEventListener('click', () => { ui.showAll = !ui.showAll; renderWear(); });
   }
   if (has('cats')) document.querySelectorAll('[data-by]').forEach(b => b.addEventListener('click', () => {
-    ui.by = b.dataset.by;
+    ui.by = b.dataset.by; ui.catAnim = true;
     document.querySelectorAll('[data-by]').forEach(x => x.setAttribute('aria-selected', x === b));
     renderCats();
   }));
   if (has('wishlist')) {
     $('wl').addEventListener('click', e => {
       const b = e.target.closest('button[data-act]'); if (!b) return;
-      const id = b.closest('.wrow').dataset.id;
+      const row = b.closest('.wrow'); if (!row) return;
+      const id = row.dataset.id;
       const act = b.dataset.act;
       if (act === 'buy') { ui.ask = id; renderWishlist(); }
       else if (act === 'cancel') { ui.ask = null; renderWishlist(); }
@@ -683,6 +771,10 @@
       setWishStatus(s.closest('.wrow').dataset.id, s.value || null);
     });
   }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-open-form]');
+    if (b) openForm(b.dataset.openForm);
+  });
 
   /* ---------- render ---------- */
   function renderLive() {
@@ -704,7 +796,7 @@
     renderLive();
   }
 
-  ['add', 'wish'].forEach(w => { if (has(w)) document.querySelector(`.card[data-w="${w}"]`).innerHTML = `<h2>${esc(FORM_DEFS[w].title)}</h2><p class="muted note">Loading your Notion options...</p>`; });
+  ['add', 'wish'].forEach(w => { if (has(w)) document.querySelector(`.card[data-w="${w}"]`).innerHTML = `<h2>${esc(FORM_DEFS[w].title)}</h2><div class="skel"><i></i><i></i><i></i></div>`; });
 
   refresh();
   setInterval(refresh, 60000);
