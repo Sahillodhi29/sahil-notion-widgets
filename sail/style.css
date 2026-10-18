@@ -2,11 +2,11 @@
    Today's Adventure: the open lawn deck of the Sunny
    Live time-synced sky and sea behind a white railing, a cream wall
    with striped arched doors, the big mast with a hanging signboard,
-   green lawn, and deck-plank cards. Solid #1a1a1a (your dashboard colour) everywhere the scene fades out.
+   green lawn, and deck-plank cards. Solid #191919 outside the scene.
    ============================================================ */
 :root {
   color-scheme: dark;
-  --bg: #1a1a1a;
+  --bg: #191919;
   --rows: 3;
   --top: 292px;          /* where the cards start */
 
@@ -22,7 +22,7 @@
   --pink: 246 168 200;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: #1a1a1a; }
+html, body { background: #191919; }
 body {
   font-family: 'Quicksand', ui-rounded, 'Nunito', 'Segoe UI', system-ui, sans-serif;
   color: var(--brown); font-weight: 600;
@@ -33,33 +33,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 a { color: inherit; }
 ul { list-style: none; }
 
-.adv { padding: 0; }
+.adv { padding: 6px 4px 12px; }
 
 /* ============================================================
    THE DECK
    ============================================================ */
 .deck {
-  position: relative; overflow: hidden; isolation: isolate;
-  padding: 0 18px 46px; background: transparent;
+  position: relative; overflow: hidden; border-radius: 26px; isolation: isolate;
+  padding: 0 18px 46px; background: #3f9146;
+  box-shadow: 0 12px 30px rgb(0 0 0 / .45);
 }
-/* The scene melts into the page: its edges fade to nothing, so the #1a1a1a
-   of your dashboard shows straight through and there is no visible box. */
-.scene {
-  position: absolute; inset: 0; z-index: 0; pointer-events: none; --lamp: calc(.5 + var(--stars) * .5);
-  --fx: 64px; --ft: 66px; --fb: 44px;
-  -webkit-mask-image:
-    linear-gradient(to bottom, transparent 0, rgb(0 0 0 / .1) calc(var(--ft) * .25), rgb(0 0 0 / .4) calc(var(--ft) * .5), rgb(0 0 0 / .8) calc(var(--ft) * .75), #000 var(--ft),
-      #000 calc(100% - var(--fb)), rgb(0 0 0 / .8) calc(100% - var(--fb) * .75), rgb(0 0 0 / .4) calc(100% - var(--fb) * .5), rgb(0 0 0 / .1) calc(100% - var(--fb) * .25), transparent 100%),
-    linear-gradient(to right, transparent 0, rgb(0 0 0 / .1) calc(var(--fx) * .25), rgb(0 0 0 / .4) calc(var(--fx) * .5), rgb(0 0 0 / .8) calc(var(--fx) * .75), #000 var(--fx),
-      #000 calc(100% - var(--fx)), rgb(0 0 0 / .8) calc(100% - var(--fx) * .75), rgb(0 0 0 / .4) calc(100% - var(--fx) * .5), rgb(0 0 0 / .1) calc(100% - var(--fx) * .25), transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to bottom, transparent 0, rgb(0 0 0 / .1) calc(var(--ft) * .25), rgb(0 0 0 / .4) calc(var(--ft) * .5), rgb(0 0 0 / .8) calc(var(--ft) * .75), #000 var(--ft),
-      #000 calc(100% - var(--fb)), rgb(0 0 0 / .8) calc(100% - var(--fb) * .75), rgb(0 0 0 / .4) calc(100% - var(--fb) * .5), rgb(0 0 0 / .1) calc(100% - var(--fb) * .25), transparent 100%),
-    linear-gradient(to right, transparent 0, rgb(0 0 0 / .1) calc(var(--fx) * .25), rgb(0 0 0 / .4) calc(var(--fx) * .5), rgb(0 0 0 / .8) calc(var(--fx) * .75), #000 var(--fx),
-      #000 calc(100% - var(--fx)), rgb(0 0 0 / .8) calc(100% - var(--fx) * .75), rgb(0 0 0 / .4) calc(100% - var(--fx) * .5), rgb(0 0 0 / .1) calc(100% - var(--fx) * .25), transparent 100%);
-  mask-composite: intersect;
-}
+.scene { position: absolute; inset: 0; z-index: 0; pointer-events: none; --lamp: calc(.5 + var(--stars) * .5); }
 
 /* sky + sea (live) */
 .sky {
@@ -120,7 +104,7 @@ ul { list-style: none; }
 
 /* leafy trees at the corners */
 .tree { top: 146px; width: 150px; height: 190px; isolation: isolate; }
-.tree.l { left: 44px; } .tree.r { right: 44px; transform: scaleX(-1); }
+.tree.l { left: -36px; } .tree.r { right: -36px; transform: scaleX(-1); }
 .tree::before { content: ''; position: absolute; left: 0; top: 0; width: 150px; height: 130px;
   background:
     radial-gradient(circle 11px at 58px 16px, #a4e07a 98%, transparent) no-repeat,
