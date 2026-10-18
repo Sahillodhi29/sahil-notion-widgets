@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#191919">
+  <meta name="theme-color" content="#1a1a1a">
   <title>Today's Adventure</title>
-  <style>html,body{background:#191919;color-scheme:dark}</style>
+  <style>html,body{background:#1a1a1a;color-scheme:dark}</style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
@@ -14,12 +14,42 @@
 </head>
 <body>
   <main class="adv">
+   <div class="deck" id="deck">
 
+    <!-- the open deck: sky, sea, railing, cream wall with doors, lawn, mast -->
+    <div class="scene" aria-hidden="true">
+      <div class="sky" id="sky"></div>
+      <div class="objs">
+        <svg class="petals" viewBox="0 0 170 130"><defs><linearGradient id="pg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d9672c"/><stop offset="1" stop-color="#f4a35a"/></linearGradient></defs>
+          <path d="M60 130C52 86 62 40 98 4c4 44 4 84 12 126z" fill="url(#pg)"/>
+          <path d="M18 130C14 96 30 58 62 30c-2 36 2 70 6 100z" fill="#e5803d"/>
+          <path d="M104 130c4-44 18-80 52-104-6 40-6 74-8 104z" fill="#e5803d"/>
+          <path d="M98 4c4 44 4 84 12 126" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2"/></svg>
+        <div class="net"></div>
+        <div class="farrail"></div>
+        <div class="wall">
+          <i class="cornice"></i>
+          <i class="door l"><b></b></i><i class="door r"><b></b></i>
+          <i class="port a"></i><i class="port b"></i>
+          <i class="skirt"></i>
+        </div>
+        <div class="lawn" id="lawn"></div>
+        <i class="tree l"></i><i class="tree r"></i>
+        <div class="mast"><i class="band top"></i><i class="band low"></i></div>
+        <div class="mastbase"></div>
+        <div class="yard"></div>
+      </div>
+      <i class="lamp l"><b></b></i><i class="lamp r"><b></b></i>
+    </div>
+
+    <!-- carved signboard hanging from the yard -->
     <header class="head">
-      <div class="ttl">
-        <i class="tw l" aria-hidden="true"></i>
-        <h1>Today's Adventure</h1>
-        <i class="tw r" aria-hidden="true"></i>
+      <div class="signwrap">
+        <i class="rope l"></i><i class="rope r"></i>
+        <div class="plank">
+          <i class="nail a"></i><i class="nail b"></i><i class="nail c"></i><i class="nail d"></i>
+          <h1>Today's Adventure</h1>
+        </div>
       </div>
     </header>
 
@@ -96,6 +126,7 @@
       </section>
 
     </div>
+   </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button type="button" id="toastBtn">Undo</button></div>
   </main>

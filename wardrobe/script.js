@@ -1,17 +1,20 @@
 'use strict';
 /* Wardrobe widgets: one page, many pieces.
-   /wardrobe/index.html?key=KEY&w=add      -> just that widget
-   w = add | wish | wear | closet | cats | wishlist | all   (comma-separate to combine)
+   /wardrobe/index.html?key=KEY&w=outfit      -> just that widget
+   w = add | wish | outfit | outfits | closet | cats | wishlist | all   (comma-separate to combine)
+   (w=wear still works and opens the outfit widget)
    Optional: &cur=$ to change the currency symbol (default ₹), &bg=transparent or &bg=HEX */
 (() => {
   const API = '/api/wardrobe';
+  const API_PHOTO = '/api/wardrobe-photo';
   const params = new URLSearchParams(location.search);
   const KEY = params.get('key') || '';
   const CUR = params.get('cur') || '\u20B9';
   const NEEDS = {
-    add: ['items', 'schema'], wish: ['wishes', 'schema'], wear: ['items', 'outfits'],
+    add: ['items', 'schema'], wish: ['wishes', 'schema'], outfit: ['items', 'outfits'], outfits: ['items', 'outfits'],
     closet: ['items'], cats: ['items'], wishlist: ['wishes', 'schema'],
   };
+  const ALIAS = { wear: 'outfit' };
   const keyQ = sep => (KEY ? `${sep}key=${encodeURIComponent(KEY)}` : '');
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,22 +27,23 @@
   }
 
   /* ---------- which widgets? ---------- */
-  const asked = (params.get('w') || 'all').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+  const asked = (params.get('w') || 'all').toLowerCase().split(',').map(s => s.trim()).filter(Boolean).map(w => ALIAS[w] || w);
   const wantAll = asked.includes('all');
-  const shown = wantAll ? Object.keys(NEEDS) : asked.filter(w => NEEDS[w]);
+  const shown = wantAll ? Object.keys(NEEDS) : [...new Set(asked.filter(w => NEEDS[w]))];
   const unknown = asked.filter(w => w !== 'all' && !NEEDS[w]);
   document.querySelectorAll('.card[data-w]').forEach(c => { c.hidden = !shown.includes(c.dataset.w); });
   const MULTI = shown.length !== 1;
   document.body.dataset.mode = MULTI ? 'multi' : 'single';
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
-    b.innerHTML = '<h2>Unknown widget</h2><p class="muted note">Use w=add, wish, wear, closet, cats, wishlist or all.</p>';
+    b.innerHTML = '<h2>Unknown widget</h2><p class="muted note">Use w=add, wish, outfit, outfits, closet, cats, wishlist or all.</p>';
   }
   const has = w => shown.includes(w);
   const need = [...new Set(shown.flatMap(w => NEEDS[w]))];
 
   const state = { today: null, items: [], outfits: [], wishes: [], schema: null, err: {}, pending: 0, loadedAt: 0, gaugeDone: false };
-  const ui = { tab: 'item', q: '', by: 'cat', ask: null, snap: null, showAll: false, catAnim: true };
+  const ui = { sort: 'recent', by: 'cat', ask: null, catAnim: true };
+  const ob = { open: false, sel: [], cat: 'All', type: '', q: '', name: '' };
   const forms = {};
   const undoMap = new Map();
 
@@ -62,11 +66,17 @@
   const initial = s => (String(s).trim()[0] || '?').toUpperCase();
   const errText = e => e.message + (e.hint ? ' ' + e.hint : '');
   const plural = (n, one, many) => `${n} ${n === 1 ? one : (many || one + 's')}`;
-  const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>';
+  const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>';
   const PLUS = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.5v11M1.5 7h11"/></svg>';
-  const ARCH_SVG = c => `<svg viewBox="0 0 46 56" stroke="${c}" aria-hidden="true"><path d="M3 54V21a20 20 0 0 1 40 0v33"/><path d="M12 54V22a11 11 0 0 1 22 0v32" opacity=".55"/></svg>`;
+  const HEART = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17s-6.5-4.1-6.5-8.6A3.6 3.6 0 0 1 10 6.2a3.6 3.6 0 0 1 6.5 2.2C16.5 12.9 10 17 10 17z"/></svg>';
+  const CAMERA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1-1.5h6.6l1 1.5h1.2A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>';
+  const ICONS = {
+    add: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 4L4 7l2 3.5L8 9.6V20h8V9.6l2 .9L20 7l-4.5-3a3.6 3.6 0 0 1-7 0z"/></svg>',
+    wish: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-8-4.9-8-10.7A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 8 2.6c0 5.8-8 10.7-8 10.7z"/></svg>',
+    outfit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5a2 2 0 1 0-2-2M12 6.5v2L3.5 14.6A1.6 1.6 0 0 0 4.4 17.5h15.2a1.6 1.6 0 0 0 .9-2.9z"/></svg>',
+  };
 
-  /* Garment colours. These are data, not theme: a "Navy" chip should look navy. */
+  /* Garment colours are data, not theme: a "Navy" chip should look navy. */
   const COLORS = {
     'Animal print': 'animal', 'Beige': '#D9C7A7', 'Black': '#141414', 'Blue': '#2E62D1', 'Blush': '#F1C9C4', 'Brick': '#A5442F',
     'Bronze': '#A9713A', 'Brown': '#6B4429', 'Burgundy': '#6B1428', 'Camel': '#C1904E', 'Caramel': '#B97A3C', 'Champagne': '#EBD9B4',
@@ -83,21 +93,51 @@
   const COMMON_COLORS = ['Black', 'White', 'Cream', 'Beige', 'Grey', 'Navy', 'Denim blue', 'Blue', 'Red', 'Burgundy', 'Pink', 'Green', 'Olive', 'Brown', 'Camel', 'Multicolor'];
   const hexOf = name => { const c = COLORS[name]; return c && c[0] === '#' ? c : null; };
   const lumOf = hex => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; };
-  const colorAttr = name => {
-    const c = COLORS[name];
-    if (!c) return '';
-    return c[0] === '#' ? ` style="--c:${c}"` : ` data-k="${c}"`;
-  };
+  const colorAttr = name => { const c = COLORS[name]; return !c ? '' : c[0] === '#' ? ` style="--c:${c}"` : ` data-k="${c}"`; };
 
-  /* An arch-shaped photo (or a soft tinted initial when there is no photo). Tint follows the garment's colour. */
-  const archHtml = r => {
-    const hex = r.color ? hexOf(r.color) : null;
-    const cls = 'arch' + (hex ? ' tinted' : '') + (hex && lumOf(hex) > 0.6 ? ' light' : '');
-    const inner = r.photo
-      ? `<img src="${esc(r.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-ini="${esc(initial(r.name))}">`
-      : `<span class="ini">${esc(initial(r.name))}</span>`;
-    return `<span class="${cls}"${hex ? ` style="--c:${hex}"` : ''}>${inner}</span>`;
+  /* Every category gets its own hue. It tints photo-less tiles and colours the "What's in it" bars. */
+  const CAT_ORDER = ['Tops', 'Bottoms', 'Dresses', 'Jumpsuits & Rompers', 'Outerwear', 'Shoes', 'Bags', 'Accessories', 'Jewelry', 'Activewear', 'Loungewear', 'Swimwear', 'Intimates', 'Sleepwear', 'Costumes', 'Other'];
+  const CAT_HUE = {
+    'Tops': '#FF6B9D', 'Bottoms': '#5B9DFF', 'Dresses': '#B678FF', 'Jumpsuits & Rompers': '#E07BFF', 'Outerwear': '#FFA94D', 'Shoes': '#3FD9B0',
+    'Bags': '#FF8466', 'Accessories': '#FFD43B', 'Jewelry': '#FF8FD8', 'Activewear': '#9BE564', 'Loungewear': '#8E9BFF', 'Swimwear': '#38C9F5',
+    'Intimates': '#FF7A93', 'Sleepwear': '#A596FF', 'Costumes': '#F55BC8', 'Other': '#98A0B3',
   };
+  const catOrder = c => { const i = CAT_ORDER.indexOf(c); return i === -1 ? 99 : i; };
+
+  /* What counts as a top and a bottom (mirrors the server). */
+  const TOP_SUBS = ['Sports bra', 'Workout top', 'Hoodie', 'Sweatshirt', 'Camisole', 'Bikini top'];
+  const BOTTOM_SUBS = ['Leggings', 'Workout leggings', 'Yoga pants', 'Joggers', 'Sweatpants', 'Bike shorts', 'Running shorts', 'Bikini bottom'];
+  const BOTH_SUBS = ['Lounge set', 'Pajama set', 'One-piece swimsuit'];
+  function roleOf(i) {
+    if (i.cat === 'Tops') return { top: true, bottom: false };
+    if (i.cat === 'Bottoms') return { top: false, bottom: true };
+    if (i.cat === 'Dresses' || i.cat === 'Jumpsuits & Rompers') return { top: true, bottom: true, full: true };
+    const both = i.sub.some(s => BOTH_SUBS.includes(s));
+    return { top: both || i.sub.some(s => TOP_SUBS.includes(s)), bottom: both || i.sub.some(s => BOTTOM_SUBS.includes(s)), full: both };
+  }
+
+  /* ---------- pictures ---------- */
+  // Photos you drag into Notion come back with a signed link that changes every minute. Keep the first one so the picture doesn't reload.
+  const photoCache = new Map();
+  function stable(id, url) {
+    if (!url) return '';
+    const [path, qs] = url.split('?');
+    if (!qs || !/X-Amz-|Signature/i.test(qs)) return url;
+    const hit = photoCache.get(id);
+    if (hit && hit.path === path && Date.now() - hit.t < 40 * 60000) return hit.url;
+    photoCache.set(id, { path, url, t: Date.now() });
+    return url;
+  }
+  // A rounded photo. With no photo you get the garment's colour (or its category's hue) with a big initial.
+  function thumb(r, cls) {
+    const hex = r.color ? hexOf(r.color) : null;
+    const base = hex || CAT_HUE[r.cat] || '#8E92A6';
+    const light = lumOf(base) > 0.62;
+    const inner = r.photo
+      ? `<img src="${esc(r.photo)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-ini="${esc(initial(r.name))}">`
+      : `<span class="ini">${esc(initial(r.name))}</span>`;
+    return `<span class="th${cls ? ' ' + cls : ''}${light ? ' light' : ''}" style="--c:${base}">${inner}</span>`;
+  }
   document.addEventListener('error', e => {
     const im = e.target;
     if (im && im.tagName === 'IMG' && im.dataset.ini) im.parentElement.innerHTML = `<span class="ini">${esc(im.dataset.ini)}</span>`;
@@ -139,9 +179,9 @@
   }
 
   /* ---------- network ---------- */
-  async function post(body) {
+  async function post(body, url) {
     // Writes authenticate with the x-widget-key header (same as the Sail and Meal widgets); ?key= only works for reads.
-    const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-widget-key': KEY }, body: JSON.stringify(body) });
+    const r = await fetch(url || API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-widget-key': KEY }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || j.error) { const e = new Error(j.error || `HTTP ${r.status}`); e.hint = j.hint; throw e; }
     return j;
@@ -154,7 +194,9 @@
     state.today = data.today;
     ['items', 'outfits', 'wishes'].forEach(k => {
       if (!data[k]) return;
-      if (data[k].error) state.err[k] = data[k]; else { state.err[k] = null; state[k] = data[k].rows; }
+      if (data[k].error) { state.err[k] = data[k]; return; }
+      state.err[k] = null;
+      state[k] = data[k].rows.map(r2 => { r2.photo = stable(r2.id, r2.photo); return r2; });
     });
     if (data.schema) { if (data.schema.error) state.err.schema = data.schema; else { state.err.schema = null; state.schema = data.schema; } }
     state.loadedAt = Date.now();
@@ -165,7 +207,8 @@
     b.innerHTML = `<h2>Couldn't load your wardrobe</h2><p class="muted note">${esc(e.message)}${e.hint ? ' ' + esc(e.hint) : ''}<br>Check the key in the link, then open /api/wardrobe-health to see what's wrong.</p>`;
   }
   const secError = (k, what) => (state.err[k] ? `<p class="empty">Couldn't read ${what}: ${esc(state.err[k].error)}${state.err[k].hint ? ' ' + esc(state.err[k].hint) : ''}</p>` : '');
-  const emptyState = (title, text, form, label) => `<div class="empty-state">${ARCH_SVG('#E2C593')}<strong>${esc(title)}</strong><p>${esc(text)}</p>${form && has(form) ? `<button type="button" class="btn sm primary" data-open-form="${form}">${esc(label)}</button>` : ''}</div>`;
+  const emptyState = (title, text, act, label, ico) => `<div class="empty-state"><span class="es-ico">${ICONS[ico || 'add']}</span><strong>${esc(title)}</strong><p>${esc(text)}</p>${act ? `<button type="button" class="btn sm primary" ${act}>${esc(label)}</button>` : ''}</div>`;
+  const openForm$ = w => (has(w) ? `data-open-form="${w}"` : '');
 
   async function refresh() {
     if (state.pending) return;
@@ -183,53 +226,37 @@
   const FORM_DEFS = {
     add: {
       schemaKey: 'item', title: 'New piece', blurb: 'Name it, pick a category, save. Everything else is optional.',
-      nameProp: 'Name', action: 'item-create', save: 'Add to wardrobe', done: 'Added', dupList: () => state.items,
-      sticky: ['Item Category', 'Location', 'Season', 'Item Status', 'Date Acquired', 'Condition'],
+      icon: 'add', nameProp: 'Name', action: 'item-create', save: 'Add to wardrobe', done: 'Added', dupList: () => state.items,
+      moreLabel: 'Add photo & notes', sticky: ['Item Category'],
       essentials: [
         { p: 'Name', label: 'Name', kind: 'text', ph: 'Wine silk shirt', req: true, wide: true, lg: true },
         { p: 'Item Category', label: 'Category', kind: 'opts', chips: true, wide: true },
         { p: 'Item Subcategory', label: 'Type', kind: 'opts', multi: true, wide: true, filter: 'sub' },
         { p: 'Primary Color', label: 'Colour', kind: 'swatch', wide: true, col2: true },
-        { p: 'Brand', label: 'Brand', kind: 'text', col2: true },
         { p: 'Price', label: 'Price', kind: 'money', col2: true },
       ],
       more: [
-        { p: 'Secondary Colors', label: 'Other colours', kind: 'swatch', multi: true, wide: true, full: true, group: 'Basics' },
-        { p: 'Size', label: 'Size', kind: 'text' },
-        { p: 'Date Acquired', label: 'Date acquired', kind: 'date', def: 'today' },
-        { p: 'Item Status', label: 'Status', kind: 'opts', multi: true, wide: true, def: ['Active'] },
-        { p: 'Location', label: 'Where it lives', kind: 'opts', wide: true },
-        { p: 'Wear Count', label: 'Times worn already', kind: 'number', def: 0 },
-        { p: 'Season', label: 'Season', kind: 'opts', multi: true, wide: true, chips: true, group: 'Style' },
-        { p: 'Occasion', label: 'Occasion', kind: 'opts', multi: true, wide: true },
-        { p: 'Style/Aesthetic', label: 'Style', kind: 'opts', multi: true, wide: true },
-        { p: 'Pattern', label: 'Pattern', kind: 'opts', multi: true, wide: true },
-        { p: 'Fabric', label: 'Fabric', kind: 'opts', multi: true, wide: true },
-        { p: 'Condition', label: 'Condition', kind: 'opts', multi: true, wide: true, group: 'Care & notes' },
-        { p: 'Care', label: 'Care', kind: 'opts', multi: true, wide: true },
-        { p: 'Tags', label: 'Tags', kind: 'opts', multi: true, wide: true },
-        { p: 'Notes', label: 'Notes', kind: 'area', wide: true, full: true },
-        { p: 'Photo', label: 'Photo link', kind: 'url', ph: 'Paste an image link (https://...)', wide: true, full: true },
+        { p: 'Photo', label: 'Photo', kind: 'photo', wide: true, full: true },
+        { p: 'Notes', label: 'Notes', kind: 'area', ph: 'Fabric, fit, what you love about it...', wide: true, full: true },
       ],
     },
     wish: {
       schemaKey: 'wish', title: 'New wish', blurb: 'Park it here before you buy it.',
-      nameProp: 'Item Name', action: 'wish-create', save: 'Add to wishlist', done: 'Wish saved', dupList: () => state.wishes,
-      sticky: ['Wishlist Priority', 'Wishlist Status', 'Date Added'],
+      icon: 'wish', nameProp: 'Item Name', action: 'wish-create', save: 'Add to wishlist', done: 'Wish saved', dupList: () => state.wishes,
+      moreLabel: 'More details', sticky: ['Wishlist Priority', 'Wishlist Status', 'Date Added'],
       essentials: [
         { p: 'Item Name', label: 'Name', kind: 'text', ph: 'Silk slip dress', req: true, wide: true, lg: true },
         { p: 'Category', label: 'Category', kind: 'opts', multi: true, chips: true, wide: true },
         { p: 'Wishlist Priority', label: 'How much do you want it', kind: 'opts', chips: true, wide: true },
-        { p: 'Brand', label: 'Brand', kind: 'text', col2: true },
         { p: 'Estimated Price', label: 'Price', kind: 'money', col2: true },
         { p: 'Reason / Gap Filled', label: 'Why you want it', kind: 'area', ph: 'What gap does it fill?', wide: true, col2: true },
       ],
       more: [
-        { p: 'Link', label: 'Link', kind: 'url', ph: 'https://...', wide: true },
+        { p: 'Photo', label: 'Photo', kind: 'photo', wide: true, full: true },
+        { p: 'Link', label: 'Link to the product', kind: 'url', ph: 'https://...', wide: true },
         { p: 'Wishlist Status', label: 'Status', kind: 'opts', wide: true, chips: true, def: 'Considering' },
         { p: 'Date Added', label: 'Date added', kind: 'date', def: 'today' },
-        { p: 'Notes', label: 'Notes', kind: 'area', wide: true },
-        { p: 'Photo', label: 'Photo link', kind: 'url', ph: 'Paste an image link (https://...)', wide: true },
+        { p: 'Notes', label: 'Notes', kind: 'area', wide: true, full: true },
       ],
     },
   };
@@ -237,6 +264,7 @@
   const slug = s => String(s).replace(/[^a-z0-9]+/gi, '-').toLowerCase();
   const CHIP_MAX = 14;      // lists longer than this become search-and-pick (unless the field says chips: true)
   const PICK_PEEK = 12;     // how many suggestions a search-and-pick shows before "more"
+  const freshPhoto = () => ({ state: 'idle', preview: '', msg: '' });
 
   function defaultFor(F, f) {
     const opts = (F.sch[f.p] && F.sch[f.p].options) || [];
@@ -256,16 +284,15 @@
       root.innerHTML = `<h2>${esc(def.title)}</h2><p class="muted note">Notion has no "${esc(def.nameProp)}" property in this database. Open /api/wardrobe-health to see what's missing.</p>`;
       return;
     }
-    const F = { w, def, root, sch, values: {}, session: 0, showAll: false, search: {}, exp: {}, open: !MULTI };
+    const F = { w, def, root, sch, values: {}, session: 0, showAll: false, search: {}, exp: {}, open: !MULTI, photo: freshPhoto() };
     F.fields = [...def.essentials, ...def.more].filter(f => sch[f.p]);
     F.fieldOf = p => F.fields.find(f => f.p === p);
     F.fields.forEach(f => { F.values[f.p] = defaultFor(F, f); });
-    const fld = f => `${f.group ? `<h3 class="fgroup">${esc(f.group)}</h3>` : ''}<div class="fld${f.wide ? ' wide' : ''}${f.full ? ' full' : ''}" data-f="${esc(f.p)}">${fieldInner(F, f)}</div>`;
+    const fld = f => `<div class="fld${f.wide ? ' wide' : ''}${f.full ? ' full' : ''}" data-f="${esc(f.p)}">${fieldInner(F, f)}</div>`;
     const sect = list => list.filter(f => sch[f.p]).map(fld).join('');
     // the essentials sit in two columns on a wide card, and stack on a narrow one
     const cols = list => `<div class="fcols"><div class="fgrid">${sect(list.filter(f => !f.col2))}</div><div class="fgrid">${sect(list.filter(f => f.col2))}</div></div>`;
-    const mark = `<svg class="arch-mark" viewBox="0 0 30 38" fill="none" stroke-width="1.8" aria-hidden="true"><path d="M3 37V15a12 12 0 0 1 24 0v22" stroke="#E2C593"/><path d="M9 37V16a6 6 0 0 1 12 0v21" stroke="#D99B96"/></svg>`;
-    const headInner = `${mark}<div class="ftitle"><h2>${esc(def.title)}</h2><p class="muted">${esc(def.blurb)}</p></div><span class="fplus">${PLUS}</span>`;
+    const headInner = `<span class="gico g-${w}">${ICONS[def.icon]}</span><div class="ftitle"><h2>${esc(def.title)}</h2><p class="muted">${esc(def.blurb)}</p></div><span class="fplus">${PLUS}</span>`;
     root.classList.toggle('collapsible', MULTI);
     root.classList.toggle('open', F.open);
     root.innerHTML = `
@@ -273,7 +300,7 @@
       <div class="fbody"${F.open ? '' : ' hidden'}>
         <div class="fscroll">
           ${cols(def.essentials)}
-          <button type="button" class="more-toggle" aria-expanded="false">More details</button>
+          <button type="button" class="more-toggle" aria-expanded="false">${esc(def.moreLabel)}</button>
           <div class="fgrid more" hidden>${sect(def.more)}</div>
         </div>
         <div class="ffoot"><span class="msg" data-msg></span><button type="button" class="btn primary" data-save>${esc(def.save)}</button></div>
@@ -300,8 +327,24 @@
   }
 
   const labelHtml = (F, f) => `<span class="lab">${esc(f.label)}${f.req ? ' <span class="req" aria-hidden="true">*</span>' : ''}</span>`;
-
   function isPicker(F, f) { return f.kind === 'opts' && !f.chips && (F.sch[f.p].options || []).length > CHIP_MAX; }
+
+  function photoMarkup(F, f) {
+    const ph = F.photo;
+    return `<div class="lab-row">${labelHtml(F, f)}</div>
+      <div class="photo-field">
+        <span class="pf-prev">${ph.preview ? `<img src="${esc(ph.preview)}" alt="">` : CAMERA}</span>
+        <div class="pf-main">
+          <div class="pf-row">
+            <button type="button" class="btn sm ghost" data-upload>Upload photo</button>
+            <span class="pf-or">or</span>
+            <input class="inp slim" type="url" data-photo placeholder="paste an image link" aria-label="Photo link" autocomplete="off">
+          </div>
+          <p class="pf-msg ${esc(ph.state)}" data-pmsg>${esc(ph.msg)}</p>
+        </div>
+        <input type="file" accept="image/*" hidden data-file>
+      </div>`;
+  }
 
   function fieldInner(F, f) {
     const v = F.values[f.p];
@@ -319,6 +362,7 @@
         return `<label for="${id}">${lab}</label><input id="${id}" class="inp" type="date" data-in="${esc(f.p)}" value="${esc(v)}">`;
       case 'area':
         return `<label for="${id}">${lab}</label><textarea id="${id}" class="inp" rows="2" data-in="${esc(f.p)}" maxlength="1900" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>`;
+      case 'photo': return photoMarkup(F, f);
       case 'swatch': {
         const opts = F.sch[f.p].options || [];
         const sel = f.multi ? v : (v ? [v] : []);
@@ -385,6 +429,7 @@
       const wrap = F.root.querySelector(`[data-f="${CSS.escape(f.p)}"]`);
       if (!wrap) return;
       if (isPicker(F, f)) { refreshPicker(F, f); return; }
+      if (f.kind === 'photo') { wrap.innerHTML = photoMarkup(F, f); return; }
       if (['text', 'url', 'money', 'number', 'date', 'area'].includes(f.kind)) {
         const el = wrap.querySelector('[data-in]'); if (el) el.value = F.values[f.p];
         wrap.classList.remove('bad');
@@ -405,13 +450,66 @@
     const el = F.root.querySelector('[data-msg]');
     if (!el) return;
     const name = String(F.values[F.def.nameProp] || '').trim().toLowerCase();
-    const brand = String((F.values.Brand) || '').trim().toLowerCase();
     let dup = null;
-    if (name.length >= 3) dup = F.def.dupList().find(r => r.name.toLowerCase() === name && (!brand || !r.brand || r.brand.toLowerCase() === brand));
+    if (name.length >= 3) dup = F.def.dupList().find(r => r.name.toLowerCase() === name);
     el.classList.toggle('warn', !!dup);
-    if (dup) el.textContent = `You already have "${dup.name}"${dup.brand ? ` (${dup.brand})` : ''}.`;
+    if (dup) el.textContent = `You already have "${dup.name}".`;
     else if (F.session) el.textContent = `${F.session} added this session`;
     else el.textContent = '';
+  }
+
+  /* ----- photo field: upload from your device, or paste a link, with a live preview ----- */
+  function setPhotoUI(F) {
+    const wrap = F.root.querySelector('[data-f="Photo"]'); if (!wrap) return;
+    const prev = wrap.querySelector('.pf-prev');
+    if (prev) prev.innerHTML = F.photo.preview ? `<img src="${esc(F.photo.preview)}" alt="">` : CAMERA;
+    const m = wrap.querySelector('[data-pmsg]');
+    if (m) { m.textContent = F.photo.msg; m.className = `pf-msg ${F.photo.state}`; }
+    const b = wrap.querySelector('[data-upload]'); if (b) b.disabled = F.photo.state === 'uploading';
+  }
+
+  function checkPhotoLink(F, url) {
+    clearTimeout(F.pt);
+    url = url.trim();
+    F.values.Photo = '';
+    if (!url) { F.photo = freshPhoto(); setPhotoUI(F); return; }
+    if (!/^https:\/\//i.test(url)) { F.photo = { state: 'bad', preview: '', msg: 'The link has to start with https://' }; setPhotoUI(F); return; }
+    F.photo = { state: 'checking', preview: '', msg: 'Checking the link...' }; setPhotoUI(F);
+    F.pt = setTimeout(() => {
+      const im = new Image();
+      im.onload = () => { if (F.photoLink !== url) return; F.values.Photo = url; F.photo = { state: 'ok', preview: url, msg: 'Photo found. It will show on your tiles.' }; setPhotoUI(F); };
+      im.onerror = () => { if (F.photoLink !== url) return; F.photo = { state: 'bad', preview: '', msg: 'That link opens a web page, not a picture. Right-click the picture and choose "Copy image address", or just use Upload photo.' }; setPhotoUI(F); };
+      F.photoLink = url; im.referrerPolicy = 'no-referrer'; im.src = url;
+    }, 450);
+  }
+
+  async function shrink(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('decode')); i.src = url; });
+      const sc = Math.min(1, 1000 / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.max(1, Math.round(img.naturalWidth * sc)), h = Math.max(1, Math.round(img.naturalHeight * sc));
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(img, 0, 0, w, h);
+      return c.toDataURL('image/jpeg', 0.84);
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  async function uploadPhoto(F, file) {
+    if (!file) return;
+    F.values.Photo = ''; F.photoLink = '';
+    const wrap = F.root.querySelector('[data-f="Photo"]'); const li = wrap && wrap.querySelector('[data-photo]'); if (li) li.value = '';
+    F.photo = { state: 'uploading', preview: '', msg: 'Getting your photo ready...' }; setPhotoUI(F);
+    let data;
+    try { data = await shrink(file); }
+    catch (e) { F.photo = { state: 'bad', preview: '', msg: "Couldn't read that picture. Try a JPG or PNG." }; setPhotoUI(F); return; }
+    F.photo = { state: 'uploading', preview: data, msg: 'Uploading to Notion...' }; setPhotoUI(F);
+    try {
+      const res = await post({ data }, API_PHOTO);
+      F.values.Photo = 'upload:' + res.id;
+      F.photo = { state: 'ok', preview: data, msg: 'Uploaded. It will show on your tiles.' };
+    } catch (e) { F.photo = { state: 'bad', preview: data, msg: `Upload failed: ${errText(e)}` }; }
+    setPhotoUI(F);
   }
 
   function wireForm(F) {
@@ -421,6 +519,7 @@
       if (!t || !root.contains(t)) return;
       if (t.matches('[data-toggle]')) { setOpen(F, !F.open); return; }
       if (t.matches('[data-save]')) { submitForm(F); return; }
+      if (t.matches('[data-upload]')) { const fi = root.querySelector('[data-file]'); if (fi) fi.click(); return; }
       if (t.classList.contains('more-toggle')) {
         const open = t.getAttribute('aria-expanded') !== 'true';
         t.setAttribute('aria-expanded', open); root.querySelector('.fgrid.more').hidden = !open; return;
@@ -433,12 +532,16 @@
         if (f) toggleOpt(F, f, t.dataset.o);
       }
     });
+    root.addEventListener('change', e => {
+      if (e.target.matches('[data-file]')) { const file = e.target.files && e.target.files[0]; e.target.value = ''; uploadPhoto(F, file); }
+    });
     root.addEventListener('input', e => {
       const el = e.target;
+      if (el.dataset.photo !== undefined) { checkPhotoLink(F, el.value); return; }
       if (el.dataset.in) {
         F.values[el.dataset.in] = el.value;
         const wrap = el.closest('[data-f]'); if (wrap) wrap.classList.remove('bad');
-        if (el.dataset.in === F.def.nameProp || el.dataset.in === 'Brand') updateMsg(F);
+        if (el.dataset.in === F.def.nameProp) updateMsg(F);
       } else if (el.dataset.q) {
         F.search[el.dataset.q] = el.value;
         const f = F.fieldOf(el.dataset.q); if (f) refreshPicker(F, f);
@@ -453,7 +556,7 @@
     const out = {};
     for (const f of F.fields) {
       const v = F.values[f.p];
-      if (['text', 'url', 'area', 'date'].includes(f.kind)) { const s = String(v || '').trim(); if (s) out[f.p] = s; }
+      if (['text', 'url', 'area', 'date', 'photo'].includes(f.kind)) { const s = String(v || '').trim(); if (s) out[f.p] = s; }
       else if (f.kind === 'money' || f.kind === 'number') { if (v !== '' && v != null && Number.isFinite(Number(v))) out[f.p] = Number(v); }
       else if (f.multi) { if (v.length) out[f.p] = v.slice(); }
       else if (v) out[f.p] = v;
@@ -463,7 +566,7 @@
 
   function resetForm(F) {
     F.fields.forEach(f => { if (!F.def.sticky.includes(f.p)) F.values[f.p] = defaultFor(F, f); });
-    F.search = {}; F.showAll = false; F.exp = {};
+    F.search = {}; F.showAll = false; F.exp = {}; F.photo = freshPhoto(); F.photoLink = '';
     F.root.querySelectorAll('[data-q]').forEach(i => { i.value = ''; });
   }
 
@@ -475,18 +578,25 @@
   }
 
   async function submitForm(F) {
+    const msg = F.root.querySelector('[data-msg]');
+    if (F.photo.state === 'uploading' || F.photo.state === 'checking') { msg.classList.add('warn'); msg.textContent = 'One second, the photo is still getting ready.'; return; }
+    if (F.photo.state === 'bad') {
+      const mt = F.root.querySelector('.more-toggle'); if (mt && mt.getAttribute('aria-expanded') !== 'true') mt.click();
+      msg.classList.add('warn'); msg.textContent = 'Fix the photo, or clear its link, then save.'; return;
+    }
     const vals = collect(F);
     const nameProp = F.def.nameProp;
     if (!vals[nameProp]) {
       const wrap = F.root.querySelector(`[data-f="${CSS.escape(nameProp)}"]`);
       wrap.classList.add('bad'); wrap.querySelector('input').focus();
-      const msg = F.root.querySelector('[data-msg]'); msg.classList.add('warn'); msg.textContent = 'Give it a name first.';
+      msg.classList.add('warn'); msg.textContent = 'Give it a name first.';
       return;
     }
     // optimistic: show it everywhere and clear the form right away; put it all back if Notion says no
     const snapshot = JSON.parse(JSON.stringify(F.values));
-    const tmp = { id: 'tmp-' + Date.now(), name: vals[nameProp], brand: vals.Brand || '', photo: vals.Photo || '' };
-    if (F.w === 'add') Object.assign(tmp, { cat: vals['Item Category'] || null, sub: vals['Item Subcategory'] || [], color: vals['Primary Color'] || null, color2: vals['Secondary Colors'] || [], price: vals.Price == null ? null : vals.Price, acq: vals['Date Acquired'] || null, status: vals['Item Status'] || [], loc: vals.Location || null, season: vals.Season || [], n: vals['Wear Count'] || 0, last: null });
+    const savedPhoto = F.photo;
+    const tmp = { id: 'tmp-' + Date.now(), name: vals[nameProp], brand: '', photo: savedPhoto.preview || '' };
+    if (F.w === 'add') Object.assign(tmp, { cat: vals['Item Category'] || null, sub: vals['Item Subcategory'] || [], color: vals['Primary Color'] || null, color2: [], price: vals.Price == null ? null : vals.Price, acq: state.today, status: ['Active'], loc: null, season: [], n: 0, last: null });
     else Object.assign(tmp, { cat: vals.Category || [], price: vals['Estimated Price'] == null ? null : vals['Estimated Price'], priority: vals['Wishlist Priority'] || null, status: vals['Wishlist Status'] || null, link: vals.Link || '', reason: vals['Reason / Gap Filled'] || '', added: vals['Date Added'] || null });
     const list = F.w === 'add' ? state.items : state.wishes;
     list.push(tmp);
@@ -498,62 +608,87 @@
       announce();
     } catch (e) {
       const i = list.indexOf(tmp); if (i !== -1) list.splice(i, 1);
-      F.values = snapshot; F.session--; renderFormAll(F); updateMsg(F); renderLive();
+      F.values = snapshot; F.photo = savedPhoto; F.session--; renderFormAll(F); updateMsg(F); renderLive();
       toast(`Couldn't save: ${errText(e)}`, 8000);
     } finally { state.pending--; }
   }
 
   /* =========================================================
-     WORN TODAY
+     OUTFITS: shared pieces
      ========================================================= */
-  const TILE_PEEK = 12, TILE_MAX = 48;
+  const piecesOf = o => o.items.map(id => state.items.find(i => i.id === id)).filter(Boolean);
+  const liveOutfits = () => state.outfits.filter(o => !['Archived', 'Retired'].includes(o.status));
 
-  function wearPool() {
-    const q = ui.q.trim().toLowerCase();
-    let list = ui.tab === 'item'
-      ? state.items.filter(isActive)
-      : state.outfits.filter(o => !['Archived', 'Retired'].includes(o.status));
-    if (q) list = list.filter(r => `${r.name} ${r.brand || ''} ${r.cat || ''}`.toLowerCase().includes(q));
-    return list;
+  function collage(o) {
+    if (o.photo) return `<div class="cv cv1">${thumb({ name: o.name, photo: o.photo })}</div>`;
+    const ps = piecesOf(o);
+    const n = Math.min(ps.length, 4);
+    const extra = ps.length - 4;
+    if (!n) return `<div class="cv cv1">${thumb({ name: o.name })}</div>`;
+    return `<div class="cv cv${n}">${ps.slice(0, 4).map(p => thumb(p)).join('')}${extra > 0 ? `<span class="cv-more">+${extra}</span>` : ''}</div>`;
   }
-  // Order is decided when you open the tab or search, and stays put while you tap, so tiles don't jump under your finger.
-  function wearOrdered() {
-    const pool = wearPool();
-    if (!ui.snap) {
-      ui.snap = pool.slice().sort((a, b) =>
-        ((b.last === state.today) - (a.last === state.today)) || (b.last || '').localeCompare(a.last || '') || a.name.localeCompare(b.name)).map(r => r.id);
+
+  /* ----- widget: today's outfit ----- */
+  function renderToday() {
+    $('todayDate').textContent = state.today ? longDate(state.today) : '';
+    const body = $('todayBody');
+    if (state.err.outfits || state.err.items) { body.innerHTML = secError(state.err.outfits ? 'outfits' : 'items', 'your outfits'); return; }
+    const looks = liveOutfits().filter(o => o.last === state.today).sort((a, b) => (b.created || '').localeCompare(a.created || ''));
+    const btn = $('openBuilder');
+    btn.textContent = looks.length ? 'Add another look' : "Add Today's Outfit";
+    if (!looks.length) {
+      body.innerHTML = state.items.filter(isActive).length
+        ? `<div class="today-empty"><span class="es-ico big">${ICONS.outfit}</span><div><strong>Nothing logged for today</strong><p>Tap the button, pick what you're wearing, and it's saved to your Outfits.</p></div></div>`
+        : emptyState('Add a few pieces first', 'Once your wardrobe has some pieces, you can build and log outfits from it.', openForm$('add'), 'Add a piece', 'add');
+      return;
     }
-    const pos = new Map(ui.snap.map((id, i) => [id, i]));
-    return pool.slice().sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : -1) - (pos.has(b.id) ? pos.get(b.id) : -1));
+    body.innerHTML = looks.slice(0, 2).map((o, k) => {
+      const ps = piecesOf(o);
+      return `<div class="look${k ? ' small' : ''}">
+        <div class="look-head"><span class="look-name">${esc(o.name)}</span><span class="pill">${plural(ps.length, 'piece')}</span></div>
+        <div class="look-strip">${ps.map(p => `<div class="look-piece">${thumb(p)}<span>${esc(p.name)}</span></div>`).join('')}</div>
+      </div>`;
+    }).join('');
   }
 
-  function renderWear() {
-    const el = $('tiles');
-    $('wearDate').textContent = state.today ? longDate(state.today) : '';
-    const errKey = ui.tab === 'item' ? 'items' : 'outfits';
-    if (state.err[errKey]) { el.innerHTML = secError(errKey, ui.tab === 'item' ? 'your pieces' : 'your outfits'); $('tilesMore').hidden = true; return; }
-    const todayN = state.items.filter(i => i.last === state.today && isActive(i)).length;
-    const wc = $('wearCount');
-    wc.textContent = todayN ? `${plural(todayN, 'piece')} logged` : 'Nothing logged yet';
-    wc.classList.toggle('quiet', !todayN);
-    const list = wearOrdered();
-    const limit = ui.q || ui.showAll ? TILE_MAX : TILE_PEEK;
-    const show = list.slice(0, limit);
-    el.innerHTML = show.length ? show.map(r => {
-      const meta = r.last ? `${plural(r.n, 'wear')} \u00B7 ${ago(r.last)}` : (ui.tab === 'outfit' ? `${plural(r.items.length, 'piece')}, never worn` : 'Not worn yet');
-      return `<button type="button" class="tile" data-id="${esc(r.id)}" aria-pressed="${r.last === state.today}">
-        ${archHtml(r)}
-        <span class="t-name">${esc(r.name)}</span><span class="t-meta">${esc(meta)}</span>
-        <span class="t-check">${CHECK}</span></button>`;
-    }).join('') : (ui.q
-      ? '<p class="empty">Nothing matches that search.</p>'
-      : ui.tab === 'item'
-        ? emptyState('Your closet is waiting', 'Add your first piece, then tap it here each day to log what you wore.', 'add', 'Add a piece')
-        : emptyState('No outfits yet', 'Build an outfit in Notion and it will show up here, ready to log in one tap.'));
-    const more = $('tilesMore');
-    if (!ui.q && list.length > TILE_PEEK) { more.hidden = false; more.textContent = ui.showAll ? 'Show fewer' : `Show all ${list.length}`; }
-    else more.hidden = true;
-    $('tilesNote').textContent = list.length > limit && (ui.q || ui.showAll) ? `Showing ${limit} of ${list.length}. Search to find the rest.` : '';
+  /* ----- widget: outfits gallery ----- */
+  function renderOutfits() {
+    const grid = $('ofGrid');
+    if (state.err.outfits) { grid.innerHTML = secError('outfits', 'your outfits'); return; }
+    let list = liveOutfits();
+    $('ofCount').textContent = list.length ? plural(list.length, 'look') : '';
+    if (ui.sort === 'fav') list = list.filter(o => o.status === 'Favorite');
+    if (ui.sort === 'worn') list.sort((a, b) => b.n - a.n || (b.last || '').localeCompare(a.last || ''));
+    else list.sort((a, b) => (b.last || b.created || '').localeCompare(a.last || a.created || '') || (b.created || '').localeCompare(a.created || ''));
+    if (!list.length) {
+      grid.innerHTML = ui.sort === 'fav'
+        ? emptyState('No favourites yet', 'Tap the heart on a look you love and it will live here.', '', '', 'wish')
+        : emptyState('No outfits yet', "Log today's outfit and your looks will collect here.", has('outfit') ? 'data-open-builder' : '', "Add Today's Outfit", 'outfit');
+      return;
+    }
+    grid.innerHTML = list.map(o => {
+      const fav = o.status === 'Favorite';
+      const today = o.last === state.today;
+      return `<article class="oc" data-id="${esc(o.id)}">
+        <button type="button" class="oc-open" data-open-outfit aria-label="Open ${esc(o.name)}">${collage(o)}</button>
+        <button type="button" class="heart${fav ? ' on' : ''}" data-fav aria-pressed="${fav}" aria-label="Favourite">${HEART}</button>
+        ${today ? '<span class="oc-today">Today</span>' : ''}
+        <div class="oc-body"><span class="oc-name">${esc(o.name)}</span><span class="oc-meta">${o.n ? `Worn ${o.n}\u00D7 \u00B7 ${ago(o.last)}` : 'Not worn yet'}</span></div>
+      </article>`;
+    }).join('');
+  }
+
+  function findOutfit(id) { return state.outfits.find(o => o.id === id); }
+
+  async function toggleFav(id) {
+    const o = findOutfit(id); if (!o) return;
+    if (String(id).startsWith('tmp-')) { toast('Still saving. Try again in a second.'); return; }
+    const prev = o.status;
+    const next = prev === 'Favorite' ? 'Active' : 'Favorite';
+    o.status = next; state.pending++; renderLive(); if (detailId === id) renderDetail();
+    try { await post({ action: 'outfit-status', id, status: next }); announce(); }
+    catch (e) { o.status = prev; renderLive(); if (detailId === id) renderDetail(); toast(`Couldn't save: ${errText(e)}`, 8000); }
+    finally { state.pending--; }
   }
 
   function applyChange(c, useNew) {
@@ -563,29 +698,26 @@
     row.last = useNew ? state.today : c.prevLast;
   }
 
-  async function wearTap(id) {
-    const kind = ui.tab;
-    const row = (kind === 'item' ? state.items : state.outfits).find(r => r.id === id);
-    if (!row) return;
+  async function wearOutfit(id) {
+    const row = findOutfit(id); if (!row) return;
     if (String(id).startsWith('tmp-')) { toast('Still saving. Try again in a second.'); return; }
     if (row.last === state.today) {
       const u = undoMap.get(id);
       if (u) return undoWear(id, u);
       toast('Already logged today.'); return;
     }
-    const affected = [row];
-    if (kind === 'outfit') row.items.forEach(iid => { const it = state.items.find(x => x.id === iid); if (it && it.last !== state.today) affected.push(it); });
+    const affected = [row, ...piecesOf(row).filter(it => it.last !== state.today)];
     const prev = affected.map(r => ({ r, n: r.n, last: r.last }));
     affected.forEach(r => { r.n = (r.n || 0) + 1; r.last = state.today; });
-    state.pending++; renderLive();
+    state.pending++; renderLive(); if (detailId) renderDetail();
     try {
-      const res = await post({ action: 'wear', kind, id });
+      const res = await post({ action: 'wear', kind: 'outfit', id });
       undoMap.set(id, res.changes);
-      toast(kind === 'outfit' ? `Logged outfit: ${row.name}` : `Logged: ${row.name}`, 6000, { label: 'Undo', fn: () => undoWear(id, res.changes) });
+      toast(`Logged for today: ${row.name}`, 6000, { label: 'Undo', fn: () => undoWear(id, res.changes) });
       announce();
     } catch (e) {
       prev.forEach(p => { p.r.n = p.n; p.r.last = p.last; });
-      renderLive(); toast(`Couldn't save: ${errText(e)}`, 8000);
+      renderLive(); if (detailId) renderDetail(); toast(`Couldn't save: ${errText(e)}`, 8000);
     } finally { state.pending--; }
   }
 
@@ -596,19 +728,188 @@
     }).filter(Boolean);
     changes.forEach(c => applyChange(c, false));
     undoMap.delete(id);
-    state.pending++; renderLive();
+    state.pending++; renderLive(); if (detailId) renderDetail();
     try { await post({ action: 'wear-restore', changes }); announce(); }
     catch (e) {
       now.forEach(p => { p.row.n = p.n; p.row.last = p.last; });
-      undoMap.set(id, changes); renderLive(); toast(`Couldn't undo: ${errText(e)}`, 8000);
+      undoMap.set(id, changes); renderLive(); if (detailId) renderDetail(); toast(`Couldn't undo: ${errText(e)}`, 8000);
     } finally { state.pending--; }
+  }
+
+  /* =========================================================
+     THE WINDOW (sheet): outfit builder + outfit details
+     ========================================================= */
+  let detailId = null;
+  const sheet = () => $('sheet');
+  function openSheet() { sheet().hidden = false; document.body.classList.add('locked'); requestAnimationFrame(() => sheet().classList.add('in')); }
+  function closeSheet() {
+    ob.open = false; detailId = null;
+    sheet().classList.remove('in'); document.body.classList.remove('locked');
+    setTimeout(() => { if (!sheet().classList.contains('in')) { sheet().hidden = true; sheet().innerHTML = ''; } }, 220);
+  }
+
+  /* ----- outfit builder ----- */
+  const obPool = () => state.items.filter(isActive);
+  function obFiltered() {
+    const q = ob.q.trim().toLowerCase();
+    return obPool().filter(i => (ob.cat === 'All' || i.cat === ob.cat) && (!ob.type || i.sub.includes(ob.type))
+      && (!q || `${i.name} ${i.cat || ''} ${i.sub.join(' ')} ${i.color || ''}`.toLowerCase().includes(q)))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  function openBuilder() {
+    if (!obPool().length) { toast('Add a few pieces to your wardrobe first.'); return; }
+    detailId = null;
+    ob.open = true; ob.cat = 'All'; ob.type = ''; ob.q = '';
+    sheet().innerHTML = `
+      <div class="sheet-backdrop" data-close></div>
+      <section class="sheet-panel" role="dialog" aria-modal="true" aria-label="Add today's outfit">
+        <header class="sp-head">
+          <span class="gico g-outfit">${ICONS.outfit}</span>
+          <div class="title"><h2>Today's outfit</h2><p class="eyebrow">${esc(state.today ? longDate(state.today) : 'Pick what you wore')}</p></div>
+          <button type="button" class="x" data-close aria-label="Close">&times;</button>
+        </header>
+        <div class="sp-filters">
+          <label class="search wide"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/></svg><input id="obSearch" type="search" placeholder="Search your pieces" aria-label="Search your pieces" autocomplete="off"></label>
+          <div id="obCats" class="chips-row" role="group" aria-label="Category"></div>
+          <div id="obTypes" class="chips-row sub" role="group" aria-label="Type"></div>
+        </div>
+        <div id="obGrid" class="sp-grid"></div>
+        <footer class="sp-tray">
+          <div class="tray-info"><div id="obReq" class="req"></div><div id="obStrip" class="strip"></div></div>
+          <div class="tray-act"><input id="obName" class="inp slim" type="text" maxlength="120" placeholder="Name this look (optional)" aria-label="Name this look" autocomplete="off"><button type="button" class="btn primary" id="obSave" disabled>Log today's outfit</button></div>
+        </footer>
+      </section>`;
+    openSheet(); obRender();
+    setTimeout(() => { const s = $('obSearch'); if (s && !('ontouchstart' in window)) s.focus(); }, 180);
+  }
+  function obRender() { obRenderCats(); obRenderTypes(); obRenderGrid(); obRenderTray(); }
+  function obRenderCats() {
+    const pool = obPool();
+    const counts = new Map(); pool.forEach(i => counts.set(i.cat || 'Other', (counts.get(i.cat || 'Other') || 0) + 1));
+    const cats = [...counts.keys()].sort((a, b) => catOrder(a) - catOrder(b));
+    $('obCats').innerHTML = [['All', pool.length], ...cats.map(c => [c, counts.get(c)])].map(([c, n]) =>
+      `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${ob.cat === c}" ${c !== 'All' ? `style="--c:${CAT_HUE[c] || '#98A0B3'}"` : ''}>${esc(c)} <b>${n}</b></button>`).join('');
+  }
+  function obRenderTypes() {
+    const box = $('obTypes');
+    if (ob.cat === 'All') { box.hidden = true; box.innerHTML = ''; return; }
+    const counts = new Map();
+    obPool().filter(i => i.cat === ob.cat).forEach(i => i.sub.forEach(s => counts.set(s, (counts.get(s) || 0) + 1)));
+    const subs = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    if (!subs.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = [['', 'All types', 0], ...subs.map(([s, n]) => [s, s, n])].map(([v, label, n]) =>
+      `<button type="button" class="chip sm" data-type="${esc(v)}" aria-pressed="${ob.type === v}">${esc(label)}${n ? ` <b>${n}</b>` : ''}</button>`).join('');
+  }
+  function pieceCard(i) {
+    const on = ob.sel.includes(i.id);
+    const sub = [i.cat, i.sub[0]].filter(Boolean).join(' \u00B7 ');
+    return `<button type="button" class="pc" data-id="${esc(i.id)}" aria-pressed="${on}">${thumb(i, 'pc-th')}<span class="pc-check">${CHECK}</span><span class="pc-name">${esc(i.name)}</span><span class="pc-sub">${esc(sub)}</span></button>`;
+  }
+  function obRenderGrid() {
+    const list = obFiltered();
+    const g = $('obGrid');
+    if (!list.length) { g.innerHTML = '<p class="empty big">Nothing matches. Try another search or category.</p>'; return; }
+    const grouped = ob.cat === 'All' && !ob.q.trim() && !ob.type;
+    if (!grouped) { g.innerHTML = `<div class="pc-grid">${list.map(pieceCard).join('')}</div>`; return; }
+    const by = new Map(); list.forEach(i => { const k = i.cat || 'Other'; if (!by.has(k)) by.set(k, []); by.get(k).push(i); });
+    g.innerHTML = [...by].sort((a, b) => catOrder(a[0]) - catOrder(b[0])).map(([c, arr]) =>
+      `<section class="pc-sec"><h3 style="--c:${CAT_HUE[c] || '#98A0B3'}">${esc(c)} <span>${arr.length}</span></h3><div class="pc-grid">${arr.map(pieceCard).join('')}</div></section>`).join('');
+  }
+  function obReq() {
+    const roles = ob.sel.map(id => state.items.find(i => i.id === id)).filter(Boolean).map(roleOf);
+    const top = roles.some(r => r.top), bottom = roles.some(r => r.bottom);
+    return { top, bottom, full: roles.some(r => r.top && r.bottom), ok: top && bottom };
+  }
+  function obRenderTray() {
+    const r = obReq();
+    const pill = (ok, label) => `<span class="rq${ok ? ' ok' : ''}">${ok ? CHECK : '<i></i>'}${label}</span>`;
+    $('obReq').innerHTML = pill(r.top, 'Top') + pill(r.bottom, 'Bottom') + (r.full ? '<span class="rq-note">A dress or set covers both</span>' : '') + `<span class="rq-count">${ob.sel.length ? plural(ob.sel.length, 'piece') + ' picked' : 'Pick your pieces'}</span>`;
+    $('obStrip').innerHTML = ob.sel.map(id => state.items.find(i => i.id === id)).filter(Boolean).map(i => `<button type="button" class="sel-th" data-remove="${esc(i.id)}" title="Remove ${esc(i.name)}" aria-label="Remove ${esc(i.name)}">${thumb(i)}<span class="rm">&times;</span></button>`).join('');
+    const b = $('obSave'); b.disabled = !r.ok;
+    b.textContent = r.ok ? `Log today's outfit \u00B7 ${ob.sel.length}` : "Log today's outfit";
+  }
+  function obToggle(id) {
+    const i = ob.sel.indexOf(id);
+    if (i === -1) ob.sel.push(id); else ob.sel.splice(i, 1);
+    const card = sheet().querySelector(`.pc[data-id="${CSS.escape(id)}"]`);
+    if (card) card.setAttribute('aria-pressed', i === -1);
+    obRenderTray();
+  }
+
+  async function saveOutfit() {
+    const r = obReq(); if (!r.ok) return;
+    const name = ($('obName') && $('obName').value || '').trim();
+    const ids = ob.sel.slice();
+    const pieces = ids.map(id => state.items.find(i => i.id === id)).filter(Boolean);
+    const d = new Date(Date.parse(state.today + 'T00:00:00Z'));
+    const autoName = `${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()]} ${d.getUTCDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()]} outfit`;
+    const tmp = { id: 'tmp-' + Date.now(), name: name || autoName, items: ids, n: 1, last: state.today, status: 'Active', photo: '', created: new Date().toISOString() };
+    const prev = pieces.filter(p => p.last !== state.today).map(p => ({ p, n: p.n, last: p.last }));
+    prev.forEach(x => { x.p.n = (x.p.n || 0) + 1; x.p.last = state.today; });
+    state.outfits.push(tmp);
+    const saved = { sel: ids, name };
+    closeSheet(); ob.sel = []; ob.name = '';
+    state.pending++; renderLive();
+    try {
+      const res = await post({ action: 'outfit-create', items: ids, name });
+      undoMap.set('o:' + res.id, res);
+      toast(`Outfit logged: ${res.name}`, 7000, { label: 'Undo', fn: () => undoOutfit(res) });
+      announce();
+    } catch (e) {
+      const i = state.outfits.indexOf(tmp); if (i !== -1) state.outfits.splice(i, 1);
+      prev.forEach(x => { x.p.n = x.n; x.p.last = x.last; });
+      renderLive();
+      toast(`Couldn't save: ${errText(e)}`, 9000);
+      ob.sel = saved.sel; openBuilder(); if ($('obName')) $('obName').value = saved.name; obRenderGrid(); obRenderTray();
+    } finally { state.pending--; }
+  }
+
+  async function undoOutfit(res) {
+    const gone = findOutfit(res.id);
+    const idx = gone ? state.outfits.indexOf(gone) : -1;
+    if (idx !== -1) state.outfits.splice(idx, 1);
+    const now = (res.changes || []).map(c => { const row = state.items.find(i => i.id === c.id); return row ? { row, n: row.n, last: row.last } : null; }).filter(Boolean);
+    (res.changes || []).forEach(c => applyChange(c, false));
+    state.pending++; renderLive();
+    try { await post({ action: 'outfit-undo', id: res.id, changes: res.changes || [] }); toast('Outfit removed.'); announce(); }
+    catch (e) {
+      if (gone && idx !== -1) state.outfits.splice(idx, 0, gone);
+      now.forEach(p => { p.row.n = p.n; p.row.last = p.last; });
+      renderLive(); toast(`Couldn't undo: ${errText(e)}`, 8000);
+    } finally { state.pending--; }
+  }
+
+  /* ----- outfit details ----- */
+  function openDetail(id) {
+    if (!findOutfit(id)) return;
+    detailId = id; ob.open = false;
+    renderDetail(); openSheet();
+  }
+  function renderDetail() {
+    const o = findOutfit(detailId);
+    if (!o) { closeSheet(); return; }
+    const ps = piecesOf(o);
+    const fav = o.status === 'Favorite', today = o.last === state.today;
+    sheet().innerHTML = `
+      <div class="sheet-backdrop" data-close></div>
+      <section class="sheet-panel detail" role="dialog" aria-modal="true" aria-label="${esc(o.name)}">
+        <header class="sp-head">
+          <span class="gico g-outfit">${ICONS.outfit}</span>
+          <div class="title"><h2>${esc(o.name)}</h2><p class="eyebrow">${o.n ? `Worn ${o.n}\u00D7 \u00B7 last ${ago(o.last)}` : 'Not worn yet'} \u00B7 ${plural(ps.length, 'piece')}</p></div>
+          <button type="button" class="x" data-close aria-label="Close">&times;</button>
+        </header>
+        <div class="sp-grid"><div class="pc-grid roomy">${ps.length ? ps.map(p => `<div class="pc static">${thumb(p, 'pc-th')}<span class="pc-name">${esc(p.name)}</span><span class="pc-sub">${esc([p.cat, p.sub[0]].filter(Boolean).join(' \u00B7 '))}</span></div>`).join('') : '<p class="empty big">The pieces in this outfit are no longer in your wardrobe.</p>'}</div></div>
+        <footer class="sp-tray detail-act">
+          <button type="button" class="btn ghost heart-btn${fav ? ' on' : ''}" data-detail-fav aria-pressed="${fav}">${HEART}<span>${fav ? 'Favourite' : 'Add to favourites'}</span></button>
+          <button type="button" class="btn ${today ? 'done' : 'primary'}" data-detail-wear>${today ? 'Worn today \u2713 (tap to undo)' : 'Wear this today'}</button>
+        </footer>
+      </section>`;
   }
 
   /* =========================================================
      CLOSET GAUGE
      ========================================================= */
-  const archPath = r => `M${100 - r} 188V100A${r} ${r} 0 0 1 ${100 + r} 100V188`;
-
   function renderCloset() {
     if (state.err.items) { $('legend').innerHTML = secError('items', 'your pieces'); return; }
     const act = state.items.filter(isActive);
@@ -618,8 +919,9 @@
     const pct = n => (total ? Math.round((n / total) * 100) : 0);
     const rings = [[84, 'f90', pct(w90)], [64, 'f30', pct(w30)], [44, 'f7', pct(w7)]];
     const animate = !state.gaugeDone;
-    $('gauge').innerHTML = '<path class="sill" d="M6 190H194"/>' + rings.map(([r]) => `<path class="track" d="${archPath(r)}"/>`).join('') +
-      rings.map(([r, c, p]) => `<path class="fill ${c}" d="${archPath(r)}" pathLength="100" style="stroke-dasharray:${animate ? 0 : p} 100;opacity:${p ? 1 : 0}"/>`).join('');
+    const defs = '<defs><linearGradient id="gG90" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C6CFF"/><stop offset="1" stop-color="#38C9F5"/></linearGradient><linearGradient id="gG30" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF5C8A"/><stop offset="1" stop-color="#FFA94D"/></linearGradient><linearGradient id="gG7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C6F432"/><stop offset="1" stop-color="#3FD9B0"/></linearGradient></defs>';
+    $('gauge').innerHTML = defs + rings.map(([r]) => `<circle class="track" cx="100" cy="100" r="${r}"/>`).join('') +
+      rings.map(([r, c, p]) => `<circle class="fill ${c}" cx="100" cy="100" r="${r}" pathLength="100" transform="rotate(-90 100 100)" style="stroke-dasharray:${animate ? 0 : p} 100;opacity:${p ? 1 : 0}"/>`).join('');
     if (animate) {
       state.gaugeDone = true;
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -652,7 +954,7 @@
     act.forEach(i => { const k = (byColor ? i.color : i.cat) || (byColor ? 'No colour' : 'No category'); counts.set(k, (counts.get(k) || 0) + 1); });
     const entries = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     if (!entries.length) {
-      el.innerHTML = emptyState('Nothing here yet', 'Once you add pieces, you will see what your closet is made of.', 'add', 'Add a piece');
+      el.innerHTML = emptyState('Nothing here yet', 'Once you add pieces, you will see what your closet is made of.', openForm$('add'), 'Add a piece');
       el.classList.remove('anim'); $('archNote').textContent = ''; return;
     }
     const cap = byColor ? 7 : 6;
@@ -664,10 +966,11 @@
     const rows = top.map(([label, n], i) => {
       const c = byColor ? COLORS[label] : null;
       const hex = c && c[0] === '#';
+      const hue = byColor ? null : (CAT_HUE[label] || '#98A0B3');
       const dim = label === 'No category' || label === 'No colour' ? ' dim' : '';
       const w = Math.min(100, Math.max(6, Math.round((n / max) * 100)));
-      const dot = byColor ? `<i class="dot"${hex ? ` style="--c:${c}"` : c ? ` data-k="${c}"` : ''}></i>` : '';
-      const fill = byColor && c ? `<i class="col" style="--w:${w}%;--i:${i}${hex ? `;--c:${c}` : ''}"${!hex ? ` data-k="${c}"` : ''}></i>` : `<i style="--w:${w}%;--i:${i}"></i>`;
+      const dot = byColor ? `<i class="dot"${hex ? ` style="--c:${c}"` : c ? ` data-k="${c}"` : ''}></i>` : `<i class="dot" style="--c:${hue}"></i>`;
+      const fill = byColor && c ? `<i class="col" style="--w:${w}%;--i:${i}${hex ? `;--c:${c}` : ''}"${!hex ? ` data-k="${c}"` : ''}></i>` : `<i style="--w:${w}%;--i:${i}${hue ? `;--c:${hue}` : ''}"></i>`;
       return `<div class="brow${dim}"><span class="bl">${dot}<span title="${esc(label)}">${esc(label)}</span></span><span class="bar">${fill}</span><span class="bn">${n}</span></div>`;
     });
     if (rest) rows.push(`<div class="brow dim"><span class="bl"><span>Others</span></span><span class="bar-note">${restKinds} more ${byColor ? (restKinds === 1 ? 'colour' : 'colours') : (restKinds === 1 ? 'category' : 'categories')}</span><span class="bn">${rest}</span></div>`);
@@ -689,23 +992,23 @@
     const open = state.wishes.filter(w => !FINISHED.includes(w.status));
     const total = open.reduce((s, w) => s + (w.price || 0), 0);
     $('wlTotal').textContent = open.length ? `${plural(open.length, 'wish', 'wishes')} \u00B7 ${money(total)}` : '';
-    if (!open.length) { box.innerHTML = emptyState('Nothing on the list', 'Park things you are thinking about here before you buy them.', 'wish', 'Add a wish'); return; }
+    if (!open.length) { box.innerHTML = emptyState('Nothing on the list', 'Park things you are thinking about here before you buy them.', openForm$('wish'), 'Add a wish', 'wish'); return; }
     const statuses = (state.schema && state.schema.wish && state.schema.wish['Wishlist Status'] && state.schema.wish['Wishlist Status'].options) || FALLBACK_STATUS;
     const groups = new Map();
     open.forEach(w => { const k = w.priority || 'No priority'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(w); });
     const rank = k => { const i = PRIORITY_ORDER.indexOf(k); return i === -1 ? (k === 'No priority' ? 999 : 500) : i; };
     box.innerHTML = [...groups].sort((a, b) => rank(a[0]) - rank(b[0])).map(([k, list]) => {
       const sub = list.reduce((s, w) => s + (w.price || 0), 0);
-      return `<div class="wl-group"><h3>${esc(k)}</h3><span>${sub ? money(sub) : ''}</span></div>` + list.map(w => {
-        const sub2 = [w.brand, w.reason].filter(Boolean).join(' \u00B7 ');
+      return `<div class="wl-group"><h3>${esc(k)}</h3><span>${sub ? money(sub) : ''}</span></div><div class="wl-list">` + list.map(w => {
+        const sub2 = w.reason || '';
         const opts = `<option value=""${w.status ? '' : ' selected'}>Set status</option>` + statuses.map(s => `<option${s === w.status ? ' selected' : ''}>${esc(s)}</option>`).join('');
         const ask = ui.ask === w.id
           ? `<div class="buy-ask"><span>Add it to your wardrobe too?</span><button type="button" class="btn sm primary" data-act="toitem">Add to wardrobe</button><button type="button" class="btn sm ghost" data-act="bought">Just mark bought</button><button type="button" class="btn sm ghost" data-act="cancel">Cancel</button></div>`
           : `<div class="w-act"><select class="sel" data-act="status" aria-label="Status for ${esc(w.name)}">${opts}</select>${/^https?:/i.test(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener noreferrer">Open link</a>` : ''}<button type="button" class="btn sm ghost" data-act="buy">Bought it</button></div>`;
-        return `<div class="wrow" data-id="${esc(w.id)}">${archHtml(w)}
+        return `<div class="wrow" data-id="${esc(w.id)}">${thumb({ name: w.name, photo: w.photo, cat: (w.cat || [])[0] }, 'w-th')}
           <div class="w-main"><div class="w-name">${esc(w.name)}</div><div class="w-sub">${esc(sub2)}</div></div>
           <div class="w-price">${w.price != null ? esc(money(w.price)) : ''}</div>${ask}</div>`;
-      }).join('');
+      }).join('') + '</div>';
     }).join('');
   }
 
@@ -727,7 +1030,7 @@
     const w = state.wishes.find(x => x.id === id);
     if (!w) return;
     const prev = w.status;
-    const tmp = { id: 'tmp-' + Date.now(), name: w.name, brand: w.brand || '', cat: null, sub: [], color: null, color2: [], price: w.price, acq: state.today, status: ['Active'], loc: null, season: [], n: 0, last: null, photo: '' };
+    const tmp = { id: 'tmp-' + Date.now(), name: w.name, brand: '', cat: (w.cat || [])[0] || null, sub: [], color: null, color2: [], price: w.price, acq: state.today, status: ['Active'], loc: null, season: [], n: 0, last: null, photo: w.photo || '' };
     w.status = 'Purchased'; ui.ask = null; state.items.push(tmp); state.pending++; renderLive();
     try {
       await post({ action: 'wish-to-item', id });
@@ -739,16 +1042,19 @@
     } finally { state.pending--; }
   }
 
-  /* ---------- wiring for the live widgets ---------- */
-  if (has('wear')) {
-    $('tiles').addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) wearTap(t.dataset.id); });
-    document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
-      ui.tab = b.dataset.tab; ui.snap = null; ui.showAll = false;
-      document.querySelectorAll('[data-tab]').forEach(x => x.setAttribute('aria-selected', x === b));
-      renderWear();
+  /* ---------- wiring ---------- */
+  if (has('outfit')) $('openBuilder').addEventListener('click', openBuilder);
+  if (has('outfits')) {
+    document.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => {
+      ui.sort = b.dataset.sort;
+      document.querySelectorAll('[data-sort]').forEach(x => x.setAttribute('aria-selected', x === b));
+      renderOutfits();
     }));
-    $('wearSearch').addEventListener('input', e => { ui.q = e.target.value; ui.snap = null; renderWear(); });
-    $('tilesMore').addEventListener('click', () => { ui.showAll = !ui.showAll; renderWear(); });
+    $('ofGrid').addEventListener('click', e => {
+      const card = e.target.closest('.oc'); if (!card) return;
+      if (e.target.closest('[data-fav]')) toggleFav(card.dataset.id);
+      else if (e.target.closest('[data-open-outfit]')) openDetail(card.dataset.id);
+    });
   }
   if (has('cats')) document.querySelectorAll('[data-by]').forEach(b => b.addEventListener('click', () => {
     ui.by = b.dataset.by; ui.catAnim = true;
@@ -771,17 +1077,33 @@
       setWishStatus(s.closest('.wrow').dataset.id, s.value || null);
     });
   }
+  // the window
+  sheet().addEventListener('click', e => {
+    const t = e.target;
+    if (t.closest('[data-close]')) { closeSheet(); return; }
+    const pc = t.closest('.pc:not(.static)'); if (pc && ob.open) { obToggle(pc.dataset.id); return; }
+    const chip = t.closest('[data-cat]'); if (chip) { ob.cat = chip.dataset.cat; ob.type = ''; obRender(); return; }
+    const ty = t.closest('[data-type]'); if (ty) { ob.type = ty.dataset.type; obRenderTypes(); obRenderGrid(); return; }
+    const rm = t.closest('[data-remove]'); if (rm) { obToggle(rm.dataset.remove); return; }
+    if (t.closest('#obSave')) { saveOutfit(); return; }
+    if (t.closest('[data-detail-fav]')) { toggleFav(detailId); return; }
+    if (t.closest('[data-detail-wear]')) { wearOutfit(detailId); return; }
+  });
+  sheet().addEventListener('input', e => { if (e.target.id === 'obSearch') { ob.q = e.target.value; obRenderGrid(); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet().hidden) closeSheet(); });
   document.addEventListener('click', e => {
-    const b = e.target.closest('[data-open-form]');
-    if (b) openForm(b.dataset.openForm);
+    const f = e.target.closest('[data-open-form]'); if (f) { openForm(f.dataset.openForm); return; }
+    if (e.target.closest('[data-open-builder]')) openBuilder();
   });
 
   /* ---------- render ---------- */
   function renderLive() {
-    if (has('wear')) renderWear();
+    if (has('outfit')) renderToday();
+    if (has('outfits')) renderOutfits();
     if (has('closet')) renderCloset();
     if (has('cats')) renderCats();
     if (has('wishlist')) renderWishlist();
+    if (detailId && !sheet().hidden) renderDetail();
   }
 
   function renderAll() {

@@ -7,7 +7,7 @@
   <title>Wardrobe widgets</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/wardrobe/style.css">
 </head>
 <body>
@@ -16,6 +16,14 @@
     <article class="card form-card" data-w="add" hidden></article>
 
     <article class="card form-card" data-w="wish" hidden></article>
+
+    <article class="card hero" data-w="outfit" hidden>
+      <div class="head">
+        <div class="title"><h2>Today's outfit</h2><p id="todayDate" class="eyebrow"></p></div>
+        <button type="button" id="openBuilder" class="btn primary glow">Add Today's Outfit</button>
+      </div>
+      <div id="todayBody"></div>
+    </article>
 
     <article class="card" data-w="closet" hidden>
       <div class="closet-layout">
@@ -42,24 +50,16 @@
       <div id="arches" class="bars"></div>
     </article>
 
-    <article class="card" data-w="wear" hidden>
+    <article class="card" data-w="outfits" hidden>
       <div class="head">
-        <div class="title"><h2>Worn today</h2><p id="wearDate" class="eyebrow"></p></div>
-        <span id="wearCount" class="pill"></span>
-      </div>
-      <div class="toolbar">
-        <div class="seg" role="tablist" aria-label="What did you wear">
-          <button type="button" role="tab" data-tab="item" aria-selected="true">Pieces</button>
-          <button type="button" role="tab" data-tab="outfit" aria-selected="false">Outfits</button>
+        <div class="title"><h2>Outfits</h2><p id="ofCount" class="eyebrow"></p></div>
+        <div class="seg" role="tablist" aria-label="Sort outfits">
+          <button type="button" role="tab" data-sort="recent" aria-selected="true">Recent</button>
+          <button type="button" role="tab" data-sort="worn" aria-selected="false">Most worn</button>
+          <button type="button" role="tab" data-sort="fav" aria-selected="false">Favourites</button>
         </div>
-        <label class="search">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/></svg>
-          <input id="wearSearch" type="search" placeholder="Search" aria-label="Search" autocomplete="off">
-        </label>
       </div>
-      <div id="tiles" class="tiles"></div>
-      <div class="more-row"><button type="button" id="tilesMore" class="link" hidden></button></div>
-      <p id="tilesNote" class="muted note"></p>
+      <div id="ofGrid" class="of-grid"></div>
     </article>
 
     <article class="card" data-w="wishlist" hidden>
@@ -71,6 +71,7 @@
 
     <article class="card" id="bad" hidden></article>
   </main>
+  <div id="sheet" class="sheet" hidden></div>
   <div id="toast" role="status" aria-live="polite"></div>
   <script src="/wardrobe/script.js"></script>
 </body>

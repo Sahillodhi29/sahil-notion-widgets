@@ -13,6 +13,9 @@
         wear-restore  { changes }         undo a wear (uses what 'wear' returned)
         wish-status   { id, status }      change Wishlist Status
         wish-to-item  { id }              wish bought -> new wardrobe item + wish marked Purchased
+        outfit-create { items, name? }    log today's outfit: new Outfits row + every piece worn today
+        outfit-undo   { id, changes }     undo outfit-create (archives the outfit, restores the pieces)
+        outfit-status { id, status }      Active | Favorite
 
    Same rules as /api/sail and /api/meal: reads take ?key=, writes need the
    x-widget-key header. Every write is locked to the three Wardrobe databases.
@@ -49,9 +52,9 @@ const WISH_SPEC = {
   'Link': 'url', 'Reason / Gap Filled': 'rich_text', 'Notes': 'rich_text',
   'Date Added': 'date', 'Photo': 'files',
 };
-/* Only checked by the health page; the widgets never create outfits. */
 const OUTFIT_SPEC = {
   'Outfit Name': 'title', 'Items': 'relation', 'Times Worn': 'number', 'Last Worn': 'date',
+  'Outfit Status': 'select',
 };
 const SPECS = { items: ITEM_SPEC, outfits: OUTFIT_SPEC, wishes: WISH_SPEC };
 
@@ -140,6 +143,8 @@ function convert(name, def, raw) {
     case 'files': {
       if (empty) return undefined;
       const s = String(raw).trim();
+      const up = /^upload:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.exec(s);
+      if (up) return { files: [{ name: 'photo.jpg', type: 'file_upload', file_upload: { id: up[1] } }] };   // uploaded through /api/wardrobe-photo
       let ok = s.length <= 1900;
       try { ok = ok && new URL(s).protocol === 'https:'; } catch (e) { ok = false; }
       if (!ok) throw new HttpError(400, `${name} must be an image link starting with https://.`);
@@ -223,7 +228,7 @@ function slimOutfit(page) {
   return {
     id: page.id, name, items: r.rel('Items'), n: r.num('Times Worn') || 0, last: r.date('Last Worn'),
     status: r.sel('Outfit Status'), season: r.multi('Season'), occasion: r.multi('Occasion'),
-    photo: r.photo('Photo').url,
+    photo: r.photo('Photo').url, created: page.created_time || null,
   };
 }
 function slimWish(page) {
@@ -330,7 +335,6 @@ async function wishToItem(id, today) {
   const cats = (schema['Item Category'] && schema['Item Category'].options) || [];
   const cat = r.multi('Category').find(c => cats.includes(c));
   if (cat) values['Item Category'] = cat;
-  if (r.text('Brand')) values.Brand = r.text('Brand');
   if (r.num('Estimated Price') !== null) values.Price = r.num('Estimated Price');
   const note = [r.text('Reason / Gap Filled'), r.text('Notes')].filter(Boolean).join(' - ');
   if (note) values.Notes = 'From wishlist: ' + note;
@@ -343,6 +347,68 @@ async function wishToItem(id, today) {
   } catch (e) {
     throw new HttpError(502, `The piece was added to your wardrobe, but the wish could not be marked Purchased: ${e.message}`, e.hint);
   }
+}
+
+/* ---------- outfits ---------- */
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/* What counts as a top / bottom. Dresses and jumpsuits cover both; sets and swimsuits too;
+   and activewear/loungewear/sleepwear are judged by what the piece is (leggings = bottom, sports bra = top). */
+const TOP_SUBS = ['Sports bra', 'Workout top', 'Hoodie', 'Sweatshirt', 'Camisole', 'Bikini top'];
+const BOTTOM_SUBS = ['Leggings', 'Workout leggings', 'Yoga pants', 'Joggers', 'Sweatpants', 'Bike shorts', 'Running shorts', 'Bikini bottom'];
+const BOTH_SUBS = ['Lounge set', 'Pajama set', 'One-piece swimsuit'];
+function roleOf(cat, subs) {
+  if (cat === 'Tops') return { top: true, bottom: false };
+  if (cat === 'Bottoms') return { top: false, bottom: true };
+  if (cat === 'Dresses' || cat === 'Jumpsuits & Rompers') return { top: true, bottom: true };
+  const both = subs.some(s => BOTH_SUBS.includes(s));
+  return { top: both || subs.some(s => TOP_SUBS.includes(s)), bottom: both || subs.some(s => BOTTOM_SUBS.includes(s)) };
+}
+
+async function outfitCreate(b, today) {
+  const ids = Array.isArray(b.items) ? [...new Set(b.items.map(String))] : [];
+  if (ids.length < 1 || ids.length > 25) throw new HttpError(400, 'Pick the pieces you wore (up to 25).');
+  const pages = [];
+  for (const id of ids) pages.push(await getAllowedPage(id, [DB.items]));    // also proves each one is a Wardrobe piece
+  const roles = pages.map(p => { const r = readers(p); return roleOf(r.sel('Item Category'), r.multi('Item Subcategory')); });
+  if (!(roles.some(x => x.top) && roles.some(x => x.bottom))) throw new HttpError(400, 'An outfit needs at least one top and one bottom (or a dress or jumpsuit).');
+  const d = new Date(today + 'T00:00:00Z');
+  const name = clip(String(b.name || '').trim(), 120) || `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} outfit`;
+  const schema = await schemaOf(DB.outfits);
+  const props = {
+    'Outfit Name': { title: [{ type: 'text', text: { content: name } }] },
+    'Items': { relation: ids.map(id => ({ id })) },
+    'Times Worn': { number: 1 },
+    'Last Worn': { date: { start: today } },
+  };
+  const st = schema['Outfit Status'];
+  if (st && st.options && st.options.includes('Active')) props['Outfit Status'] = { select: { name: 'Active' } };
+  const made = await notion('/pages', { method: 'POST', body: { parent: { database_id: DB.outfits }, properties: props } });
+  // a piece worn twice in one day still counts once
+  const fresh = pages.filter(p => readers(p).date('Last Worn') !== today);
+  try {
+    const changes = await mapLimit(fresh, 3, p => bump(p, 'Wear Count', today));
+    return { ok: true, id: made.id, name, changes };
+  } catch (e) {
+    throw new HttpError(502, `The outfit was saved, but some pieces could not be marked worn: ${e.message}`, e.hint);
+  }
+}
+
+async function outfitUndo(id, changes) {
+  await getAllowedPage(id, [DB.outfits]);
+  await notion(`/pages/${id}`, { method: 'PATCH', body: { archived: true } });
+  if (Array.isArray(changes) && changes.length) await wearRestore(changes);
+  return { ok: true };
+}
+
+async function outfitStatus(id, status) {
+  const page = await getAllowedPage(id, [DB.outfits]);
+  const schema = await schemaOf(DB.outfits);
+  const opts = (schema['Outfit Status'] && schema['Outfit Status'].options) || [];
+  if (!['Active', 'Favorite'].includes(status) || !opts.includes(status)) throw new HttpError(400, `"${status}" is not an Outfit Status in Notion.`);
+  const prev = readers(page).sel('Outfit Status');
+  await notion(`/pages/${id}`, { method: 'PATCH', body: { properties: { 'Outfit Status': { select: { name: status } } } } });
+  return { ok: true, prev };
 }
 
 /* ---------- handler ---------- */
@@ -374,6 +440,9 @@ const handler = wrap(async (req, res) => {
       case 'wear-restore': return res.status(200).json(await wearRestore(b.changes));
       case 'wish-status':  return res.status(200).json(await wishStatus(b.id, b.status === null ? null : String(b.status || '')));
       case 'wish-to-item': return res.status(200).json(await wishToItem(b.id, today));
+      case 'outfit-create': return res.status(200).json(await outfitCreate(b, today));
+      case 'outfit-undo':   return res.status(200).json(await outfitUndo(b.id, b.changes));
+      case 'outfit-status': return res.status(200).json(await outfitStatus(b.id, String(b.status || '')));
       default: throw new HttpError(400, 'Unknown action.');
     }
   }

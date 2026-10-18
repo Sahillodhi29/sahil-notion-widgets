@@ -1,8 +1,9 @@
 /* ============================================================
    Today's Adventure
    Reads today's to-dos and Must Do's through /api/sail and lets you
-   tick them off. Your straw hat rides the progress ribbon, and the
-   cards wear the same live, time-synced sky as the sky banner.
+   tick them off. The open lawn deck of the Sunny: live time-synced sky and
+   sea behind the white railing, your straw hat rides the railing as the
+   progress bar, and the cards are deck-plank boards on the lawn.
 
    URL options:
      ?key=YOUR_WIDGET_KEY     required (the password set in Vercel)
@@ -133,50 +134,78 @@
     return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }
-  function decorate(card, seed) {
+  function decorateScene(seed) {
+    const sky = $('sky');
     const r = seeded(seed);
     const deco = el('div', 'deco');
     deco.appendChild(el('i', 'aur'));
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 6; i++) {
       const c = el('i', 'cld');
-      c.style.cssText = `top:${8 + r() * 42}%;left:0;--w:${90 + r() * 90}px;--h:${22 + r() * 22}px;--d:${55 + r() * 50}s;--dl:${-r() * 80}s`;
+      c.style.cssText = `top:${4 + r() * 46}%;left:0;--w:${120 + r() * 140}px;--h:${28 + r() * 26}px;--d:${70 + r() * 70}s;--dl:${-r() * 120}s`;
       deco.appendChild(c);
     }
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 42; i++) {
       const s = el('i', 'star');
-      s.style.cssText = `left:${r() * 100}%;top:${r() * 62}%;--o:${.5 + r() * .5};--d:${2 + r() * 3}s;--dl:${-r() * 4}s`;
-      if (r() > .8) { s.style.width = s.style.height = '3px'; }
+      s.style.cssText = `left:${r() * 100}%;top:${r() * 60}%;--o:${.5 + r() * .5};--d:${2 + r() * 3}s;--dl:${-r() * 4}s`;
+      if (r() > .85) { s.style.width = s.style.height = '3px'; }
       deco.appendChild(s);
     }
-    const hz = el('i', 'hz'); deco.appendChild(hz);
-    for (let i = 0; i < 9; i++) {
+    deco.appendChild(el('i', 'hz'));
+    for (let i = 0; i < 16; i++) {
       const g = el('i', 'glint');
-      g.style.cssText = `left:${r() * 92}%;top:${34 + r() * 56}%;--w:${14 + r() * 24}px;--d:${3.5 + r() * 4}s;--dl:${-r() * 6}s`;
+      g.style.cssText = `left:${r() * 94}%;top:${68 + r() * 28}%;--w:${16 + r() * 30}px;--d:${3.5 + r() * 4}s;--dl:${-r() * 6}s`;
       deco.appendChild(g);
     }
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 9; i++) {
       const s = el('i', 'spk');
-      s.style.cssText = `left:${6 + r() * 88}%;top:${4 + r() * 50}%;--s:${4 + r() * 4}px;--d:${2.6 + r() * 2.6}s;--dl:${-r() * 4}s`;
+      s.style.cssText = `left:${4 + r() * 92}%;top:${4 + r() * 54}%;--s:${4 + r() * 4}px;--d:${2.6 + r() * 2.6}s;--dl:${-r() * 4}s`;
       deco.appendChild(s);
     }
-    card.insertBefore(deco, card.firstChild);
+    /* two gulls drifting by (daytime only) */
+    for (let i = 0; i < 2; i++) {
+      const g = document.createElementNS(NS, 'svg');
+      g.setAttribute('viewBox', '0 0 26 10'); g.setAttribute('class', 'gull');
+      g.style.cssText = `top:${10 + i * 16}%;--d:${46 + i * 18}s;--dl:${-12 - i * 20}s;--s:${i ? .75 : 1}`;
+      g.innerHTML = '<path d="M1 7c4-7 8-7 12-1 4-6 8-6 12 1" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+      deco.appendChild(g);
+    }
+    sky.appendChild(deco);
 
     const sea = el('div', 'sea');
     const wave = (cls, amp, off) => {
-      const ns = 'http://www.w3.org/2000/svg';
-      const sv = document.createElementNS(ns, 'svg');
+      const sv = document.createElementNS(NS, 'svg');
       sv.setAttribute('viewBox', '0 0 800 60'); sv.setAttribute('preserveAspectRatio', 'none');
       let d = `M0 ${30 + off}`;
       for (let x = 0; x < 800; x += 100) d += ` q25 ${-amp} 50 0 t50 0`;
       d += ' V60 H0 Z';
-      const p = document.createElementNS(ns, 'path');
+      const p = document.createElementNS(NS, 'path');
       p.setAttribute('d', d);
       sv.setAttribute('class', cls);
       sv.appendChild(p);
       return sv;
     };
-    sea.append(wave('w1', 16, 4), wave('w2', 12, 14));
-    card.insertBefore(sea, deco.nextSibling);
+    sea.append(wave('w1', 14, 4), wave('w2', 10, 14));
+    sky.appendChild(sea);
+
+    /* rope net: rungs between two slanted shrouds */
+    const net = document.querySelector('.net');
+    const nv = document.createElementNS(NS, 'svg');
+    nv.setAttribute('viewBox', '0 0 100 170'); nv.setAttribute('preserveAspectRatio', 'none');
+    let nd = 'M34 0L4 170M66 0L96 170M50 0V170M42 0L28 170M58 0L72 170';
+    for (let i = 1; i < 14; i++) { const y = i * 12.2, k = y / 170; nd += `M${34 - 30 * k} ${y}H${66 + 30 * k}`; }
+    const np = document.createElementNS(NS, 'path');
+    np.setAttribute('d', nd);
+    nv.appendChild(np); net.appendChild(nv);
+
+    /* clover flowers scattered on the lawn */
+    const lawn = $('lawn');
+    const cols = ['#fff3d6', '#f6a8c8', '#ffe08a'];
+    for (let i = 0; i < 26; i++) {
+      const f = el('i', 'fl');
+      const top = r() > .5 ? (4 + r() * 14) + 'px' : 'auto';
+      f.style.cssText = `left:${2 + r() * 96}%;${top === 'auto' ? `bottom:${6 + r() * 20}px` : `top:${top}`};--c:${cols[i % 3]};--s:${3 + r() * 2.5}px`;
+      lawn.appendChild(f);
+    }
   }
   /* the rider image: user's straw hat, with a tiny drawn fallback */
   const HAT_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -356,6 +385,8 @@
     if (showStats && c.prev && c.prev.total === total && done > c.prev.done) {
       c.card.classList.remove('hop'); void c.card.offsetWidth; c.card.classList.add('hop');
       burst(kind, open === 0 ? 16 : 9);
+      const dk = $('deck'); dk.classList.remove('flare'); void dk.offsetWidth; dk.classList.add('flare');
+      setTimeout(() => dk.classList.remove('flare'), 1400);
       setTimeout(() => c.card.classList.remove('hop'), 1500);
     }
     c.prev = showStats ? { done, total } : null;
@@ -620,8 +651,7 @@
 
   skeleton();
   setupHats();
-  decorate(CARDS.todo.card, 7);
-  decorate(CARDS.must.card, 19);
+  decorateScene(11);
   applySky();
   if (PREVIEW == null) { setInterval(applySky, 30000); fetchSun(); }
 
