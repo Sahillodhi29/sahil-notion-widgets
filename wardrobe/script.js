@@ -1,7 +1,7 @@
 'use strict';
 /* Wardrobe widgets: one page, many pieces.
    /wardrobe/index.html?key=KEY&w=outfit      -> just that widget
-   w = add | wish | outfit | outfits | closet | cats | wishlist | all   (comma-separate to combine)
+   w = add | wish | outfit | outfits | closet (the wardrobe) | cats | wishlist | all   (comma-separate to combine)
    (w=wear still works and opens the outfit widget)
    Optional: &cur=$ to change the currency symbol (default ₹), &bg=transparent or &bg=HEX */
 (() => {
@@ -12,9 +12,9 @@
   const CUR = params.get('cur') || '\u20B9';
   const NEEDS = {
     add: ['items', 'schema'], wish: ['wishes', 'schema'], outfit: ['items', 'outfits'], outfits: ['items', 'outfits'],
-    closet: ['items'], cats: ['items'], wishlist: ['wishes', 'schema'],
+    closet: ['items', 'outfits'], cats: ['items'], wishlist: ['wishes', 'schema'],
   };
-  const ALIAS = { wear: 'outfit' };
+  const ALIAS = { wear: 'outfit', wardrobe: 'closet' };
   const keyQ = sep => (KEY ? `${sep}key=${encodeURIComponent(KEY)}` : '');
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -44,7 +44,7 @@
   const need = [...new Set(shown.flatMap(w => NEEDS[w]))];
 
   const state = { today: null, items: [], outfits: [], wishes: [], schema: null, err: {}, pending: 0, loadedAt: 0, gaugeDone: false };
-  const ui = { sort: 'recent', by: 'cat', ask: null, catAnim: true };
+  const ui = { sort: 'recent', by: 'cat', ask: null, catAnim: true, wd: null, wdCat: {}, wdAll: {} };
   const ob = { open: false, sel: [], cat: 'All', type: '', q: '', name: '' };
   const forms = {};
   const undoMap = new Map();
@@ -740,11 +740,11 @@
   /* =========================================================
      THE WINDOW (sheet): outfit builder + outfit details
      ========================================================= */
-  let detailId = null;
+  let detailId = null, pieceId = null;
   const sheet = () => $('sheet');
   function openSheet() { sheet().hidden = false; document.body.classList.add('locked'); requestAnimationFrame(() => sheet().classList.add('in')); }
   function closeSheet() {
-    ob.open = false; detailId = null;
+    ob.open = false; detailId = null; pieceId = null;
     sheet().classList.remove('in'); document.body.classList.remove('locked');
     setTimeout(() => { if (!sheet().classList.contains('in')) { sheet().hidden = true; sheet().innerHTML = ''; } }, 220);
   }
@@ -760,7 +760,7 @@
   function openBuilder(pre) {
     if (!obPool().length) { toast('Add a few pieces to your wardrobe first.'); return; }
     if (typeof pre === 'string' && !ob.sel.includes(pre)) ob.sel.push(pre);
-    detailId = null;
+    detailId = null; pieceId = null;
     ob.open = true; ob.cat = 'All'; ob.type = ''; ob.q = '';
     sheet().innerHTML = `
       <div class="sheet-backdrop" data-close></div>
@@ -885,7 +885,7 @@
   /* ----- outfit details ----- */
   function openDetail(id) {
     if (!findOutfit(id)) return;
-    detailId = id; ob.open = false;
+    detailId = id; pieceId = null; ob.open = false;
     renderDetail(); openSheet();
   }
   function renderDetail() {
@@ -910,36 +910,135 @@
   }
 
   /* =========================================================
-     MOST WANTED: your most-worn pieces as wanted posters, plus the ones sleeping in the closet
+     THE WARDROBE: a white, gold-trimmed wardrobe. Tap a door to open it and browse what's inside.
      ========================================================= */
+  const COMPS = [
+    { id: 'bags', name: 'Bags', blurb: 'On the top shelf', cats: ['Bags'], kind: 'shelf', ratio: '4 / 5' },
+    { id: 'rail', name: 'Hanging rail', blurb: 'Tops, dresses and coats', cats: ['Tops', 'Dresses', 'Jumpsuits & Rompers', 'Outerwear'], kind: 'rail', ratio: '4 / 5' },
+    { id: 'folded', name: 'Folded shelves', blurb: 'Bottoms and everyday basics', cats: ['Bottoms', 'Activewear', 'Loungewear', 'Sleepwear', 'Swimwear', 'Intimates', 'Costumes'], kind: 'shelf', ratio: '1 / 1' },
+    { id: 'shoes', name: 'Shoe shelf', blurb: 'Every pair', cats: ['Shoes'], kind: 'shelf', ratio: '1 / 1' },
+    { id: 'little', name: 'Little things', blurb: 'Accessories and perfumes', cats: ['Accessories', 'Perfumes', 'Other'], kind: 'shelf', ratio: '1 / 1', rest: true },
+    { id: 'jewel', name: 'Jewellery drawer', blurb: 'Jewellery', cats: ['Jewelry'], kind: 'drawer', ratio: '1 / 1' },
+  ];
+  const compOf = i => (COMPS.find(c => c.cats.includes(i.cat)) || COMPS.find(c => c.rest));
+  const HANGER = '<svg class="hanger" viewBox="0 0 44 28" aria-hidden="true"><path d="M22 13V10.5a3.6 3.6 0 1 0-3.6-3.6"/><path d="M22 13L3.6 24.2c-1.6 1-.9 3.3 1 3.3h34.8c1.9 0 2.6-2.3 1-3.3z"/></svg>';
   const hash = str => { let h = 2166136261; for (let k = 0; k < str.length; k++) { h ^= str.charCodeAt(k); h = Math.imul(h, 16777619); } return h >>> 0; };
-  const BERRY = '\u0E3F';
-  const TILTS = ['-1.6deg', '1deg', '-.7deg'];
+  const WD_SHOW = 18;
 
-  function renderCloset() {
-    const box = $('posters'), sl = $('sleepers');
-    if (state.err.items) { box.innerHTML = secError('items', 'your pieces'); sl.innerHTML = ''; return; }
-    const act = state.items.filter(isActive);
-    $('closetPill').textContent = act.length ? plural(act.length, 'piece') : '';
-    const worn = act.filter(i => i.n > 0)
-      .sort((a, b) => b.n - a.n || (b.last || '').localeCompare(a.last || '') || a.name.localeCompare(b.name)).slice(0, 3);
-    box.innerHTML = worn.length ? worn.map((i, k) => `
-      <div class="poster" style="--rot:${TILTS[k]}">
-        <span class="rank">${k + 1}</span>
-        <p class="wanted">Wanted</p>
-        <div class="poster-photo">${thumb(i)}</div>
-        <p class="poster-name">${esc(i.name)}</p>
-        <p class="poster-bounty"><span>${BERRY}</span>${(i.n * 1000000).toLocaleString('en-US')}</p>
-        <p class="poster-sub">worn ${i.n}\u00D7 \u00B7 ${esc(ago(i.last))}</p>
-      </div>`).join('')
-      : emptyState('No bounties yet', 'Log an outfit and the pieces you wear most will be pinned up here.', has('outfit') ? 'data-open-builder' : '', "Add Today's Outfit", 'outfit');
-    // sleepers: never-worn pieces first, otherwise the ones you've not touched the longest. Reshuffled daily.
+  function buildWardrobe() {
+    const slot = (c, cls, hinge) => `<div class="slot ${cls}" data-slot="${c.id}"><div class="behind ${c.id}" data-shut="${c.id}" title="Tap to close"></div>
+      <button type="button" class="door ${hinge}" data-comp="${c.id}" aria-expanded="false" aria-label="${esc(c.name)}">
+        <span class="dl-name">${esc(c.name)}</span><span class="dl-count" data-count="${c.id}"></span><i class="handle"></i></button></div>`;
+    const by = Object.fromEntries(COMPS.map(c => [c.id, c]));
+    $('wd').innerHTML = `
+      <div class="wd-top">${slot(by.bags, 'wide', 'hl')}</div>
+      <div class="wd-doors">${slot(by.rail, '', 'hl')}${slot(by.folded, '', 'hr')}${slot(by.shoes, '', 'hl')}${slot(by.little, '', 'hr')}</div>
+      <div class="wd-drawer">${slot(by.jewel, 'drawer', 'hd')}</div>
+      <div class="wd-feet"><i></i><i></i></div>`;
+    $('wd').dataset.built = '1';
+  }
+
+  const wdItems = () => state.items.filter(isActive);
+  const wdGroup = id => { const c = COMPS.find(x => x.id === id); return wdItems().filter(i => compOf(i) === c); };
+
+  function pieceHtml(i, kind) {
+    const nm = `<span class="pn">${esc(i.name)}</span>`;
+    if (kind === 'rail') return `<button type="button" class="ri" data-piece="${esc(i.id)}">${HANGER}${thumb(i, 'ri-th')}${nm}</button>`;
+    if (kind === 'drawer') return `<button type="button" class="di" data-piece="${esc(i.id)}">${thumb(i, 'di-th')}${nm}</button>`;
+    return `<button type="button" class="si" data-piece="${esc(i.id)}"><span class="ph">${thumb(i, 'si-th')}</span><span class="plank"></span>${nm}</button>`;
+  }
+
+  function sleeperList() {
+    const act = wdItems();
     let pool = act.filter(i => !i.n && !i.last), label = 'never worn';
     if (!pool.length) { pool = act.filter(i => since(i.last) >= 30).sort((a, b) => (a.last || '').localeCompare(b.last || '')).slice(0, 18); label = 'not worn in a while'; }
     const pick = pool.slice().sort((a, b) => hash(a.id + state.today) - hash(b.id + state.today)).slice(0, 6);
-    $('sleepSub').textContent = pool.length ? `${pool.length} ${label}. Tap one to wear it today.` : '';
-    $('sleepWrap').hidden = !pool.length;
-    sl.innerHTML = pick.map(i => `<button type="button" class="sleeper" data-sleeper="${esc(i.id)}" aria-label="Wear ${esc(i.name)} today">${thumb(i)}<span>${esc(i.name)}</span></button>`).join('');
+    return { pool, label, pick };
+  }
+
+  function renderWardrobe() {
+    if (!$('wd').dataset.built) buildWardrobe();
+    const el = $('wdInside');
+    if (state.err.items) { el.innerHTML = secError('items', 'your pieces'); return; }
+    const act = wdItems();
+    $('wdCount').textContent = act.length ? plural(act.length, 'piece') : '';
+    COMPS.forEach(c => {
+      const n = act.filter(i => compOf(i) === c).length;
+      const ct = document.querySelector(`[data-count="${c.id}"]`); if (ct) ct.textContent = n ? plural(n, 'piece') : 'empty';
+      const sl = document.querySelector(`[data-slot="${c.id}"]`); if (sl) sl.classList.toggle('open', ui.wd === c.id);
+      const d = sl && sl.querySelector('.door'); if (d) d.setAttribute('aria-expanded', ui.wd === c.id);
+    });
+    if (!act.length) {
+      el.className = 'inside closed';
+      el.innerHTML = emptyState('An empty wardrobe', 'Add your first piece and it will be put away on the right shelf.', openForm$('add'), 'Add a piece', 'add');
+      return;
+    }
+    if (!ui.wd) {
+      const { pool, label, pick } = sleeperList();
+      el.className = 'inside closed';
+      el.innerHTML = `<div class="in-closed"><span class="es-ico">${ICONS.outfit}</span><div><strong>Tap a door to look inside</strong><p>Hanging rail, shelves, shoes, jewellery drawer and more.</p></div></div>
+        ${pool.length ? `<div class="sleep-inline"><div class="rope" aria-hidden="true"></div><div class="sleep-head"><h3>Sleeping in the closet</h3><p class="muted">${pool.length} ${label}. Tap one to wear it today.</p></div>
+        <div class="sleepers">${pick.map(i => `<button type="button" class="sleeper" data-sleeper="${esc(i.id)}" aria-label="Wear ${esc(i.name)} today">${thumb(i)}<span>${esc(i.name)}</span></button>`).join('')}</div></div>` : ''}`;
+      return;
+    }
+    const c = COMPS.find(x => x.id === ui.wd);
+    const group = wdGroup(c.id);
+    const cats = c.cats.filter(k => group.some(i => i.cat === k));
+    if (c.rest && group.some(i => !c.cats.includes(i.cat))) cats.push('Other things');
+    const inCat = (i, k) => k === 'All' || i.cat === k || (k === 'Other things' && !c.cats.includes(i.cat));
+    const cur = cats.includes(ui.wdCat[c.id]) ? ui.wdCat[c.id] : 'All';
+    let list = group.filter(i => inCat(i, cur)).sort((a, b) => catOrder(a.cat) - catOrder(b.cat) || a.name.localeCompare(b.name));
+    const all = !!ui.wdAll[c.id];
+    const shownList = all ? list : list.slice(0, WD_SHOW);
+    const chips = cats.length > 1 ? `<div class="chips-row in-chips" role="group" aria-label="Category">${['All', ...cats].map(k => `<button type="button" class="chip sm" data-wdcat="${esc(k)}" aria-pressed="${cur === k}">${esc(k)} <b>${group.filter(i => inCat(i, k)).length}</b></button>`).join('')}</div>` : '';
+    el.className = `inside open-${c.kind}`;
+    el.innerHTML = `<div class="in-head"><div class="title"><h2>${esc(c.name)}</h2><p class="eyebrow">${plural(group.length, 'piece')} \u00B7 ${esc(c.blurb)}</p></div><button type="button" class="btn sm ghost" data-wdclose>Close the door</button></div>
+      ${chips}
+      ${shownList.length ? `<div class="in-body ${c.kind}" style="--ratio:${c.ratio}">${shownList.map(i => pieceHtml(i, c.kind)).join('')}</div>` : emptyState('Nothing in here yet', 'Add a piece in this category and it will be put away here.', openForm$('add'), 'Add a piece', 'add')}
+      ${list.length > WD_SHOW ? `<div class="more-row"><button type="button" class="link" data-wdall>${all ? 'Show fewer' : `Show all ${list.length}`}</button></div>` : ''}`;
+  }
+
+  function toggleDoor(id) {
+    ui.wd = ui.wd === id ? null : id;
+    if (ui.wd) { ui.wdCat[id] = 'All'; ui.wdAll[id] = false; }      // a freshly opened door always starts on "All"
+    renderWardrobe();
+  }
+
+  /* ----- one piece: a closer look ----- */
+  function openPiece(id) {
+    if (!state.items.find(i => i.id === id)) return;
+    pieceId = id; detailId = null; ob.open = false;
+    renderPiece(); openSheet();
+  }
+  function renderPiece() {
+    const p = state.items.find(i => i.id === pieceId);
+    if (!p) { closeSheet(); return; }
+    const inOutfits = liveOutfits().filter(o => o.items.includes(p.id));
+    const hex = p.color ? hexOf(p.color) : null;
+    const comp = compOf(p);
+    sheet().innerHTML = `
+      <div class="sheet-backdrop" data-close></div>
+      <section class="sheet-panel detail piece" role="dialog" aria-modal="true" aria-label="${esc(p.name)}">
+        <header class="sp-head">
+          <span class="gico g-add">${ICONS.add}</span>
+          <div class="title"><h2>${esc(p.name)}</h2><p class="eyebrow">${esc([p.cat, p.sub[0]].filter(Boolean).join(' \u00B7 ') || 'Piece')}</p></div>
+          <button type="button" class="x" data-close aria-label="Close">&times;</button>
+        </header>
+        <div class="piece-body">
+          <div class="piece-photo">${thumb(p, 'pp-th')}</div>
+          <dl class="piece-facts">
+            <div><dt>Lives in</dt><dd>${esc(comp.name)}</dd></div>
+            ${p.color ? `<div><dt>Colour</dt><dd><i class="dot"${hex ? ` style="--c:${hex}"` : COLORS[p.color] ? ` data-k="${COLORS[p.color]}"` : ''}></i>${esc(p.color)}</dd></div>` : ''}
+            <div><dt>Worn</dt><dd>${p.n ? `${p.n}\u00D7, last ${esc(ago(p.last))}` : 'Not worn yet'}</dd></div>
+            ${p.season && p.season.length ? `<div><dt>Season</dt><dd>${esc(p.season.join(', '))}</dd></div>` : ''}
+            <div><dt>In outfits</dt><dd>${inOutfits.length ? esc(inOutfits.slice(0, 4).map(o => o.name).join(', ')) + (inOutfits.length > 4 ? ` +${inOutfits.length - 4}` : '') : 'None yet'}</dd></div>
+          </dl>
+        </div>
+        <footer class="sp-tray detail-act">
+          <button type="button" class="btn ghost" data-close>Close</button>
+          <button type="button" class="btn primary" data-piece-wear>Wear it in today's outfit</button>
+        </footer>
+      </section>`;
   }
 
   /* =========================================================
@@ -1074,6 +1173,16 @@
       setWishStatus(s.closest('.wc').dataset.id, s.value || null);
     });
   }
+  if (has('closet')) $('wdWrap').addEventListener('click', e => {
+    const d = e.target.closest('[data-comp], [data-shut]'); if (d) toggleDoor(d.dataset.comp || d.dataset.shut);
+  });
+  if (has('closet')) $('wdInside').addEventListener('click', e => {
+    const t = e.target;
+    const pc = t.closest('[data-piece]'); if (pc) { openPiece(pc.dataset.piece); return; }
+    const ch = t.closest('[data-wdcat]'); if (ch) { ui.wdCat[ui.wd] = ch.dataset.wdcat; ui.wdAll[ui.wd] = false; renderWardrobe(); return; }
+    if (t.closest('[data-wdall]')) { ui.wdAll[ui.wd] = !ui.wdAll[ui.wd]; renderWardrobe(); return; }
+    if (t.closest('[data-wdclose]')) { ui.wd = null; renderWardrobe(); }
+  });
   // the window
   sheet().addEventListener('click', e => {
     const t = e.target;
@@ -1085,6 +1194,7 @@
     if (t.closest('#obSave')) { saveOutfit(); return; }
     if (t.closest('[data-detail-fav]')) { toggleFav(detailId); return; }
     if (t.closest('[data-detail-wear]')) { wearOutfit(detailId); return; }
+    if (t.closest('[data-piece-wear]')) { const id = pieceId; if (String(id).startsWith('tmp-')) { toast('Still saving. Try again in a second.'); return; } closeSheet(); setTimeout(() => openBuilder(id), 240); return; }
   });
   sheet().addEventListener('input', e => { if (e.target.id === 'obSearch') { ob.q = e.target.value; obRenderGrid(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet().hidden) closeSheet(); });
@@ -1098,10 +1208,11 @@
   function renderLive() {
     if (has('outfit')) renderToday();
     if (has('outfits')) renderOutfits();
-    if (has('closet')) renderCloset();
+    if (has('closet')) renderWardrobe();
     if (has('cats')) renderCats();
     if (has('wishlist')) renderWishlist();
     if (detailId && !sheet().hidden) renderDetail();
+    if (pieceId && !sheet().hidden) renderPiece();
   }
 
   function renderAll() {
