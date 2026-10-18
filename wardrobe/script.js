@@ -32,8 +32,10 @@
   const shown = wantAll ? Object.keys(NEEDS) : [...new Set(asked.filter(w => NEEDS[w]))];
   const unknown = asked.filter(w => w !== 'all' && !NEEDS[w]);
   document.querySelectorAll('.card[data-w]').forEach(c => { c.hidden = !shown.includes(c.dataset.w); });
-  const MULTI = shown.length !== 1;
+  const FORM_ONLY = shown.length === 1 && (shown[0] === 'add' || shown[0] === 'wish');
+  const MULTI = shown.length !== 1 || FORM_ONLY;       // a lone form still starts as the slim "+" card
   document.body.dataset.mode = MULTI ? 'multi' : 'single';
+  if (shown.length === 1) $('stage').classList.add('solo');
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
     b.innerHTML = '<h2>Unknown widget</h2><p class="muted note">Use w=add, wish, outfit, outfits, closet, cats, wishlist or all.</p>';
@@ -96,11 +98,11 @@
   const colorAttr = name => { const c = COLORS[name]; return !c ? '' : c[0] === '#' ? ` style="--c:${c}"` : ` data-k="${c}"`; };
 
   /* Every category gets its own hue. It tints photo-less tiles and colours the "What's in it" bars. */
-  const CAT_ORDER = ['Tops', 'Bottoms', 'Dresses', 'Jumpsuits & Rompers', 'Outerwear', 'Shoes', 'Bags', 'Accessories', 'Jewelry', 'Activewear', 'Loungewear', 'Swimwear', 'Intimates', 'Sleepwear', 'Costumes', 'Other'];
+  const CAT_ORDER = ['Tops', 'Bottoms', 'Dresses', 'Jumpsuits & Rompers', 'Outerwear', 'Shoes', 'Bags', 'Accessories', 'Jewelry', 'Perfumes', 'Activewear', 'Loungewear', 'Swimwear', 'Intimates', 'Sleepwear', 'Costumes', 'Other'];
   const CAT_HUE = {
-    'Tops': '#FF6B9D', 'Bottoms': '#5B9DFF', 'Dresses': '#B678FF', 'Jumpsuits & Rompers': '#E07BFF', 'Outerwear': '#FFA94D', 'Shoes': '#3FD9B0',
-    'Bags': '#FF8466', 'Accessories': '#FFD43B', 'Jewelry': '#FF8FD8', 'Activewear': '#9BE564', 'Loungewear': '#8E9BFF', 'Swimwear': '#38C9F5',
-    'Intimates': '#FF7A93', 'Sleepwear': '#A596FF', 'Costumes': '#F55BC8', 'Other': '#98A0B3',
+    'Tops': '#E8708F', 'Bottoms': '#F5E8AA', 'Dresses': '#C93A63', 'Jumpsuits & Rompers': '#B8407F', 'Outerwear': '#D9955A', 'Shoes': '#E0B84F',
+    'Bags': '#D8664F', 'Accessories': '#F0C987', 'Jewelry': '#F4B6C4', 'Perfumes': '#E3A8C8', 'Activewear': '#E4536B', 'Loungewear': '#C78A9B', 'Swimwear': '#F2A58A',
+    'Intimates': '#D96B8C', 'Sleepwear': '#A56A8A', 'Costumes': '#E04C9B', 'Other': '#A89098',
   };
   const catOrder = c => { const i = CAT_ORDER.indexOf(c); return i === -1 ? 99 : i; };
 
@@ -233,7 +235,6 @@
         { p: 'Item Category', label: 'Category', kind: 'opts', chips: true, wide: true },
         { p: 'Item Subcategory', label: 'Type', kind: 'opts', multi: true, wide: true, filter: 'sub' },
         { p: 'Primary Color', label: 'Colour', kind: 'swatch', wide: true, col2: true },
-        { p: 'Price', label: 'Price', kind: 'money', col2: true },
       ],
       more: [
         { p: 'Photo', label: 'Photo', kind: 'photo', wide: true, full: true },
@@ -756,8 +757,9 @@
       && (!q || `${i.name} ${i.cat || ''} ${i.sub.join(' ')} ${i.color || ''}`.toLowerCase().includes(q)))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
-  function openBuilder() {
+  function openBuilder(pre) {
     if (!obPool().length) { toast('Add a few pieces to your wardrobe first.'); return; }
+    if (typeof pre === 'string' && !ob.sel.includes(pre)) ob.sel.push(pre);
     detailId = null;
     ob.open = true; ob.cat = 'All'; ob.type = ''; ob.q = '';
     sheet().innerHTML = `
@@ -908,38 +910,36 @@
   }
 
   /* =========================================================
-     CLOSET GAUGE
+     MOST WANTED: your most-worn pieces as wanted posters, plus the ones sleeping in the closet
      ========================================================= */
+  const hash = str => { let h = 2166136261; for (let k = 0; k < str.length; k++) { h ^= str.charCodeAt(k); h = Math.imul(h, 16777619); } return h >>> 0; };
+  const BERRY = '\u0E3F';
+  const TILTS = ['-1.6deg', '1deg', '-.7deg'];
+
   function renderCloset() {
-    if (state.err.items) { $('legend').innerHTML = secError('items', 'your pieces'); return; }
+    const box = $('posters'), sl = $('sleepers');
+    if (state.err.items) { box.innerHTML = secError('items', 'your pieces'); sl.innerHTML = ''; return; }
     const act = state.items.filter(isActive);
-    const total = act.length;
-    const within = d => act.filter(i => i.last && since(i.last) <= d).length;
-    const w7 = within(7), w30 = within(30), w90 = within(90);
-    const pct = n => (total ? Math.round((n / total) * 100) : 0);
-    const rings = [[84, 'f90', pct(w90)], [64, 'f30', pct(w30)], [44, 'f7', pct(w7)]];
-    const animate = !state.gaugeDone;
-    const defs = '<defs><linearGradient id="gG90" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C6CFF"/><stop offset="1" stop-color="#38C9F5"/></linearGradient><linearGradient id="gG30" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF5C8A"/><stop offset="1" stop-color="#FFA94D"/></linearGradient><linearGradient id="gG7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C6F432"/><stop offset="1" stop-color="#3FD9B0"/></linearGradient></defs>';
-    $('gauge').innerHTML = defs + rings.map(([r]) => `<circle class="track" cx="100" cy="100" r="${r}"/>`).join('') +
-      rings.map(([r, c, p]) => `<circle class="fill ${c}" cx="100" cy="100" r="${r}" pathLength="100" transform="rotate(-90 100 100)" style="stroke-dasharray:${animate ? 0 : p} 100;opacity:${p ? 1 : 0}"/>`).join('');
-    if (animate) {
-      state.gaugeDone = true;
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        $('gauge').querySelectorAll('.fill').forEach((p, i) => { p.style.strokeDasharray = `${rings[i][2]} 100`; });
-      }));
-    }
-    $('gaugeNum').textContent = total;
-    $('gaugeOf').textContent = total === 1 ? 'piece' : 'pieces';
-    $('closetSub').textContent = total ? `${pct(w30)}% worn this month` : '';
-    $('legend').innerHTML =
-      `<div class="l7"><i></i>This week<b>${w7} <small>of ${total}</small></b></div>` +
-      `<div class="l30"><i></i>This month<b>${w30} <small>of ${total}</small></b></div>` +
-      `<div class="l90"><i></i>Last 90 days<b>${w90} <small>of ${total}</small></b></div>`;
-    const value = act.reduce((s, i) => s + (i.price || 0), 0);
-    const never = act.filter(i => !i.last).length;
-    $('cstats').innerHTML = total
-      ? `<div><span class="num">${money(value)}</span><span class="muted">Closet value</span></div><div><span class="num">${never}</span><span class="muted">Never worn</span></div>`
-      : '<p class="hint">Your closet is empty. Add your first piece to see this fill up.</p>';
+    $('closetPill').textContent = act.length ? plural(act.length, 'piece') : '';
+    const worn = act.filter(i => i.n > 0)
+      .sort((a, b) => b.n - a.n || (b.last || '').localeCompare(a.last || '') || a.name.localeCompare(b.name)).slice(0, 3);
+    box.innerHTML = worn.length ? worn.map((i, k) => `
+      <div class="poster" style="--rot:${TILTS[k]}">
+        <span class="rank">${k + 1}</span>
+        <p class="wanted">Wanted</p>
+        <div class="poster-photo">${thumb(i)}</div>
+        <p class="poster-name">${esc(i.name)}</p>
+        <p class="poster-bounty"><span>${BERRY}</span>${(i.n * 1000000).toLocaleString('en-US')}</p>
+        <p class="poster-sub">worn ${i.n}\u00D7 \u00B7 ${esc(ago(i.last))}</p>
+      </div>`).join('')
+      : emptyState('No bounties yet', 'Log an outfit and the pieces you wear most will be pinned up here.', has('outfit') ? 'data-open-builder' : '', "Add Today's Outfit", 'outfit');
+    // sleepers: never-worn pieces first, otherwise the ones you've not touched the longest. Reshuffled daily.
+    let pool = act.filter(i => !i.n && !i.last), label = 'never worn';
+    if (!pool.length) { pool = act.filter(i => since(i.last) >= 30).sort((a, b) => (a.last || '').localeCompare(b.last || '')).slice(0, 18); label = 'not worn in a while'; }
+    const pick = pool.slice().sort((a, b) => hash(a.id + state.today) - hash(b.id + state.today)).slice(0, 6);
+    $('sleepSub').textContent = pool.length ? `${pool.length} ${label}. Tap one to wear it today.` : '';
+    $('sleepWrap').hidden = !pool.length;
+    sl.innerHTML = pick.map(i => `<button type="button" class="sleeper" data-sleeper="${esc(i.id)}" aria-label="Wear ${esc(i.name)} today">${thumb(i)}<span>${esc(i.name)}</span></button>`).join('');
   }
 
   /* =========================================================
@@ -982,6 +982,7 @@
      WISHLIST
      ========================================================= */
   const PRIORITY_ORDER = ['Need', 'High priority', 'Want', 'Replace existing', 'Nice to have', 'Wait for sale', 'Budget dependent', 'Gift idea', 'Someday'];
+  const PRI_HUE = { 'Need': '#E8708F', 'High priority': '#F4B6C4', 'Want': '#F5E8AA', 'Replace existing': '#E0B84F', 'Nice to have': '#F0C987', 'Wait for sale': '#D9955A', 'Budget dependent': '#C78A9B', 'Gift idea': '#E3A8C8', 'Someday': '#A89098' };
   const FINISHED = ['Purchased', 'Gifted', 'No longer needed', 'Skipped'];
   const FALLBACK_STATUS = ['Considering', 'Researching', 'Wait for sale', 'On Hold', 'Purchased', 'Gifted', 'No longer needed', 'Skipped'];
 
@@ -994,22 +995,18 @@
     $('wlTotal').textContent = open.length ? `${plural(open.length, 'wish', 'wishes')} \u00B7 ${money(total)}` : '';
     if (!open.length) { box.innerHTML = emptyState('Nothing on the list', 'Park things you are thinking about here before you buy them.', openForm$('wish'), 'Add a wish', 'wish'); return; }
     const statuses = (state.schema && state.schema.wish && state.schema.wish['Wishlist Status'] && state.schema.wish['Wishlist Status'].options) || FALLBACK_STATUS;
-    const groups = new Map();
-    open.forEach(w => { const k = w.priority || 'No priority'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(w); });
-    const rank = k => { const i = PRIORITY_ORDER.indexOf(k); return i === -1 ? (k === 'No priority' ? 999 : 500) : i; };
-    box.innerHTML = [...groups].sort((a, b) => rank(a[0]) - rank(b[0])).map(([k, list]) => {
-      const sub = list.reduce((s, w) => s + (w.price || 0), 0);
-      return `<div class="wl-group"><h3>${esc(k)}</h3><span>${sub ? money(sub) : ''}</span></div><div class="wl-list">` + list.map(w => {
-        const sub2 = w.reason || '';
-        const opts = `<option value=""${w.status ? '' : ' selected'}>Set status</option>` + statuses.map(s => `<option${s === w.status ? ' selected' : ''}>${esc(s)}</option>`).join('');
-        const ask = ui.ask === w.id
-          ? `<div class="buy-ask"><span>Add it to your wardrobe too?</span><button type="button" class="btn sm primary" data-act="toitem">Add to wardrobe</button><button type="button" class="btn sm ghost" data-act="bought">Just mark bought</button><button type="button" class="btn sm ghost" data-act="cancel">Cancel</button></div>`
-          : `<div class="w-act"><select class="sel" data-act="status" aria-label="Status for ${esc(w.name)}">${opts}</select>${/^https?:/i.test(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener noreferrer">Open link</a>` : ''}<button type="button" class="btn sm ghost" data-act="buy">Bought it</button></div>`;
-        return `<div class="wrow" data-id="${esc(w.id)}">${thumb({ name: w.name, photo: w.photo, cat: (w.cat || [])[0] }, 'w-th')}
-          <div class="w-main"><div class="w-name">${esc(w.name)}</div><div class="w-sub">${esc(sub2)}</div></div>
-          <div class="w-price">${w.price != null ? esc(money(w.price)) : ''}</div>${ask}</div>`;
-      }).join('') + '</div>';
-    }).join('');
+    const rank = k => { const i2 = PRIORITY_ORDER.indexOf(k); return i2 === -1 ? (k === 'No priority' ? 999 : 500) : i2; };
+    const sorted = open.slice().sort((a, b) => rank(a.priority || 'No priority') - rank(b.priority || 'No priority') || a.name.localeCompare(b.name));
+    box.innerHTML = '<div class="wgrid">' + sorted.map(w => {
+      const opts = `<option value=""${w.status ? '' : ' selected'}>Set status</option>` + statuses.map(s2 => `<option${s2 === w.status ? ' selected' : ''}>${esc(s2)}</option>`).join('');
+      const ask = ui.ask === w.id
+        ? `<div class="buy-ask"><span>Add it to your wardrobe too?</span><button type="button" class="btn sm primary" data-act="toitem">Add to wardrobe</button><button type="button" class="btn sm ghost" data-act="bought">Just mark bought</button><button type="button" class="btn sm ghost" data-act="cancel">Cancel</button></div>`
+        : `<div class="w-act"><select class="sel" data-act="status" aria-label="Status for ${esc(w.name)}">${opts}</select><button type="button" class="btn sm ghost" data-act="buy">Bought it</button>${/^https?:/i.test(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener noreferrer">Link</a>` : ''}</div>`;
+      const pri = w.priority ? `<span class="wc-pri" style="--c:${PRI_HUE[w.priority] || '#C78A9B'}">${esc(w.priority)}</span>` : '';
+      return `<article class="wc" data-id="${esc(w.id)}">
+        <div class="wc-photo">${thumb({ name: w.name, photo: w.photo, cat: (w.cat || [])[0] }, 'wc-th')}${pri}${w.price != null ? `<span class="wc-price">${esc(money(w.price))}</span>` : ''}</div>
+        <div class="w-main"><div class="w-name">${esc(w.name)}</div>${w.reason ? `<div class="w-sub">${esc(w.reason)}</div>` : ''}</div>${ask}</article>`;
+    }).join('') + '</div>';
   }
 
   async function setWishStatus(id, status) {
@@ -1043,7 +1040,7 @@
   }
 
   /* ---------- wiring ---------- */
-  if (has('outfit')) $('openBuilder').addEventListener('click', openBuilder);
+  if (has('outfit')) $('openBuilder').addEventListener('click', () => openBuilder());
   if (has('outfits')) {
     document.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => {
       ui.sort = b.dataset.sort;
@@ -1064,7 +1061,7 @@
   if (has('wishlist')) {
     $('wl').addEventListener('click', e => {
       const b = e.target.closest('button[data-act]'); if (!b) return;
-      const row = b.closest('.wrow'); if (!row) return;
+      const row = b.closest('.wc'); if (!row) return;
       const id = row.dataset.id;
       const act = b.dataset.act;
       if (act === 'buy') { ui.ask = id; renderWishlist(); }
@@ -1074,7 +1071,7 @@
     });
     $('wl').addEventListener('change', e => {
       const s = e.target.closest('select[data-act="status"]'); if (!s) return;
-      setWishStatus(s.closest('.wrow').dataset.id, s.value || null);
+      setWishStatus(s.closest('.wc').dataset.id, s.value || null);
     });
   }
   // the window
@@ -1093,7 +1090,8 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet().hidden) closeSheet(); });
   document.addEventListener('click', e => {
     const f = e.target.closest('[data-open-form]'); if (f) { openForm(f.dataset.openForm); return; }
-    if (e.target.closest('[data-open-builder]')) openBuilder();
+    if (e.target.closest('[data-open-builder]')) { openBuilder(); return; }
+    const sl = e.target.closest('[data-sleeper]'); if (sl) openBuilder(sl.dataset.sleeper);
   });
 
   /* ---------- render ---------- */

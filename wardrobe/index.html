@@ -7,7 +7,7 @@
   <title>Wardrobe widgets</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Rye&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/wardrobe/style.css">
 </head>
 <body>
@@ -26,16 +26,15 @@
     </article>
 
     <article class="card" data-w="closet" hidden>
-      <div class="closet-layout">
-        <div class="gauge-wrap">
-          <svg id="gauge" viewBox="0 0 200 200" role="img" aria-label="How much of your closet you wear"></svg>
-          <div class="gauge-center"><span id="gaugeNum" class="big">–</span><span id="gaugeOf" class="small">pieces</span></div>
-        </div>
-        <div class="closet-text">
-          <div class="title"><h2>Your closet</h2><p id="closetSub" class="eyebrow"></p></div>
-          <div id="legend" class="legend"></div>
-          <div id="cstats" class="cstats"></div>
-        </div>
+      <div class="head">
+        <div class="title"><h2>Most Wanted</h2><p class="eyebrow">Your most-worn pieces</p></div>
+        <span id="closetPill" class="pill"></span>
+      </div>
+      <div id="posters" class="posters"></div>
+      <div id="sleepWrap" class="sleep-wrap" hidden>
+        <div class="rope" aria-hidden="true"></div>
+        <div class="sleep-head"><h3>Sleeping in the closet</h3><p id="sleepSub" class="muted"></p></div>
+        <div id="sleepers" class="sleepers"></div>
       </div>
     </article>
 
