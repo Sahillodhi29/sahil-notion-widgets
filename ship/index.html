@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#1a1a1a">
+  <title>Ship Navigation</title>
+  <style>html,body{background:#1a1a1a;color-scheme:dark}</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <div class="stage" id="stage">
+      <div class="world" id="world">
+        <div class="bgcloud"></div>
+        <svg id="scene" viewBox="0 0 1000 609" preserveAspectRatio="xMidYMid meet" role="group" aria-label="A ship with six doors, one for each of your pages"></svg>
+      </div>
+      <div class="flash" id="flash"></div>
+      <a class="fallback" id="fallback" target="_blank" rel="noopener" hidden>Open page ↗</a>
+    </div>
+    <!-- small screens: the ship is tiny, so also offer plain links -->
+    <nav class="list" id="list" aria-label="Pages"></nav>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
