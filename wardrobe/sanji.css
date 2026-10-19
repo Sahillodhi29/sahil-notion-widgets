@@ -1,0 +1,114 @@
+/* ============================================================
+   Wardrobe widgets: theme layer
+   1) the theme switch (always present when shown)
+   2) the "Sanji" theme: the original cream-and-wine room, untouched in colour,
+      with Sanji's world moved in: lighter-lit hero art, a cigarette that smoulders,
+      a heart-hands mascot, his signature, pinstriped doors.
+   Everything below is scoped to html[data-theme="sanji"], so style.css (Classic) is never touched.
+   ============================================================ */
+
+/* ---------- the switch ---------- */
+.theme-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 20; display: inline-flex; padding: 3px; border-radius: 999px;
+  background: rgba(26, 6, 13, .88); border: 1px solid rgba(217, 190, 98, .5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .9); }
+.theme-toggle button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 700;
+  padding: 6px 14px; border-radius: 999px; transition: background .2s, color .2s; }
+.theme-toggle button:hover { color: var(--butter); }
+.theme-toggle button[aria-pressed="true"] { background: var(--btn); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
+.theme-toggle i { width: 18px; height: 18px; border-radius: 50%; background: url(sanji/sanji-chip.png) center / cover, #4A1226; box-shadow: 0 0 0 1px rgba(217, 190, 98, .65); }
+body.has-theme-toggle #stage { padding-bottom: 58px; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .5s; }
+
+/* ---------- Sanji theme ---------- */
+html[data-theme="sanji"] {
+  --ember: #FF8A3D;
+  /* the room's original wall layers, reused underneath the artwork */
+  --wall:
+    radial-gradient(240px 150px at 0% 0%, rgba(255, 238, 160, .17), transparent 72%),
+    radial-gradient(240px 150px at 100% 0%, rgba(255, 238, 160, .10), transparent 72%),
+    linear-gradient(180deg, transparent 62%, rgba(232, 120, 150, .13)),
+    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .16) 53px 54px, rgba(255, 214, 190, .028) 54px 55px),
+    linear-gradient(180deg, #3A1220, #280913);
+  --hero-wall:
+    radial-gradient(340px 200px at 0% 0%, rgba(255, 238, 160, .24), transparent 72%),
+    radial-gradient(340px 200px at 100% 0%, rgba(255, 238, 160, .17), transparent 72%),
+    linear-gradient(180deg, transparent 55%, rgba(232, 120, 150, .2)),
+    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .16) 53px 54px, rgba(255, 214, 190, .028) 54px 55px),
+    linear-gradient(180deg, #44142A, #2A0A15);
+}
+
+/* hero: Sanji lights up beside the button */
+html[data-theme="sanji"] .card.hero {
+  background:
+    linear-gradient(90deg, rgba(42, 10, 21, .97) 0%, rgba(42, 10, 21, .9) 34%, rgba(42, 10, 21, .4) 66%, rgba(42, 10, 21, .06) 100%),
+    linear-gradient(180deg, transparent 55%, rgba(34, 7, 16, .6)),
+    url(sanji/hero-lighter.jpg) 90% 26% / cover no-repeat,
+    var(--hero-wall);
+}
+/* the two galleries get a face in their header corner (the fade is baked into the image) */
+html[data-theme="sanji"] .card[data-w="outfits"] { background: url(sanji/portrait-fade.webp) right 0 top 0 / auto 330px no-repeat, var(--wall); }
+html[data-theme="sanji"] .card[data-w="wishlist"] { background: url(sanji/eye-fade.webp) right 0 top 0 / auto 300px no-repeat, var(--wall); }
+/* his signature on the wardrobe card (the four ship rivets stay) */
+html[data-theme="sanji"] .card[data-w="closet"]::after {
+  background:
+    url(sanji/sanji-logo.png) right 30px top 20px / 96px auto no-repeat,
+    radial-gradient(circle at center, #F0DC96 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) 11px 11px / 8px 8px no-repeat,
+    radial-gradient(circle at center, #F0DC96 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) calc(100% - 11px) 11px / 8px 8px no-repeat,
+    radial-gradient(circle at center, #F0DC96 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) 11px calc(100% - 11px) / 8px 8px no-repeat,
+    radial-gradient(circle at center, #F0DC96 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) calc(100% - 11px) calc(100% - 11px) / 8px 8px no-repeat;
+}
+
+/* the lighter: the one thing that moves on its own */
+html[data-theme="sanji"] .btn.glow { animation: flame 3.4s ease-in-out infinite; }
+@keyframes flame {
+  0%, 100% { box-shadow: 0 14px 34px -10px rgba(255, 190, 90, .75), 0 0 0 4px rgba(245, 232, 170, .12), inset 0 1px 0 rgba(255, 255, 255, .6); }
+  35% { box-shadow: 0 16px 40px -8px rgba(255, 150, 60, .95), 0 0 0 6px rgba(245, 232, 170, .2), inset 0 1px 0 rgba(255, 255, 255, .6); }
+  62% { box-shadow: 0 14px 32px -11px rgba(255, 190, 90, .6), 0 0 0 4px rgba(245, 232, 170, .1), inset 0 1px 0 rgba(255, 255, 255, .6); }
+}
+
+/* cigarette divider */
+html[data-theme="sanji"] .rope {
+  position: relative; height: 46px; border-radius: 0; opacity: 1; box-shadow: none;
+  background:
+    url(sanji/cigarette.png) 0 100% / auto 100% no-repeat,
+    linear-gradient(90deg, rgba(255, 138, 61, .75), rgba(217, 190, 98, .22) 32%, transparent) 0 100% / 100% 2px no-repeat;
+}
+html[data-theme="sanji"] .rope::after { content: ''; position: absolute; left: 49px; top: 33px; width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 138, 61, .95), transparent 70%); animation: ember 2.4s ease-in-out infinite; }
+html[data-theme="sanji"] #toast::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 10px 2px var(--ember); animation: ember 2.4s ease-in-out infinite; }
+@keyframes ember { 50% { opacity: .45; box-shadow: 0 0 4px 0 var(--ember); } }
+
+/* heart-hands mascot in the empty states and form arches; his eye in "New piece" */
+html[data-theme="sanji"] .es-ico { position: relative; overflow: hidden; }
+html[data-theme="sanji"] .es-ico svg, html[data-theme="sanji"] .gico svg { display: none; }
+html[data-theme="sanji"] .es-ico::after { content: ''; position: absolute; inset: 0; background: url(sanji/sanji-hearts.png) 72% 30% / cover no-repeat; }
+html[data-theme="sanji"] .form-card[data-w="add"] .gico { background: url(sanji/sanji-eye.jpg) 59% 61% / 330% no-repeat, #4A1226; }
+html[data-theme="sanji"] .form-card[data-w="wish"] .gico { background: url(sanji/sanji-hearts.png) 72% 30% / cover no-repeat, linear-gradient(180deg, #F0839F 0%, var(--wine) 58%, #6A0F2B); }
+
+/* the wardrobe: same cream, now with a pinstripe, like his suit */
+html[data-theme="sanji"] .door {
+  background: repeating-linear-gradient(90deg, rgba(168, 137, 58, .14) 0 1px, transparent 1px 8px), linear-gradient(90deg, #E6E0D1, #F8F4E8 14%, #F2EDE0 86%, #DDD6C4);
+}
+/* inside, before a door is opened: the cigarette close-up glows from the right */
+html[data-theme="sanji"] .inside.closed {
+  background:
+    linear-gradient(90deg, #1F0710 0 48%, rgba(31, 7, 16, .78) 58%, transparent 82%),
+    linear-gradient(180deg, transparent 55%, rgba(31, 7, 16, .85)),
+    url(sanji/smoke-closeup.jpg) 100% 30% / auto 135% no-repeat,
+    radial-gradient(70% 45% at 50% 0%, rgba(255, 238, 160, .22), transparent 72%), linear-gradient(180deg, #1F0710, #2B0A15);
+}
+
+@media (max-width: 640px) {
+  html[data-theme="sanji"] .card.hero {
+    background:
+      linear-gradient(90deg, rgba(42, 10, 21, .97) 0%, rgba(42, 10, 21, .82) 62%, rgba(42, 10, 21, .5) 100%),
+      linear-gradient(180deg, transparent 50%, rgba(34, 7, 16, .75)),
+      url(sanji/hero-lighter.jpg) 88% 22% / cover no-repeat,
+      var(--hero-wall);
+  }
+  html[data-theme="sanji"] .card[data-w="closet"]::after { background-size: 72px auto, 8px 8px, 8px 8px, 8px 8px, 8px 8px; background-position: right 18px top 14px, 11px 11px, calc(100% - 11px) 11px, 11px calc(100% - 11px), calc(100% - 11px) calc(100% - 11px); }
+  html[data-theme="sanji"] .card[data-w="outfits"], html[data-theme="sanji"] .card[data-w="wishlist"] { background-size: auto 230px, auto; }
+}
+
+/* keep small text legible where it crosses the artwork */
+html[data-theme="sanji"] .sleep-head .muted { text-shadow: 0 1px 8px #1F0710, 0 0 16px #1F0710; }
