@@ -227,8 +227,13 @@
       <path d="M745,80C750,100 752,125 744,150" stroke="rgb(255 255 255 / .22)" stroke-width="3" fill="none"/>
       ${mast(726, 244, 736, 50, 11)}
       ${sail([666, 52], [788, 90], 24, 3)}${yard([662, 47], [790, 86])}
-      <path d="M737,52C752,45 770,48 788,40L778,52L790,64C770,62 752,60 737,60Z" fill="#303a5c" ${OUT}/>
-      <path d="${sparkle(758, 52, 6)}" fill="#ffd25c"/>`;
+      <path d="M737,52C752,45 770,48 788,40L778,52L790,64C770,62 752,60 737,60Z" fill="#252b3e" ${OUT}/>
+      <g transform="translate(763 52)" fill="#f5e8c7" stroke="#f5e8c7" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-8,5L8,-5M-8,-5L8,5" fill="none" stroke-width="2"/>
+        <path d="M-5,-1C-7,-7 -2,-10 2,-7L5,-3L3,3L-3,4Z"/>
+        <circle cx="-1.8" cy="-3" r="1" fill="#252b3e" stroke="none"/><circle cx="2.5" cy="-3" r="1" fill="#252b3e" stroke="none"/>
+        <path d="M-2,0L2,0L0,2Z" fill="#252b3e" stroke="none"/>
+      </g>`;
 
     /* ----- far rails (beyond the lawn) ----- */
     out.far = rail([373, 371], [418, 351], 7, 14) + rail([500, 328], [578, 307], 9, 14);
@@ -337,8 +342,13 @@
         <g class="spot" data-key="workout"><g class="house">
           <g class="domeG"><g transform="translate(418 194) scale(1.14) translate(-418 -194)">${dome(418, 194)}</g></g>
         </g></g>
-        <path d="M420,98C440,90 456,94 474,104L458,114L470,128C448,122 434,124 420,128Z" fill="#303a5c" ${OUT}/>
-        <path d="${sparkle(440, 110, 8)}" fill="#ffd25c"/>`;
+        <path d="M420,98C440,90 456,94 474,104L458,114L470,128C448,122 434,124 420,128Z" fill="#252b3e" ${OUT}/>
+        <g transform="translate(445 110)" fill="#f5e8c7" stroke="#f5e8c7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M-8,5L8,-5M-8,-5L8,5" fill="none" stroke-width="2"/>
+          <path d="M-5,-1C-7,-7 -2,-10 2,-7L5,-3L3,3L-3,4Z"/>
+          <circle cx="-1.8" cy="-3" r="1" fill="#252b3e" stroke="none"/><circle cx="2.5" cy="-3" r="1" fill="#252b3e" stroke="none"/>
+          <path d="M-2,0L2,0L0,2Z" fill="#252b3e" stroke="none"/>
+        </g>`;
     }
 
     /* ----- bow: forecastle deck, red walls ----- */
@@ -414,14 +424,18 @@
         <path d="M262,400C238,406 226,428 226,452C228,494 244,520 268,534" fill="none" stroke="#c8b27a" stroke-width="3"/>
         <circle cx="244" cy="406" r="3.5" fill="#c8b27a"/><circle cx="238" cy="470" r="3.5" fill="#c8b27a"/><circle cx="252" cy="520" r="3.5" fill="#c8b27a"/>
         <g transform="translate(204 452) scale(1.22)">
-          <path d="M0,-52L10,-24L38,-38L26,-10L52,0L26,10L38,38L10,24L0,52L-10,24L-38,38L-26,10L-52,0L-26,-10L-38,-38L-10,-24Z" fill="#ffb454" ${OUT}/>
-          <path d="M0,-52L10,-24L0,-8L-10,-24Z" fill="#ffd27a"/>
-          <circle r="31" fill="#fbe06c" ${OUT}/>
-          <circle r="24" fill="#fff0a0" opacity=".55"/>
-          <circle cx="-10" cy="-5" r="4.4" fill="#3a2a22"/><circle cx="10" cy="-5" r="4.4" fill="#3a2a22"/>
-          <circle cx="-8.6" cy="-6.4" r="1.4" fill="#fff"/><circle cx="11.4" cy="-6.4" r="1.4" fill="#fff"/>
-          <ellipse cx="-18" cy="6" rx="5" ry="3" fill="#ff9a8a" opacity=".7"/><ellipse cx="18" cy="6" rx="5" ry="3" fill="#ff9a8a" opacity=".7"/>
-          <path d="M-8,8Q0,17 8,8" stroke="#3a2a22" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <!-- cheerful lion-like figurehead: orange sunburst mane, cream face and tiny muzzle -->
+          <path d="M0,-54L10,-36L25,-49L28,-29L48,-34L39,-15L56,-4L38,7L47,26L26,27L19,48L3,34L-11,51L-18,30L-40,35L-35,14L-55,3L-37,-10L-45,-29L-24,-30L-15,-49L-2,-34Z" fill="#f28b38" ${OUT}/>
+          <path d="M-2,-43L7,-30L20,-39L21,-23L38,-25L29,-10L43,-3L28,7L35,20L18,20L12,37L0,25L-11,39L-14,20L-32,23L-27,7L-41,2L-27,-8L-33,-22L-16,-22L-10,-38Z" fill="#ffb24e"/>
+          <ellipse cx="0" cy="0" rx="30" ry="32" fill="#f8df9a" ${OUT}/>
+          <ellipse cx="-17" cy="-17" rx="10" ry="13" fill="#f7c66f" stroke="#8a5a2d" stroke-width="1.5"/>
+          <ellipse cx="17" cy="-17" rx="10" ry="13" fill="#f7c66f" stroke="#8a5a2d" stroke-width="1.5"/>
+          <ellipse cx="-10" cy="-5" rx="4.1" ry="5.1" fill="#34251f"/><ellipse cx="10" cy="-5" rx="4.1" ry="5.1" fill="#34251f"/>
+          <circle cx="-11" cy="-6.5" r="1.3" fill="#fff"/><circle cx="9" cy="-6.5" r="1.3" fill="#fff"/>
+          <ellipse cx="-18" cy="7" rx="5.5" ry="3.4" fill="#f58d83" opacity=".72"/><ellipse cx="18" cy="7" rx="5.5" ry="3.4" fill="#f58d83" opacity=".72"/>
+          <ellipse cx="0" cy="11" rx="13" ry="10" fill="#fff0c5" stroke="#c6a66a" stroke-width="1.2"/>
+          <path d="M-4,7Q0,3 4,7Q2,12 0,12Q-2,12 -4,7Z" fill="#7b4934"/>
+          <path d="M0,12Q-1,18 -8,18M0,12Q1,18 8,18" stroke="#75452f" stroke-width="2" fill="none" stroke-linecap="round"/>
         </g>
       </g>
       <g stroke="#fffaf0" stroke-width="2" fill="none" opacity=".0"></g>`;
