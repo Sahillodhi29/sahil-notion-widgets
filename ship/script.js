@@ -24,12 +24,12 @@
 
   /* ---------- the six pages ---------- */
   const PAGES = {
-    workout:  { name: 'Workout Planner',        g: '104 214 134', url: 'https://app.notion.com/p/Workout-Planner-3e7fa221698780908ad1d249532cd932',        tip: [334, 150] },
-    finance:  { name: 'Finance & Investing',    g: '255 168 202', url: 'https://app.notion.com/p/Finance-Investing-3e7fa221698780d09d1fe5b1ab6c4ce0',      tip: [668, 232] },
-    learning: { name: 'Learning Planner',       g: '198 144 240', url: 'https://app.notion.com/p/Learning-Planner-f76fa221698783db8e2681ce2394c6a7',       tip: [596, 372] },
-    meal:     { name: 'Meal Planner',           g: '255 120 150', url: 'https://app.notion.com/p/Meal-Planner-3eefa221698780818e5fc99b43a74a87',           tip: [538, 304] },
-    wardrobe: { name: 'Wardrobe',               g: '127 166 255', url: 'https://app.notion.com/p/Wardrobe-Organizer-305fa22169878363870b8121ff54b768',     tip: [848, 160] },
-    bank:     { name: 'Bank Officer in Making', g: '255 200 97',  url: 'https://app.notion.com/p/Bank-Officer-in-Making-3f0fa22169878133a416e22d1592203b', tip: [838, 392] },
+    workout:  { name: 'Workout Planner',        g: '104 214 134', url: 'https://app.notion.com/p/Workout-Planner-3e7fa221698780908ad1d249532cd932',        tip: [418, 78] },
+    finance:  { name: 'Finance & Investing',    g: '255 168 202', url: 'https://app.notion.com/p/Finance-Investing-3e7fa221698780d09d1fe5b1ab6c4ce0',      tip: [661, 276] },
+    learning: { name: 'Learning Planner',       g: '198 144 240', url: 'https://app.notion.com/p/Learning-Planner-f76fa221698783db8e2681ce2394c6a7',       tip: [620, 292] },
+    meal:     { name: 'Meal Planner',           g: '255 120 150', url: 'https://app.notion.com/p/Meal-Planner-3eefa221698780818e5fc99b43a74a87',           tip: [540, 300] },
+    wardrobe: { name: 'Wardrobe',               g: '127 166 255', url: 'https://app.notion.com/p/Wardrobe-Organizer-305fa22169878363870b8121ff54b768',     tip: [776, 150] },
+    bank:     { name: 'Bank Officer in Making', g: '255 200 97',  url: 'https://app.notion.com/p/Bank-Officer-in-Making-3f0fa22169878133a416e22d1592203b', tip: [764, 316] },
   };
   const KEYS = Object.keys(PAGES);
   const linkOf = k => q.get(k + 'Link') || PAGES[k].url;
@@ -48,9 +48,9 @@
   const P = {
     night:   pal([9,24,64],[14,52,112],[28,92,158],[20,72,150],[8,30,92],[70,110,165],.5,1,.9,[210,240,255]),
     dawn:    pal([70,76,140],[196,134,166],[252,190,150],[128,150,196],[52,80,142],[255,205,195],.8,.22,.15,[255,235,220]),
-    morning: pal([112,168,214],[176,212,226],[250,226,192],[92,170,204],[40,110,162],[255,244,236],.85,0,0,[255,255,255]),
-    day:     pal([66,148,224],[122,190,236],[196,228,242],[62,152,208],[28,96,162],[255,255,255],.9,0,0,[255,255,255]),
-    golden:  pal([96,150,204],[248,208,142],[255,172,112],[104,170,192],[40,108,150],[255,218,176],.85,0,0,[255,240,210]),
+    morning: pal([112,168,214],[176,212,226],[250,226,192],[84,140,200],[32,80,146],[255,244,236],.85,0,0,[255,255,255]),
+    day:     pal([66,148,224],[122,190,236],[196,228,242],[58,122,196],[20,66,138],[255,255,255],.9,0,0,[255,255,255]),
+    golden:  pal([96,150,204],[248,208,142],[255,172,112],[92,142,188],[34,84,138],[255,218,176],.85,0,0,[255,240,210]),
     sunset:  pal([112,160,172],[250,192,110],[238,102,62],[66,172,172],[20,120,132],[206,92,92],.75,0,0,[255,236,190]),
     dusk:    pal([42,52,112],[122,72,132],[232,112,102],[62,72,142],[22,42,102],[156,92,134],.65,.5,.35,[255,225,215]),
   };
@@ -119,9 +119,9 @@
   const sparkle = (cx, cy, r) => `M${cx},${cy - r}Q${cx + r * .16},${cy - r * .16} ${cx + r},${cy}Q${cx + r * .16},${cy + r * .16} ${cx},${cy + r}Q${cx - r * .16},${cy + r * .16} ${cx - r},${cy}Q${cx - r * .16},${cy - r * .16} ${cx},${cy - r}Z`;
   const arch = (x, y, w, h) => { const r = w / 2; return `M${x},${y + h}V${y + r}A${r},${r} 0 0 1 ${x + w},${y + r}V${y + h}Z`; };
   const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
-  const OUT = 'stroke="rgb(62 34 22 / .78)" stroke-width="1.7" stroke-linejoin="round"';
+  const OUT = 'stroke="rgb(86 50 30 / .55)" stroke-width="1.4" stroke-linejoin="round"';
 
-  const COL = { red: '#c23048', redD: '#8f2038', redL: '#e8768a', cream: '#fbf0d8', creamD: '#e8d3ab', wood: '#c99b5e', woodD: '#8f6538', woodL: '#e5be82',
+  const COL = { red: '#cf4a5f', redD: '#a43048', redL: '#e8768a', cream: '#fbf0d8', creamD: '#e8d3ab', wood: '#c99b5e', woodD: '#8f6538', woodL: '#e5be82',
     lawn: '#78c35f', lawnD: '#58a84b', thatch: '#ebcb74', thatchD: '#cfa84b', yel: '#f6d65e', glass: '#a9d8ef' };
 
   const LIGHTS = [];   // warm lamp circles that show only at night
@@ -203,225 +203,90 @@
     </g>`;
   }
 
-  const flag = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})"><path d="M0,0C14,-8 30,-4 48,-13L40,2L52,15C32,12 16,17 0,12Z" fill="#2b3040" ${OUT}/>
-      <circle cx="21" cy="3" r="5.2" fill="#fff"/><rect x="18" y="6" width="6" height="3.4" rx="1" fill="#fff"/><circle cx="19" cy="3" r="1.1" fill="#2b3040"/><circle cx="23" cy="3" r="1.1" fill="#2b3040"/>
-      <path d="M13,12L29,-4M29,12L13,-4" stroke="#fff" stroke-width="1.7" stroke-linecap="round" opacity=".85"/><path d="M14.5,-1Q21,-9 28,-1Z" fill="#f3c64f" ${OUT}/></g>`;
   /* ============================================================
      The ship
      ============================================================ */
   function buildShip() {
-    const out = {};
-
-    /* ----- rudder wheel + wardrobe dome pedestal (behind the stern) ----- */
-    out.rear = `<path d="M752,240L804,240Q798,272 788,304L768,304Q758,272 752,240Z" fill="#c3c4d6" ${OUT}/><path d="M760,246Q764,274 772,300" stroke="rgb(255 255 255 / .45)" stroke-width="4" fill="none"/>
-      <ellipse cx="803" cy="295" rx="26" ry="35" fill="#a8743a" ${OUT}/>
-      <ellipse cx="803" cy="295" rx="19" ry="27" fill="none" stroke="#7d5127" stroke-width="2"/>
-      <ellipse cx="803" cy="295" rx="12" ry="18" fill="none" stroke="#7d5127" stroke-width="2"/>
-      <ellipse cx="803" cy="295" rx="5" ry="8" fill="#7d5127"/>`;
-
-    /* ----- wardrobe dome ----- */
-    out.wdome = `<g class="spot" data-key="wardrobe"><g class="house"><g transform="translate(777 229) scale(1.08) translate(-777 -229)">${dome(777, 229)}</g>
-      <path d="M754,177h46" stroke="#fff6e4" stroke-width="3" stroke-linecap="round"/>
-      <rect x="806" y="170" width="9" height="20" rx="2" fill="#2b2f3d"/><path d="M804,170h13l-6.5,-9z" fill="#2b2f3d"/><rect x="808" y="174" width="5" height="9" fill="#ffd978" opacity=".9"/>
-      </g></g>`;
-
-    /* ----- mizzen mast + sails (behind the cabin) ----- */
-    out.mizzen = `<path d="M739,70C754,70 762,88 757,108C764,128 754,148 746,162L728,154C737,130 729,104 735,86Z" fill="#b3364d" ${OUT}/>
-      <path d="M745,80C750,100 752,125 744,150" stroke="rgb(255 255 255 / .22)" stroke-width="3" fill="none"/>
-      ${mast(726, 244, 736, 50, 11)}
-      ${sail([666, 52], [788, 90], 24, 3)}${yard([662, 47], [790, 86])}
-      ${flag(737, 44, 1)}`;
-
-    /* ----- far rails (beyond the lawn) ----- */
-    out.far = rail([373, 371], [418, 351], 7, 14) + rail([500, 328], [578, 307], 9, 14);
-
-    /* ----- lawn ----- */
-    {
-      const L = [[372,372],[420,346],[500,332],[578,314],[612,298],[644,310],[664,334],[700,374],[622,440],[590,462],[540,476],[484,478],[446,440],[404,402]];
-      let beds = '';
-      // dark grid lines of the garden beds (left half of the lawn)
-      for (let i = 0; i < 8; i++) { const a = mix([436, 352 + i * 4], [492, 366 + i * 4], 0); beds += `<line x1="${430 + i * 7}" y1="${350 + i * 11}" x2="${520 + i * 6}" y2="${392 + i * 10}" stroke="${COL.lawnD}" stroke-width="2.2" opacity=".6"/>`; }
-      for (let j = 0; j < 7; j++) beds += `<line x1="${436 + j * 13}" y1="${350 - j * 1 + 2}" x2="${430 + j * 19}" y2="${446}" stroke="${COL.lawnD}" stroke-width="2.2" opacity=".55"/>`;
-      out.lawn = `<clipPath id="cLawn"><polygon points="${pts(L)}"/></clipPath>
-        <polygon points="${pts(L)}" fill="url(#gLawn)"/>
-        <g clip-path="url(#cLawn)">
-          <ellipse cx="620" cy="372" rx="70" ry="30" fill="rgb(220 255 170 / .22)"/>
-          <ellipse cx="500" cy="420" rx="60" ry="24" fill="rgb(220 255 170 / .12)"/>
-          <g clip-path="polygon(0 0)"></g>
-          ${beds}
-        </g>
-        <polygon points="${pts(L)}" fill="none" stroke="rgb(40 90 40 / .35)" stroke-width="1.4"/>`;
-    }
-
-    /* ----- stern cabin: cream wall with the arched doors (Finance & Investing) ----- */
-    {
-      out.stern = `
-      <path d="M700,256C704,250 740,244 756,246C772,250 774,274 772,292L706,320Z" fill="url(#gRed)" ${OUT}/>
-      <path d="M706,320L772,292L773,304L707,332Z" fill="${COL.redD}"/>
-      ${[[714, 297], [730, 290], [746, 281], [760, 272]].map(([x, y]) => `<path d="${arch(x - 6, y - 20, 12, 22)}" fill="${COL.cream}" ${OUT}/><path d="${arch(x - 4, y - 18, 8, 19)}" fill="#8fd0c0"/>` + (LIGHTS.push(`<path d="${arch(x - 4, y - 18, 8, 19)}" fill="#ffd978"/>`) && '')).join('')}
-      <path d="M674,252L720,238L760,240L772,252L722,276Z" fill="#e0586d" ${OUT}/>
-      <path d="M674,252L722,276L722,282L674,258Z" fill="${COL.redD}"/>
-      <path d="M722,282L772,258L772,264L722,288Z" fill="#f6e3b8" ${OUT}/>
-      ${rail([690, 262], [760, 246], 11, 8, 1.3)}
-      <polygon points="704,252 676,254 642,266 646,306 706,322" fill="${COL.cream}" ${OUT}/>
-      <polygon points="704,252 676,254 642,266 642,274 676,262 704,260" fill="#f2e3c0"/>
-      <g class="spot" data-key="finance"><g class="house">
-        <polygon points="704,252 676,254 642,266 646,306 706,322" fill="${COL.cream}"/>
-        ${door(648, 272, 15, 30)}${door(668, 270, 15, 31)}${door(688, 274, 15, 33)}
-      </g></g>
-      <ellipse cx="722" cy="236" rx="10" ry="7" fill="#5aa84d"/><circle cx="715" cy="231" r="6" fill="#74c15f"/><circle cx="728" cy="233" r="5" fill="#68b857"/>`;
-    }
-
-    /* ----- stern deck, stair, learning wall + trees ----- */
-    {
-      out.deck = `
-      <polygon points="684,320 750,296 782,282 788,332 746,350 702,356" fill="url(#gWood)" ${OUT}/>
-      ${[0, 1, 2, 3, 4, 5, 6].map(i => `<line x1="${692 + i * 13}" y1="${338 - i * 8}" x2="${700 + i * 13}" y2="${360 - i * 8}" stroke="rgb(90 55 25 / .3)" stroke-width="1.2"/>`).join('')}
-      <path d="M742,302C768,296 786,284 788,296L790,338" fill="none" stroke="#fffaf0" stroke-width="3.6" stroke-linecap="round"/>
-      <path d="M742,312C768,306 786,294 788,306L790,346" fill="none" stroke="#f0d9a6" stroke-width="3" stroke-linecap="round"/>
-      ${Array.from({ length: 8 }, (_, i) => { const t = i / 7, x = 746 + t * 42, y = 306 - Math.sin(t * Math.PI) * 6 + t * 20; return `<line x1="${f1(x)}" y1="${f1(y)}" x2="${f1(x - 1)}" y2="${f1(y - 11)}" stroke="#fff6e4" stroke-width="1.7" stroke-linecap="round"/>`; }).join('')}
-      <polygon points="624,372 696,312 722,326 664,388" fill="url(#gWood)" ${OUT}/>
-      ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => `<line x1="${630 + i * 7.6}" y1="${372 - i * 6.4}" x2="${662 + i * 7.6}" y2="${392 - i * 6.4}" stroke="rgb(90 55 25 / .45)" stroke-width="1.3"/>`).join('')}
-      <path d="M640,372L694,320L698,330L646,382Z" fill="rgb(255 255 255 / .18)"/>
-      <path d="M622,368L694,306" stroke="#fffaf0" stroke-width="3.4" stroke-linecap="round"/>
-      <path d="M664,390L726,330" stroke="#fffaf0" stroke-width="3.4" stroke-linecap="round"/>
-      ${rail([622, 366], [694, 304], 8, 13, 1.5)}${rail([664, 388], [726, 328], 7, 13, 1.5)}`;
-      out.learn = `
-      <g class="spot" data-key="learning"><g class="house">
-        <polygon points="616,300 690,296 692,326 656,352 618,334" fill="${COL.cream}" ${OUT}/>
-        <polygon points="616,300 690,296 691,304 616,308" fill="#f4e6c5"/>
-        ${door(630, 303, 14, 24)}${door(657, 311, 13, 24)}
-        <path d="${sparkle(651, 301, 4)}" fill="#fff" opacity=".0"/>
-      </g></g>
-      ${[[[620, 300], 40, 15], [[660, 326], 28, 11]].map(([b, h, w]) => `<g class="tree"><rect x="${b[0] - 2}" y="${b[1] + 6}" width="4" height="9" fill="#7a4f27"/>
-        <path d="M${b[0]},${b[1] + 8 - h}L${b[0] + w},${b[1] + 8}H${b[0] - w}Z" fill="#2f8b4f" ${OUT}/>
-        <path d="M${b[0]},${b[1] + 8 - h * .65}L${b[0] + w * .85},${b[1] + 6 - h * .1}H${b[0] - w * .85}Z" fill="#43a860"/></g>`).join('')}`;
-    }
-
-    /* ----- main mast + sails ----- */
-    out.main = `${mast(607, 352, 609, 64, 13)}
-      <ellipse cx="607" cy="352" rx="16" ry="6" fill="#4d3322"/>
-      ${band(608, 266, 15)}${band(608, 214, 15)}
-      ${sail([535, 79], [776, 167], 46, 4)}${yard([530, 75], [778, 164])}
-      ${sail([540, 185], [684, 250], 36, 3)}${yard([535, 181], [688, 247])}
-      ${rope([608, 70], [530, 76])}${rope([608, 70], [776, 164])}`;
-
-    /* ----- thatched pavilion (Meal Planner) ----- */
-    out.pav = `<g class="spot" data-key="meal"><g class="house">
-      <polygon points="498,360 566,378 568,400 500,392" fill="#b98c55" ${OUT}/>
-      ${[0, 1, 2, 3, 4, 5].map(i => `<line x1="${506 + i * 11}" y1="${362 + i * 3}" x2="${506 + i * 11}" y2="${394 + i * 1.6}" stroke="rgb(90 55 25 / .3)" stroke-width="1.2"/>`).join('')}
-      <rect x="512" y="370" width="28" height="15" rx="2" fill="${COL.glass}" ${OUT}/>
-      <rect x="548" y="376" width="14" height="22" rx="2" fill="#7d5127" ${OUT}/>
-      <rect x="497" y="358" width="6" height="40" fill="#7d5127"/><rect x="564" y="374" width="6" height="30" fill="#7d5127"/>
-      <polygon points="484,316 528,318 602,356 552,384 520,392" fill="url(#gThatch)" ${OUT}/>
-      <polygon points="484,316 528,318 520,392" fill="rgb(255 255 255 / .14)"/>
-      ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<line x1="${492 + i * 5.5}" y1="${322 + i * 8.6}" x2="${530 + i * 9}" y2="${332 + i * 6.4}" stroke="rgb(140 100 30 / .3)" stroke-width="1.3"/>`).join('')}
-      <polygon points="520,392 552,384 602,356 602,361 552,390 520,398" fill="#a67f32" ${OUT}/>
-      <path d="M484,316L528,318L602,356" fill="none" stroke="#fff3c8" stroke-width="2"/>
-      </g></g>`;
-    LIGHTS.push(`<rect x="514" y="372" width="28" height="14" fill="#ffd978"/>`);
-
-    /* ----- fore mast, ratlines, sails, dome (Workout Planner) ----- */
-    {
-      let net = '';
-      for (let i = 0; i <= 5; i++) { const t = i / 5; net += `<line x1="${f1(lerp(412, 394, t))}" y1="${f1(lerp(300, 380, t))}" x2="${f1(lerp(430, 438, t))}" y2="${f1(lerp(300, 380, t))}" stroke="#6e4a2a" stroke-width="1.1" opacity=".55"/>`; }
-      net += `<line x1="412" y1="300" x2="394" y2="380" stroke="#6e4a2a" stroke-width="1.2" opacity=".6"/><line x1="428" y1="300" x2="436" y2="380" stroke="#6e4a2a" stroke-width="1.2" opacity=".6"/>`;
-      for (let i = 0; i < 6; i++) { const y = 300 + i * 16; net += `<line x1="${f1(lerp(412, 394, (y - 300) / 80))}" y1="${y}" x2="${f1(lerp(430, 438, (y - 300) / 80))}" y2="${y}" stroke="#6e4a2a" stroke-width="1" opacity=".5"/>`; }
-      out.fore = `<g opacity=".95">${net}</g>
-        ${mast(431, 392, 420, 196, 13)}
-        <ellipse cx="431" cy="391" rx="15" ry="5.5" fill="#4d3322"/>
-        ${band(427, 360, 15)}${band(424, 300, 15)}
-        ${sail([362, 246], [494, 336], 38, 3)}${yard([358, 242], [492, 340])}
-        ${sail([358, 166], [505, 258], 42, 3)}${yard([352, 162], [508, 259])}
-        <ellipse cx="418" cy="226" rx="19" ry="10" transform="rotate(35 418 226)" fill="#f1a86a" ${OUT}/>
-        <path d="${sparkle(418, 226, 7)}" fill="#fff3c8"/>
-        <line x1="418" y1="96" x2="418" y2="134" stroke="#6e4a2a" stroke-width="3.5" stroke-linecap="round"/>
-        <g class="spot" data-key="workout"><g class="house">
-          <g class="domeG"><g transform="translate(418 194) scale(1.14) translate(-418 -194)">${dome(418, 194)}</g></g>
-        </g></g>
-        ${flag(420, 98, 1.05)}`;
-    }
-
-    /* ----- bow: forecastle deck, red walls ----- */
-    out.bow = `
-      <polygon points="262,406 326,356 374,360 392,402 340,384 280,418" fill="url(#gRed)" ${OUT}/>
-      <polygon points="266,410 326,374 362,376 404,408 410,432 272,426" fill="url(#gWood)" ${OUT}/>
-      ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<line x1="${276 + i * 17}" y1="${420 - i * 2.6}" x2="${302 + i * 16}" y2="${384 + i * 4}" stroke="rgb(110 70 30 / .45)" stroke-width="1.3"/>`).join('')}
-      <path d="M262,408C292,374 322,354 360,334" stroke="${COL.cream}" stroke-width="8" stroke-linecap="round" fill="none"/>
-      <path d="M264,404C292,371 322,352 360,332" stroke="#fffdf4" stroke-width="2.4" stroke-linecap="round" fill="none"/>
-      ${curl(360, 326, 13)}
-      <g transform="translate(332 400)"><path d="M-16,4C-16,-8 -8,-14 0,-12C8,-14 16,-8 14,4C10,10 -10,10 -16,4Z" fill="#a8bcd0" ${OUT}/><path d="M-9,-2L9,-2M-7,3L11,3" stroke="#e6f0f8" stroke-width="2"/><rect x="-3" y="-17" width="6" height="7" rx="2" fill="#7c8da8"/></g>
-      ${rail([364, 376], [412, 410], 6, 13, 1.5)}`;
-
-    /* ----- near rail along the lawn ----- */
-    out.nrail = rail([482, 474], [602, 456], 8, 19, 2) + rail([602, 456], [694, 380], 9, 19, 2);
-
-    /* ----- near hull: brown wood, red waist, cream rim ----- */
-    {
-      const SH = 'M408,422C410,462 440,480 484,481C536,483 576,472 604,454C648,438 700,402 728,360L748,312';
-      out.hull = `
-      <path d="M270,414C262,450 266,500 284,532C330,556 420,560 470,550C530,540 580,516 612,498C664,480 722,448 752,408C774,384 776,350 772,320L748,312L728,360C700,402 648,438 604,454C576,472 536,483 484,481C440,480 410,462 408,422Z" fill="url(#gHull)" ${OUT}/>
-      ${[0, 1, 2, 3].map(i => `<path d="M${296 + i * 3},${534 + i * 6}C380,${544 + i * 5} 450,${536 + i * 4} 500,${524 + i * 4}C550,${510 + i * 4} 600,${496 + i * 3} 640,${478 + i * 3}" fill="none" stroke="rgb(60 32 14 / .35)" stroke-width="1.6"/>`).join('')}
-      <path d="M286,540C340,562 440,562 480,553C540,542 590,520 618,500L616,512C586,530 540,552 470,560C400,566 320,562 280,546Z" fill="rgb(30 16 10 / .4)"/>
-      <path d="M700,474C734,452 764,420 772,386L772,414C760,446 730,472 700,488Z" fill="rgb(30 20 40 / .35)"/>
-      <!-- red waist band -->
-      <path d="${SH}L752,346C740,396 700,440 640,474C592,506 540,522 488,522C444,520 418,500 410,470Z" fill="url(#gRed)" ${OUT}/>
-      <path d="${SH}" fill="none" stroke="${COL.cream}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="${SH}" fill="none" stroke="#fffdf4" stroke-width="2.4" stroke-linecap="round" transform="translate(0 -1.6)"/>
-      <path d="M410,474C420,500 446,520 488,522C540,522 592,506 640,474" fill="none" stroke="${COL.cream}" stroke-width="4.5" stroke-linecap="round"/>
-      ${porthole(472, 503, 9)}${porthole(530, 504, 9)}${porthole(676, 436, 7.5)}${porthole(707, 404, 7)}${porthole(733, 400, 6)}${porthole(750, 384, 5.5)}
-      ${curl(445, 398, 14)}`;
-      /* bank cabin: little gallery at the stern */
-      out.bankc = `<g class="spot" data-key="bank"><g class="house">
-        <polygon points="738,322 782,308 786,356 744,376" fill="${COL.cream}" ${OUT}/>
-        <polygon points="738,322 782,308 783,317 739,331" fill="${COL.red}" ${OUT}/>
-        ${win(742, 338, 8, 14)}${win(768, 328, 8, 14)}
-        ${door(754, 334, 13, 26)}
-        <path d="M730,380L748,374L788,360" stroke="#f0d9a6" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-        ${rail([730, 378], [788, 360], 9, 10, 1.4)}
-      </g></g>`;
-    }
-
-    /* ----- paddle-wheel tyre with spokes ----- */
-    out.tyre = `<g transform="rotate(-24 606 455)"><ellipse cx="606" cy="455" rx="49" ry="45" fill="#262c3c" ${OUT}/>
-      <ellipse cx="606" cy="455" rx="40" ry="37" fill="#3c4458"/>
-      <ellipse cx="606" cy="455" rx="31" ry="28" fill="#e6c27a" ${OUT}/>
-      ${[0, 1, 2, 3, 4, 5].map(i => `<line x1="606" y1="455" x2="${f1(606 + 30 * Math.cos(i * Math.PI / 3))}" y2="${f1(455 + 27 * Math.sin(i * Math.PI / 3))}" stroke="#b9894a" stroke-width="2.2"/>`).join('')}
-      <circle cx="606" cy="455" r="9" fill="#c23048" ${OUT}/><path d="M603,450L608,447V463" stroke="#fffdf4" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>`;
-
-    /* ----- bow: red shield panel, lion-sun figurehead ----- */
-    const bone = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fbf0d8" stroke-width="8" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d8c394" stroke-width="2" stroke-linecap="round" opacity=".6"/>
-      <circle cx="${x1}" cy="${y1}" r="6.5" fill="#fbf0d8" ${OUT}/><circle cx="${x2}" cy="${y2}" r="6.5" fill="#fbf0d8" ${OUT}/>`;
-    let spikes = '';
-    for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, a1 = a - .17, a2 = a + .17, R = i % 3 === 0 ? 64 : 54;
-      spikes += `<polygon points="${f1(Math.cos(a1) * 34)},${f1(Math.sin(a1) * 34)} ${f1(Math.cos(a) * R)},${f1(Math.sin(a) * R)} ${f1(Math.cos(a2) * 34)},${f1(Math.sin(a2) * 34)}" fill="${i % 3 === 0 ? '#f08a36' : '#f6a444'}" ${OUT}/>`; }
-    out.front = `
-      <path d="M272,416L408,426L410,488C398,522 372,542 336,550C300,546 276,522 268,490C262,460 266,438 272,416Z" fill="url(#gRed)" ${OUT}/>
-      <path d="M266,414L410,426" stroke="${COL.cream}" stroke-width="8" stroke-linecap="round" fill="none"/>
-      <path d="M266,411L410,423" stroke="#fffdf4" stroke-width="2.4" stroke-linecap="round" fill="none"/>
-      <path d="M408,430L410,488C398,520 380,538 352,546" stroke="${COL.cream}" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-      <path d="M272,492C318,500 366,514 404,530" stroke="${COL.cream}" stroke-width="6" stroke-linecap="round" fill="none"/>
-      <path d="M322,456C320,438 352,434 360,450C368,466 364,490 354,504L347,494L341,506L334,494L326,504C320,490 322,474 322,456Z" fill="#f4e6c4" ${OUT}/>
-      ${porthole(412, 538, 7)}${porthole(446, 548, 6.5)}
-      <circle cx="326" cy="552" r="13" fill="${COL.cream}" ${OUT}/><circle cx="326" cy="552" r="7" fill="${COL.creamD}"/>
-      <g class="fig">
-        ${bone(246, 534, 288, 512)}
-        <ellipse cx="258" cy="458" rx="38" ry="80" fill="${COL.cream}" ${OUT}/>
-        <ellipse cx="260" cy="458" rx="29" ry="68" fill="#e4cf92" ${OUT}/>
-        ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => { const a = i / 8 * Math.PI * 2; return `<circle cx="${f1(260 + Math.cos(a) * 30)}" cy="${f1(458 + Math.sin(a) * 68)}" r="3.2" fill="#b79a5c"/>`; }).join('')}
-        <g transform="translate(200 432)">
-          ${spikes}
-          <circle r="40" fill="#f2e28c" ${OUT}/>
-          <circle cx="6" cy="6" r="30" fill="#f8f0b4" opacity=".6"/>
-          <ellipse cx="-26" cy="7" rx="16" ry="14" fill="#fff8dc" ${OUT}/>
-          <ellipse cx="-38" cy="2" rx="3.4" ry="2.6" fill="#3a2a22"/>
-          <circle cx="-12" cy="-6" r="6.4" fill="#2e2320"/><circle cx="-14" cy="-8.4" r="2.2" fill="#fff"/>
-          <path d="M-30,16Q-20,22 -8,14" stroke="#3a2a22" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <ellipse cx="6" cy="14" rx="7" ry="4" fill="#ff9a8a" opacity=".5"/>
-        </g>
-        ${bone(176, 488, 232, 526)}${bone(236, 392, 252, 372)}
-      </g>`;
-    return out;
+    const seg = P => { let d = ''; for (let i = 0; i < P.length - 1; i++) { const a = P[i - 1] || P[i], b = P[i], c = P[i + 1], e = P[i + 2] || c;
+      d += `C${f1(b[0] + (c[0] - a[0]) / 6)},${f1(b[1] + (c[1] - a[1]) / 6)} ${f1(c[0] - (e[0] - b[0]) / 6)},${f1(c[1] - (e[1] - b[1]) / 6)} ${c}`; } return d; };
+    const sh = (P, dy) => P.map(p => [p[0], p[1] + dy]);
+    const G = [[270, 392], [340, 405], [405, 422], [450, 426], [520, 452], [600, 431], [680, 393], [745, 326], [772, 300]];
+    const W = [[772, 392], [745, 432], [690, 470], [590, 507], [500, 537], [400, 553], [320, 555], [272, 520], [256, 470]];
+    const F = [[272, 388], [300, 366], [338, 348], [430, 350], [520, 343], [640, 332], [745, 312], [772, 300]];
+    const hull = `M${G[0]}${seg(G)}L${W[0]}${seg(W)}Z`;
+    const GR = G.slice(3), GB = sh(GR, 50), bandP = `M${GR[0]}${seg(GR)}L${GB[GB.length - 1]}${seg(GB.slice().reverse())}Z`;
+    const spot = (k, art) => `<g class="spot" data-key="${k}"><g class="house">${art}</g></g>`;
+    let o = '';
+    /* far rail, rudder wheel, stern pedestal */
+    o += rail([336, 350], [430, 352], 6, 13);
+    o += `<path d="M752,240L804,240Q798,272 788,304L768,304Q758,272 752,240Z" fill="#c3c4d6" ${OUT}/>
+      <ellipse cx="806" cy="305" rx="25" ry="35" fill="#a8743a" ${OUT}/><ellipse cx="806" cy="305" rx="18" ry="27" fill="none" stroke="#7d5127" stroke-width="2"/><ellipse cx="806" cy="305" rx="5" ry="8" fill="#7d5127"/>`;
+    /* wardrobe dome (right) */
+    o += `<g class="spot" data-key="wardrobe"><g class="house"><g transform="translate(777 232) scale(1.06) translate(-777 -232)">${dome(777, 232)}</g>
+      <rect x="808" y="172" width="9" height="20" rx="2" fill="#2b2f3d"/><path d="M806,172h13l-6.5,-9z" fill="#2b2f3d"/></g></g>`;
+    /* masts: mizzen + furled red sail, main, fore */
+    o += mast(722, 250, 722, 70, 7) + `<path d="M716,92C696,120 700,170 716,214L730,214C722,170 728,120 730,92Z" fill="#b83a50" ${OUT}/>` + yard([664, 50], [790, 92]) + sail([670, 56], [786, 94], 22, 3);
+    o += `<path d="M742,50L742,30" stroke="#4d3322" stroke-width="2"/><path d="M742,32Q760,24 774,34L768,46Q756,40 742,46Z" fill="#26262e"/><circle cx="757" cy="37" r="3.4" fill="#fff"/>`;
+    o += mast(606, 352, 606, 60, 12) + band(606, 120, 12) + band(606, 232, 12) + mast(430, 372, 418, 190, 11) + band(424, 290, 11);
+    /* stern castle */
+    o += `<polygon points="640,268 768,262 772,338 700,382 640,364" fill="${COL.cream}" ${OUT}/>
+      <path d="M634,268Q640,226 700,226Q762,226 772,266Q700,282 634,268Z" fill="url(#gRed)" ${OUT}/><path d="M650,262Q700,240 756,258" stroke="#fffaf0" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    for (let i = 0; i < 5; i++) o += win(652 + i * 22, 272, 12, 22);
+    o += `<path d="M772,300L790,296L792,366L752,410L748,384Z" fill="${COL.cream}" ${OUT}/><path d="M748,360L792,352L792,366L752,410Z" fill="url(#gRed)" ${OUT}/>`;
+    /* deck: planks + lawn */
+    o += `<path d="M${F[0]}${seg(F)}L${G[8]}${seg(G.slice().reverse())}Z" fill="url(#gWood)" ${OUT}/>`;
+    for (let i = 0; i < 5; i++) o += `<path d="M${300 + i * 22},${368 + i * 11}L${330 + i * 24},${352 + i * 14}" stroke="${COL.woodD}" stroke-width="1.2" opacity=".5"/>`;
+    const Lt = [[406, 384], [438, 355], [520, 348], [600, 348], [660, 360], [692, 384]], Lb = [[650, 410], [600, 431], [520, 449], [452, 429]];
+    const lawn = `M${Lt[0]}${seg(Lt)}L${Lb[0]}${seg(Lb)}Z`;
+    o += `<clipPath id="cLawn"><path d="${lawn}"/></clipPath><path d="${lawn}" fill="url(#gLawn)" ${OUT}/><g clip-path="url(#cLawn)" stroke="${COL.lawnD}" stroke-width="1.6" opacity=".6">`;
+    for (let i = 0; i < 9; i++) o += `<path d="M${420 + i * 34},440L${470 + i * 34},348"/>`;
+    for (let i = 0; i < 4; i++) o += `<path d="M410,${372 + i * 16}L700,${356 + i * 16}"/>`;
+    o += `</g>`;
+    const tree = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-2" y="-4" width="4" height="9" fill="#7a5430"/><polygon points="0,-44 14,-6 -14,-6" fill="#3f8f4b" ${OUT}/><polygon points="0,-34 11,-14 -11,-14" fill="#56ad5c"/></g>`;
+    o += tree(630, 342, .9) + tree(662, 352, .8) + tree(718, 262, .5);
+    /* stairs */
+    o += `<polygon points="650,378 694,334 722,346 676,396" fill="${COL.woodL}" ${OUT}/>`;
+    for (let i = 1; i < 6; i++) o += `<path d="M${650 + i * 8},${378 - i * 7.4}L${676 + i * 8},${396 - i * 8.4}" stroke="${COL.woodD}" stroke-width="1.3" opacity=".6"/>`;
+    o += rail([652, 378], [696, 334], 5, 14);
+    /* learning house + meal pavilion */
+    o += `<polygon points="592,322 650,322 650,368 592,368" fill="${COL.cream}" ${OUT}/><polygon points="586,322 621,296 656,322" fill="url(#gRed)" ${OUT}/>`;
+    o += `<g class="spot" data-key="meal"><g class="house"><polygon points="500,352 504,392 512,392 510,358" fill="${COL.woodD}"/><polygon points="566,384 570,418 578,418 574,388" fill="${COL.woodD}"/>
+      <polygon points="506,360 566,384 570,342" fill="rgb(40 28 20 / .35)"/>
+      <polygon points="486,338 538,318 596,362 568,392 512,372" fill="url(#gThatch)" ${OUT}/><path d="M498,342L546,324M512,352L560,336M528,364L574,352M544,374L584,368" stroke="${COL.thatchD}" stroke-width="1.6" opacity=".8"/>
+      <path d="${arch(524, 372, 16, 20)}" fill="url(#gInside)" ${OUT}/></g></g>`;
+    /* hull */
+    o += `<clipPath id="cHull"><path d="${hull}"/></clipPath><path d="${hull}" fill="url(#gHull)" ${OUT}/><g clip-path="url(#cHull)">
+      <path d="${bandP}" fill="url(#gRed)"/><path d="M${GB[0]}${seg(GB)}" stroke="${COL.cream}" stroke-width="5" fill="none"/>
+      <path d="M${sh(GR, 74)[0]}${seg(sh(GR, 74))}" stroke="${COL.woodD}" stroke-width="1.6" fill="none" opacity=".5"/><path d="M${sh(GR, 100)[0]}${seg(sh(GR, 100))}" stroke="${COL.woodD}" stroke-width="1.6" fill="none" opacity=".4"/>
+      <path d="M268,396L340,408L405,426L405,524L336,556L286,530L258,470Z" fill="url(#gRed)"/></g>
+      <path d="M${G[0]}${seg(G)}" stroke="${COL.cream}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+    o += rail([456, 428], [520, 452], 6, 12) + rail([524, 451], [600, 431], 7, 12) + rail([604, 430], [680, 393], 7, 12);
+    o += `<path d="M268,500Q340,510 404,528" stroke="${COL.cream}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M406,424L406,520Q392,534 360,546" stroke="${COL.cream}" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="352" cy="466" rx="30" ry="33" fill="${COL.cream}" ${OUT}/><ellipse cx="352" cy="466" rx="23" ry="26" fill="#f1d9a2"/>`;
+    [[452, 462], [496, 480], [540, 478], [690, 408], [722, 380]].forEach(p => { o += porthole(p[0], p[1], 8); });
+    o += curl(447, 400, 17) + curl(350, 328, 14);
+    o += `<g transform="rotate(-22 612 458)"><ellipse cx="612" cy="458" rx="44" ry="53" fill="#262c3c" ${OUT}/><ellipse cx="612" cy="458" rx="36" ry="45" fill="#3c4458"/><ellipse cx="610" cy="458" rx="27" ry="36" fill="#d9a85f" ${OUT}/><path d="${sparkle(610, 458, 16)}" fill="${COL.red}"/></g>`;
+    /* figurehead: sun-lion on a cream ring, crossed bones */
+    o += `<path d="M236,372L262,386L276,404" stroke="${COL.cream}" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M200,514L240,500L268,486" stroke="${COL.cream}" stroke-width="9" stroke-linecap="round" fill="none"/>
+      <ellipse cx="244" cy="446" rx="34" ry="64" fill="#e8d6a2" ${OUT}/><ellipse cx="244" cy="446" rx="25" ry="54" fill="#f3e6bd" stroke="#c8b27a" stroke-width="2"/>`;
+    [-44, -22, 0, 22, 44].forEach(y => { o += `<circle cx="262" cy="${446 + y}" r="3" fill="#c8b27a"/>`; });
+    o += `<g transform="translate(186 428)"><path d="M-8,-46L2,-26L18,-48L20,-24L40,-30L30,-12L48,0L30,12L40,30L20,26L18,48L2,28L-8,46L-12,26L-32,36L-26,14L-46,6L-30,-6L-44,-18L-24,-20L-30,-40L-12,-28Z" fill="#f08a3c" ${OUT}/>
+      <circle r="31" fill="#f6e36a" ${OUT}/><circle cx="-4" cy="-8" r="22" fill="#fbf08a" opacity=".6"/><ellipse cx="-24" cy="8" rx="13" ry="10" fill="#fbf4dc" ${OUT}/><circle cx="-31" cy="4" r="3.6" fill="#3a2a22"/>
+      <circle cx="-2" cy="-8" r="4.6" fill="#3a2a22"/><circle cx="-3.4" cy="-9.4" r="1.5" fill="#fff"/><circle cx="14" cy="-8" r="4.6" fill="#3a2a22"/><circle cx="12.6" cy="-9.4" r="1.5" fill="#fff"/><path d="M-22,16Q-12,22 -4,15" stroke="#3a2a22" stroke-width="2" fill="none" stroke-linecap="round"/></g>`;
+    /* sails */
+    o += yard([352, 165], [500, 262]) + sail([356, 170], [496, 260], 46, 5) + `<circle cx="414" cy="228" r="13" fill="#f2923c" ${OUT}/><path d="${sparkle(414, 228, 9)}" fill="#ffe08a"/>`;
+    o += yard([366, 246], [484, 342]) + sail([370, 250], [480, 340], 44, 4);
+    o += yard([530, 76], [776, 170]) + sail([534, 82], [772, 168], 58, 6);
+    o += yard([540, 184], [676, 252]) + sail([544, 188], [672, 250], 42, 4);
+    o += rope([418, 190], [372, 352]) + rope([418, 190], [468, 360]) + rope([606, 62], [540, 90]);
+    /* workout dome + flag */
+    o += `<path d="M418,130L418,86" stroke="#4d3322" stroke-width="2.4"/><path d="M420,88Q448,78 478,92L466,104L470,120Q446,112 420,120Z" fill="#26262e"/><circle cx="448" cy="102" r="4.4" fill="#fff"/>
+      <g class="spot" data-key="workout"><g class="house">${dome(418, 192)}</g></g>`;
+    /* doors */
+    o += spot('finance', door(652, 300, 17, 30));
+    o += spot('learning', door(612, 330, 17, 30));
+    o += spot('bank', door(756, 330, 15, 26));
+    return { all: o };
   }
 
   /* ============================================================
@@ -446,6 +311,11 @@
       const x = -60 + r() * 1080, hi = r() > .42, sw = (1.4 + k * 2.2 * r()).toFixed(1);
       waves += `<path class="wv ${hi ? 'hi' : 'lo'}" d="M${f1(x)},${f1(y)}q${f1(len * .25)},${f1(-5 - k * 8)} ${f1(len * .5)},0t${f1(len * .5)},0" style="stroke-width:${sw};--d:${(6 + r() * 7).toFixed(1)}s;--dl:${(-r() * 9).toFixed(1)}s"/>`;
     }
+    // long painted swirls, like the reference sea
+    for (let i = 0; i < 34; i++) {
+      const y = 150 + r() * 450, k = (y - 140) / 470, x = -80 + r() * 1000, L = 120 + k * 260 + r() * 120, a = 8 + k * 26, hi = r() > .5;
+      waves += `<path class="wv ${hi ? 'hi' : 'lo'}" d="M${f1(x)},${f1(y)}c${f1(L * .25)},${f1(-a)} ${f1(L * .55)},${f1(-a)} ${f1(L * .75)},${f1(a * .3)}s${f1(L * .2)},${f1(a * .7)} ${f1(L * .3)},${f1(a * .2)}" style="stroke-width:${(2 + k * 5 * r()).toFixed(1)};opacity:${hi ? .26 : .5};--d:${(9 + r() * 8).toFixed(1)}s;--dl:${(-r() * 9).toFixed(1)}s"/>`;
+    }
     let swells = '';
     for (let i = 0; i < 9; i++) { const y = 170 + i * 52 + r() * 20; swells += `<ellipse cx="${f1(r() * 1000)}" cy="${f1(y)}" rx="${f1(160 + r() * 140)}" ry="${f1(10 + i * 3)}" fill="rgb(var(--${i % 2 ? 'spark' : 'sea-bot'}) / ${i % 2 ? .06 : .16})"/>`; }
     // streaky brush clouds high in the sky
@@ -462,24 +332,24 @@
 
     // invisible hit areas on top of everything, so sails never block a click
     const hits = {
-      workout:  '<rect x="372" y="124" width="92" height="96" rx="30"/>',
-      wardrobe: '<rect x="731" y="162" width="92" height="96" rx="30"/>',
-      finance:  `<polygon points="${pts([[642, 258], [704, 246], [706, 316], [646, 304]])}"/>`,
-      learning: `<polygon points="${pts([[614, 296], [692, 292], [694, 328], [656, 354], [616, 336]])}"/>`,
-      meal:     `<polygon points="${pts([[488, 316], [528, 320], [594, 354], [550, 394], [504, 392]])}"/>`,
-      bank:     '<rect x="732" y="314" width="50" height="60" rx="6"/>',
+      workout:  '<rect x="376" y="128" width="84" height="80" rx="30"/>',
+      wardrobe: '<rect x="735" y="168" width="84" height="80" rx="30"/>',
+      finance:  '<rect x="644" y="294" width="34" height="42" rx="8"/>',
+      learning: '<rect x="604" y="324" width="34" height="42" rx="8"/>',
+      meal:     `<polygon points="${pts([[486, 338], [538, 318], [596, 362], [570, 420], [506, 392]])}"/>`,
+      bank:     '<rect x="748" y="322" width="32" height="42" rx="8"/>',
     };
     const hitG = KEYS.map(k => `<g class="hit" data-key="${k}" tabindex="0" role="link" aria-label="Open ${PAGES[k].name}">${hits[k]}</g>`).join('');
 
     const stickers = KEYS.map(k => {
-      const pos = { workout: [472, 120], wardrobe: [826, 140], finance: [660, 188], learning: [570, 262], meal: [530, 274], bank: [790, 322] }[k];
+      const pos = { workout: [440, 134], wardrobe: [796, 176], finance: [654, 250], learning: [590, 276], meal: [520, 296], bank: [768, 286] }[k];
       return `<g class="stkg" data-key="${k}" style="--g:${PAGES[k].g}"><image class="stk" x="${pos[0]}" y="${pos[1]}" width="46" height="46" preserveAspectRatio="xMidYMax meet" style="display:none"/></g>`;
     }).join('');
 
     svg.innerHTML = `
     <defs>
-      <linearGradient id="gHull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98446"/><stop offset=".55" stop-color="#97642f"/><stop offset="1" stop-color="#5e3b20"/></linearGradient>
-      <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cf3b52"/><stop offset="1" stop-color="#92233b"/></linearGradient>
+      <linearGradient id="gHull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8985a"/><stop offset=".6" stop-color="#a87238"/><stop offset="1" stop-color="#6f4824"/></linearGradient>
+      <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d95469"/><stop offset="1" stop-color="#a73049"/></linearGradient>
       <linearGradient id="gWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2b373"/><stop offset="1" stop-color="#b98748"/></linearGradient>
       <linearGradient id="gMast" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a5a2d"/><stop offset=".4" stop-color="#c8955a"/><stop offset=".65" stop-color="#d7a86e"/><stop offset="1" stop-color="#8a5a2d"/></linearGradient>
       <linearGradient id="gLawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fbf5c"/><stop offset="1" stop-color="#4f9e47"/></linearGradient>
@@ -496,12 +366,6 @@
       <g class="sunmoon" id="moon"><circle r="50" fill="url(#gMoon)"/><circle r="15" fill="#eef3ff"/><circle cx="-4" cy="-3" r="3" fill="#cfd8f0"/><circle cx="5" cy="4" r="2.2" fill="#cfd8f0"/></g>
       ${clouds}${gull(60, 70, -10, 1)}${gull(104, 95, -50, .8)}
     </g>
-    <g class="dim isles">
-      <path d="M26,226C44,196 58,170 82,142C96,128 106,138 118,150C130,162 146,170 164,174C178,178 196,184 206,200L206,230Z" fill="#6f9a72"/>
-      <path d="M82,142C70,170 60,198 40,222L64,226C74,196 92,166 82,142Z" fill="#8cb48a" opacity=".7"/>
-      <path d="M170,190C200,164 240,148 292,150C320,150 330,156 330,158L330,190Z" fill="#7da589" opacity=".75"/>
-      <path d="M780,160C820,128 870,112 910,126C930,132 946,146 956,158L956,170Z" fill="#79a88e" opacity=".85"/>
-    </g>
     <g class="swells">${swells}</g><g class="sea">${waves}</g>
 
     <g class="bob">
@@ -513,7 +377,7 @@
         <path class="foam" d="M776,456Q820,462 850,478" stroke="#fff" stroke-width="3" fill="none" opacity=".4" stroke-linecap="round" style="animation-delay:-1s"/>
       </g>
       <g class="dim">
-        ${o.rear}${o.wdome}${o.mizzen}${o.far}${o.lawn}${o.stern}${o.deck}${o.learn}${o.main}${o.pav}${o.fore}${o.bow}${o.nrail}${o.hull}${o.bankc}${o.tyre}${o.front}
+        ${o.all}
       </g>
       <g class="stickers">${stickers}</g>
       <g class="lights lit">${LIGHTS.join('')}</g>
