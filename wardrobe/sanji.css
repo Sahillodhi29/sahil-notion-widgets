@@ -45,9 +45,6 @@ html[data-theme="sanji"] .card.hero {
     url(sanji/hero-lighter.jpg) 90% 26% / cover no-repeat,
     var(--hero-wall);
 }
-/* the two galleries get a face in their header corner (the fade is baked into the image) */
-html[data-theme="sanji"] .card[data-w="outfits"] { background: url(sanji/portrait-fade.webp) right 0 top 0 / auto 330px no-repeat, var(--wall); }
-html[data-theme="sanji"] .card[data-w="wishlist"] { background: url(sanji/eye-fade.webp) right 0 top 0 / auto 300px no-repeat, var(--wall); }
 /* his signature on the wardrobe card (the four ship rivets stay) */
 html[data-theme="sanji"] .card[data-w="closet"]::after {
   background:
@@ -78,12 +75,13 @@ html[data-theme="sanji"] .rope::after { content: ''; position: absolute; left: 4
 html[data-theme="sanji"] #toast::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 10px 2px var(--ember); animation: ember 2.4s ease-in-out infinite; }
 @keyframes ember { 50% { opacity: .45; box-shadow: 0 0 4px 0 var(--ember); } }
 
-/* heart-hands mascot in the empty states and form arches; his eye in "New piece" */
+/* the small arched windows: Sanji napping on the grass, and his cute close-up face */
 html[data-theme="sanji"] .es-ico { position: relative; overflow: hidden; }
 html[data-theme="sanji"] .es-ico svg, html[data-theme="sanji"] .gico svg { display: none; }
-html[data-theme="sanji"] .es-ico::after { content: ''; position: absolute; inset: 0; background: url(sanji/sanji-hearts.png) 72% 30% / cover no-repeat; }
-html[data-theme="sanji"] .form-card[data-w="add"] .gico { background: url(sanji/sanji-eye.jpg) 59% 61% / 330% no-repeat, #4A1226; }
-html[data-theme="sanji"] .form-card[data-w="wish"] .gico { background: url(sanji/sanji-hearts.png) 72% 30% / cover no-repeat, linear-gradient(180deg, #F0839F 0%, var(--wine) 58%, #6A0F2B); }
+html[data-theme="sanji"] .es-ico::after { content: ''; position: absolute; inset: 0; background: url(sanji/chip-face.png) center / cover no-repeat; }
+html[data-theme="sanji"] .es-ico.big::after { background-image: url(sanji/chip-cat.png); }
+html[data-theme="sanji"] .form-card[data-w="add"] .gico { background: url(sanji/chip-face.png) center / cover no-repeat, #4A1226; }
+html[data-theme="sanji"] .form-card[data-w="wish"] .gico { background: url(sanji/chip-cat.png) center / cover no-repeat, #4A1226; }
 
 /* the wardrobe: same cream, now with a pinstripe, like his suit */
 html[data-theme="sanji"] .door {
@@ -98,7 +96,39 @@ html[data-theme="sanji"] .inside.closed {
     radial-gradient(70% 45% at 50% 0%, rgba(255, 238, 160, .22), transparent 72%), linear-gradient(180deg, #1F0710, #2B0A15);
 }
 
+/* ---------- picture plates: the three lower cards each hang one framed picture behind their heading ----------
+   Same gold frame the outfit tiles wear, the same wall boards, the art toned into the wine room. */
+html[data-theme="sanji"] :is(.card[data-w="cats"], .card[data-w="outfits"], .card[data-w="wishlist"]) > .head {
+  position: relative; isolation: isolate; min-height: 168px; padding: 24px 30px; margin: 4px 4px 30px; border-radius: 16px;
+  outline: 2px solid rgba(217, 190, 98, .5); outline-offset: 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 60px rgba(20, 3, 9, .55), 0 18px 28px -20px rgba(0, 0, 0, .9);
+  background:
+    linear-gradient(90deg, rgba(42, 10, 21, .96) 0%, rgba(42, 10, 21, .72) 30%, rgba(42, 10, 21, 0) 56%),
+    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .16) 53px 54px, rgba(255, 214, 190, .028) 54px 55px),
+    linear-gradient(100deg, #2A0A15, #3A1220 62%, #2D0B17);
+}
+html[data-theme="sanji"] :is(.card[data-w="cats"], .card[data-w="outfits"], .card[data-w="wishlist"]) > .head::before {
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 62%); border-radius: 0 16px 16px 0;
+  background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
+}
+html[data-theme="sanji"] .card[data-w="outfits"] > .head  { --plate-art: url(sanji/plate-outfits.webp); --plate-pos: 40% 57%; --plate-w: 64%; }
+html[data-theme="sanji"] .card[data-w="wishlist"] > .head { --plate-art: url(sanji/plate-wish.webp); --plate-pos: 50% 20%; --plate-w: 56%; }
+html[data-theme="sanji"] .card[data-w="cats"] > .head     { --plate-art: url(sanji/plate-cats.webp); --plate-pos: 40% 66%; --plate-w: 64%; }
+html[data-theme="sanji"] .card > .head > .title { text-shadow: 0 2px 16px rgba(20, 3, 9, .8); }
+html[data-theme="sanji"] .card > .head .seg { background: rgba(26, 6, 13, .8); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* nothing here yet: Sanji, asleep */
+html[data-theme="sanji"] .card:is([data-w="cats"], [data-w="outfits"], [data-w="wishlist"]) .empty-state .es-ico {
+  width: 230px; height: 148px; border: 0; border-radius: 0; background: none; overflow: visible; margin-bottom: 6px; }
+html[data-theme="sanji"] .card:is([data-w="cats"], [data-w="outfits"], [data-w="wishlist"]) .empty-state .es-ico::after {
+  background: url(sanji/sleeping.png) center / contain no-repeat; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .55)); }
+html[data-theme="sanji"] .card:is([data-w="cats"], [data-w="outfits"], [data-w="wishlist"]) .empty-state .es-ico::before {
+  content: 'z z Z'; position: absolute; right: 12px; top: 2px; font: italic 700 15px/1 var(--display); letter-spacing: .12em; color: var(--butter); opacity: .85; }
+
 @media (max-width: 640px) {
+  html[data-theme="sanji"] :is(.card[data-w="cats"], .card[data-w="outfits"], .card[data-w="wishlist"]) > .head { min-height: 150px; padding: 20px; margin: 2px 2px 26px;
+    background: linear-gradient(100deg, #2A0A15, #3A1220 62%, #2D0B17); }
+  html[data-theme="sanji"] :is(.card[data-w="cats"], .card[data-w="outfits"], .card[data-w="wishlist"]) > .head::before { width: 88%; opacity: .7; }
   html[data-theme="sanji"] .card.hero {
     background:
       linear-gradient(90deg, rgba(42, 10, 21, .97) 0%, rgba(42, 10, 21, .82) 62%, rgba(42, 10, 21, .5) 100%),
@@ -107,7 +137,6 @@ html[data-theme="sanji"] .inside.closed {
       var(--hero-wall);
   }
   html[data-theme="sanji"] .card[data-w="closet"]::after { background-size: 72px auto, 8px 8px, 8px 8px, 8px 8px, 8px 8px; background-position: right 18px top 14px, 11px 11px, calc(100% - 11px) 11px, 11px calc(100% - 11px), calc(100% - 11px) calc(100% - 11px); }
-  html[data-theme="sanji"] .card[data-w="outfits"], html[data-theme="sanji"] .card[data-w="wishlist"] { background-size: auto 230px, auto; }
 }
 
 /* keep small text legible where it crosses the artwork */
