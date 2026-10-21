@@ -1,7 +1,7 @@
 /* ============================================================
    Ship Navigation: a ship you can walk into.
    Sky and sea use the same recipe as the Sky Banner, driven by the
-   real time of day. Edges melt into #1a1a1a (the dashboard colour).
+   real time of day. 
    ============================================================ */
 :root {
   color-scheme: dark;
@@ -23,23 +23,10 @@ body { font-family: 'Quicksand', ui-rounded, 'Nunito', 'Segoe UI', system-ui, sa
 a { color: inherit; }
 .wrap { padding: 0; }
 
-/* ---------- stage: soft edges melt into the page ---------- */
+/* ---------- stage ---------- */
 .stage {
   position: relative; width: 100%; aspect-ratio: 1000 / 609; overflow: hidden; isolation: isolate;
   container-type: inline-size;
-  --fx: 56px; --ft: 34px; --fb: 46px;
-  -webkit-mask-image:
-    linear-gradient(to bottom, transparent 0, rgb(0 0 0 / .1) calc(var(--ft) * .25), rgb(0 0 0 / .4) calc(var(--ft) * .5), rgb(0 0 0 / .8) calc(var(--ft) * .75), #000 var(--ft),
-      #000 calc(100% - var(--fb)), rgb(0 0 0 / .8) calc(100% - var(--fb) * .75), rgb(0 0 0 / .4) calc(100% - var(--fb) * .5), rgb(0 0 0 / .1) calc(100% - var(--fb) * .25), transparent 100%),
-    linear-gradient(to right, transparent 0, rgb(0 0 0 / .1) calc(var(--fx) * .25), rgb(0 0 0 / .4) calc(var(--fx) * .5), rgb(0 0 0 / .8) calc(var(--fx) * .75), #000 var(--fx),
-      #000 calc(100% - var(--fx)), rgb(0 0 0 / .8) calc(100% - var(--fx) * .75), rgb(0 0 0 / .4) calc(100% - var(--fx) * .5), rgb(0 0 0 / .1) calc(100% - var(--fx) * .25), transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to bottom, transparent 0, rgb(0 0 0 / .1) calc(var(--ft) * .25), rgb(0 0 0 / .4) calc(var(--ft) * .5), rgb(0 0 0 / .8) calc(var(--ft) * .75), #000 var(--ft),
-      #000 calc(100% - var(--fb)), rgb(0 0 0 / .8) calc(100% - var(--fb) * .75), rgb(0 0 0 / .4) calc(100% - var(--fb) * .5), rgb(0 0 0 / .1) calc(100% - var(--fb) * .25), transparent 100%),
-    linear-gradient(to right, transparent 0, rgb(0 0 0 / .1) calc(var(--fx) * .25), rgb(0 0 0 / .4) calc(var(--fx) * .5), rgb(0 0 0 / .8) calc(var(--fx) * .75), #000 var(--fx),
-      #000 calc(100% - var(--fx)), rgb(0 0 0 / .8) calc(100% - var(--fx) * .75), rgb(0 0 0 / .4) calc(100% - var(--fx) * .5), rgb(0 0 0 / .1) calc(100% - var(--fx) * .25), transparent 100%);
-  mask-composite: intersect;
 }
 .world {
   position: absolute; inset: 0; will-change: transform; overflow: hidden;
