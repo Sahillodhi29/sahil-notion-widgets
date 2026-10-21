@@ -25,7 +25,7 @@ a { color: inherit; }
 
 /* ---------- stage ---------- */
 .stage {
-  position: relative; width: 100%; aspect-ratio: 1000 / 609; overflow: hidden; isolation: isolate;
+  position: relative; width: 100%; aspect-ratio: 1000 / 609; overflow: hidden; isolation: isolate; border-radius: 20px;
   container-type: inline-size;
 }
 .world {
