@@ -1,0 +1,66 @@
+/* ============================================================
+   Workout widgets: theme layer
+   1) the theme switch (floating pill + the standalone widget in theme.html)
+   2) the "Zoro" theme: the same forest-and-pink room, now hung with his world: the three swords on the grass,
+      the earring painting, a sea swim, dango under the cherry tree, a low-angle portrait over the ring.
+   Everything below is scoped to html[data-theme="zoro"], so style.css (Classic) is never touched.
+   ============================================================ */
+
+/* ---------- the switch ---------- */
+.theme-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 20; display: inline-flex; padding: 3px; border-radius: 999px;
+  background: rgba(10, 20, 5, .9); border: 1px solid rgba(252, 169, 170, .5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .9); }
+.theme-toggle button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; background: transparent; color: var(--sage);
+  font: inherit; font-size: 12.5px; font-weight: 700; padding: 6px 14px; border-radius: 999px; cursor: pointer; transition: background .2s, color .2s; }
+.theme-toggle button:hover { color: var(--rose); }
+.theme-toggle button[aria-pressed="true"] { background: linear-gradient(180deg, #FFD6D3, #FCA9AA); color: #12220A; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
+.theme-toggle i { width: 18px; height: 18px; border-radius: 50%; background: url(zoro/chip.png) center / cover, #1E3309; box-shadow: 0 0 0 1px rgba(252, 169, 170, .7); }
+body.has-theme-toggle #stage { padding-bottom: 58px; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .5s; }
+/* standalone widget (theme.html): the same switch, bigger, sitting in the page instead of floating */
+.theme-toggle.in-slot { position: static; width: 100%; padding: 4px; }
+.theme-toggle.in-slot button { flex: 1; font-size: 14.5px; padding: 12px 18px; gap: 10px; }
+.theme-toggle.in-slot i { width: 26px; height: 26px; }
+.theme-toggle.in-slot button[data-t="classic"]::before { content: ''; width: 24px; height: 24px; background: url(assets/guava.svg) center / contain no-repeat; }
+body.tw-page { margin: 0; min-height: 100%; display: grid; place-items: center; padding: 6px; }
+.card.tw { width: 100%; padding: 14px 16px; overflow: visible; }
+
+/* ---------- Zoro theme ---------- */
+/* hero: Zoro looks up past the ring, and the corner badge becomes his three swords */
+html[data-theme="zoro"] .card[data-w="ripple"] {
+  background:
+    var(--pins),
+    linear-gradient(90deg, rgba(16, 32, 9, .96) 0%, rgba(16, 32, 9, .84) 36%, rgba(16, 32, 9, .1) 72%),
+    url(zoro/hero-zoro.webp) right top / cover no-repeat,
+    var(--wall);
+}
+html[data-theme="zoro"] #sticker { display: block; border-radius: 50%; box-shadow: 0 8px 18px -8px rgba(0, 0, 0, .9); }
+
+/* picture plates: one framed picture behind every card heading, the way the wardrobe hangs its pictures */
+html[data-theme="zoro"] :is(.card[data-w="week"], .card[data-w="streak"], .card[data-w="mosaic"], .card[data-w="balance"], .card[data-w="fuel"]) > h2:first-of-type,
+html[data-theme="zoro"] .card[data-w="session"] > .head {
+  position: relative; isolation: isolate; display: flex; align-items: center; min-height: 132px; padding: 20px 26px; margin: 2px 2px 16px; border-radius: 14px;
+  outline: 2px solid rgba(252, 169, 170, .45); outline-offset: 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 50px rgba(5, 12, 3, .55), 0 16px 26px -20px rgba(0, 0, 0, .9);
+  background: repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .18) 53px 54px, rgba(255, 236, 230, .028) 54px 55px), linear-gradient(100deg, #142608, #1E3309 62%, #16280A);
+  text-shadow: 0 2px 16px rgba(5, 12, 3, .85);
+}
+html[data-theme="zoro"] .card[data-w="session"] > .head h2 { margin: 0; }
+html[data-theme="zoro"] .card[data-w="session"] > .head { justify-content: space-between; }
+html[data-theme="zoro"] :is(.card[data-w="week"], .card[data-w="streak"], .card[data-w="mosaic"], .card[data-w="balance"], .card[data-w="fuel"]) > h2:first-of-type::before,
+html[data-theme="zoro"] .card[data-w="session"] > .head::before {
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 62%); border-radius: 0 14px 14px 0;
+  background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
+}
+html[data-theme="zoro"] .card[data-w="session"]  { --plate-art: url(zoro/plate-swords.webp);  --plate-pos: 50% 42%; --plate-w: 68%; }
+html[data-theme="zoro"] .card[data-w="week"]     { --plate-art: url(zoro/plate-swords2.webp); --plate-pos: 50% 40%; --plate-w: 62%; }
+html[data-theme="zoro"] .card[data-w="streak"]   { --plate-art: url(zoro/plate-earring.webp); --plate-pos: 50% 62%; --plate-w: 62%; }
+html[data-theme="zoro"] .card[data-w="mosaic"]   { --plate-art: url(zoro/plate-chibi.webp);   --plate-pos: 50% 48%; --plate-w: 62%; }
+html[data-theme="zoro"] .card[data-w="balance"]  { --plate-art: url(zoro/plate-water.webp);   --plate-pos: 50% 34%; --plate-w: 64%; }
+html[data-theme="zoro"] .card[data-w="fuel"]     { --plate-art: url(zoro/plate-cherry.webp);  --plate-pos: 50% 44%; --plate-w: 50%; }
+
+@media (max-width: 640px) {
+  html[data-theme="zoro"] .card[data-w="ripple"] { background: var(--pins), linear-gradient(90deg, rgba(16, 32, 9, .95) 0%, rgba(16, 32, 9, .75) 60%, rgba(16, 32, 9, .35) 100%), url(zoro/hero-zoro.webp) 90% top / cover no-repeat, var(--wall); }
+  html[data-theme="zoro"] :is(.card[data-w="week"], .card[data-w="streak"], .card[data-w="mosaic"], .card[data-w="balance"], .card[data-w="fuel"]) > h2:first-of-type,
+  html[data-theme="zoro"] .card[data-w="session"] > .head { min-height: 112px; padding: 16px 20px; }
+}
