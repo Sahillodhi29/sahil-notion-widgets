@@ -16,8 +16,23 @@
   <main class="wrap">
     <div class="stage" id="stage">
       <div class="world" id="world">
-        <div class="bgcloud"></div>
-        <svg id="scene" viewBox="0 0 1000 609" preserveAspectRatio="xMidYMid meet" role="group" aria-label="A ship with six doors, one for each of your pages"></svg>
+
+        <!-- sky (same recipe as the Sky Banner) -->
+        <div class="sky">
+          <div class="aurora a1"></div><div class="aurora a2"></div>
+          <div class="stars" id="stars"></div>
+          <div class="orb sun" id="sun"><div class="halo"></div><div class="disk"></div></div>
+          <div class="orb moon" id="moon"><div class="halo"></div><div class="disk"></div></div>
+          <div class="clouds" id="clouds"></div>
+        </div>
+
+        <!-- sea -->
+        <div class="sea" id="sea"><div class="glitter" id="glitter"></div></div>
+
+        <!-- the ship -->
+        <svg id="scene" viewBox="0 0 1000 609" preserveAspectRatio="xMidYMid meet" role="group" aria-label="A ship with six spots, one for each of your pages"></svg>
+
+        <div class="sparkles" id="sparkles"></div>
       </div>
       <div class="flash" id="flash"></div>
       <a class="fallback" id="fallback" target="_blank" rel="noopener" hidden>Open page ↗</a>
@@ -25,6 +40,7 @@
     <!-- small screens: the ship is tiny, so also offer plain links -->
     <nav class="list" id="list" aria-label="Pages"></nav>
   </main>
+  <script src="art.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

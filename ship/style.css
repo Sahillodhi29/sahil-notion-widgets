@@ -1,29 +1,32 @@
 /* ============================================================
-   Ship Navigation: a cute little ship, six doors, six pages.
-   Sky and sea follow the time of day. Edges fade into #1a1a1a
-   (your dashboard colour) so the scene sits in the page, not on it.
+   Ship Navigation: a ship you can walk into.
+   Sky and sea use the same recipe as the Sky Banner, driven by the
+   real time of day. Edges melt into #1a1a1a (the dashboard colour).
    ============================================================ */
 :root {
   color-scheme: dark;
   --bg: #1a1a1a;
-  /* live sky (overwritten by script.js every 30s; daytime defaults) */
+  /* rgb triples, rewritten by script.js (daytime defaults) */
   --sky-top: 66 148 224; --sky-mid: 122 190 236; --sky-bot: 196 228 242;
-  --sea-top: 62 152 208; --sea-bot: 28 96 162;
-  --spark: 255 255 255; --stars: 0; --aurora: 0;
+  --sea-top: 62 152 208; --sea-bot: 28 96 162; --sea-front: 52 130 190;
+  --wave-l: 150 205 240; --wave-d: 20 70 130;
   --cloud: 255 255 255; --cloud-a: .9;
-  --horizon: 22.4%;      /* where the sea starts (136 / 609) */
+  --spark: 255 255 255; --stars: 0; --aurora: 0;
+  --sun-halo: 255 232 168; --sun-disk: 255 252 236;
+  --moon-halo: 190 215 255; --glit-c: 255 240 205; --glit: 0;
+  --horizon: 22.5%;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: #1a1a1a; }
 body { font-family: 'Quicksand', ui-rounded, 'Nunito', 'Segoe UI', system-ui, sans-serif; color: #fff; font-weight: 700;
   -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 a { color: inherit; }
-
 .wrap { padding: 0; }
 
 /* ---------- stage: soft edges melt into the page ---------- */
 .stage {
   position: relative; width: 100%; aspect-ratio: 1000 / 609; overflow: hidden; isolation: isolate;
+  container-type: inline-size;
   --fx: 56px; --ft: 34px; --fb: 46px;
   -webkit-mask-image:
     linear-gradient(to bottom, transparent 0, rgb(0 0 0 / .1) calc(var(--ft) * .25), rgb(0 0 0 / .4) calc(var(--ft) * .5), rgb(0 0 0 / .8) calc(var(--ft) * .75), #000 var(--ft),
@@ -39,52 +42,96 @@ a { color: inherit; }
   mask-composite: intersect;
 }
 .world {
-  position: absolute; inset: 0; will-change: transform;
-  background: linear-gradient(180deg,
-    rgb(var(--sky-top)) 0%, rgb(var(--sky-mid)) 18%, rgb(var(--sky-bot)) calc(var(--horizon) - 1%),
-    rgb(var(--sea-top)) var(--horizon), rgb(var(--sea-bot)) 100%);
+  position: absolute; inset: 0; will-change: transform; overflow: hidden;
+  background: rgb(var(--sky-mid));
   transition: transform 1.05s cubic-bezier(.62, .02, .22, 1);
 }
 .stage.back .world { transition-duration: .9s; transition-timing-function: cubic-bezier(.3, .0, .2, 1); }
 #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
-.bgcloud { position: absolute; inset: 0; pointer-events: none; }
 
-/* ---------- svg bits ---------- */
-#scene text { font-family: 'Quicksand', ui-rounded, 'Segoe UI', system-ui, sans-serif; font-weight: 700; }
-.sunmoon { transition: opacity 1s; }
-.star { fill: #fff; opacity: calc(var(--stars) * var(--o, .8)); animation: twk var(--d, 3s) ease-in-out infinite var(--dl, 0s); }
-.cld { fill: rgb(var(--cloud)); opacity: calc(var(--cloud-a) * .95); animation: drift var(--d, 120s) linear infinite var(--dl, 0s); }
-.gull { fill: none; stroke: #fff; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: calc(1 - var(--stars) * 1.3); animation: fly var(--d, 60s) linear infinite var(--dl, 0s); }
-.wv { fill: none; stroke-width: 2; stroke-linecap: round; animation: wv var(--d, 8s) ease-in-out infinite alternate var(--dl, 0s); }
-.wv.hi { stroke: rgb(var(--spark)); opacity: .3; }
-.wv.lo { stroke: rgb(var(--sea-bot)); opacity: .45; }
+/* ---------- sky ---------- */
+.sky { position: absolute; left: 0; right: 0; top: 0; height: 30%;
+  background: linear-gradient(to bottom, rgb(var(--sky-top)) 0%, rgb(var(--sky-mid)) 58%, rgb(var(--sky-bot)) 100%); }
+.aurora { position: absolute; border-radius: 50%; filter: blur(26px); pointer-events: none; opacity: calc(var(--aurora) * .5); }
+.aurora.a1 { left: -10%; top: 4%; width: 80%; height: 60%; background: radial-gradient(ellipse at center, rgb(70 205 200 / .6), transparent 70%); transform: rotate(-8deg); animation: sway 26s ease-in-out infinite alternate; }
+.aurora.a2 { right: -8%; top: -10%; width: 55%; height: 55%; background: radial-gradient(ellipse at center, rgb(90 170 255 / .45), transparent 70%); transform: rotate(14deg); animation: sway 34s ease-in-out infinite alternate-reverse; }
+@keyframes sway { from { translate: -3% 0; } to { translate: 4% 8%; } }
+.stars { position: absolute; left: 0; right: 0; top: 0; height: 100%; opacity: var(--stars);
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 96%); mask-image: linear-gradient(to bottom, #000 40%, transparent 96%); }
+.star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle 3.4s ease-in-out infinite; }
+@keyframes twinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+
+.orb { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; }
+.orb .disk { position: absolute; width: var(--d); height: var(--d); left: calc(var(--d) / -2); top: calc(var(--d) / -2); border-radius: 50%; }
+.orb .halo { position: absolute; width: calc(var(--d) * 4.2); height: calc(var(--d) * 4.2); left: calc(var(--d) * -2.1); top: calc(var(--d) * -2.1); border-radius: 50%; }
+.sun .disk { background: rgb(var(--sun-disk)); box-shadow: 0 0 calc(var(--d) * .3) rgb(var(--sun-halo) / .7); }
+.sun .halo { background: radial-gradient(circle, rgb(var(--sun-halo) / .55) 0%, rgb(var(--sun-halo) / .18) 30%, transparent 62%); }
+.moon .disk { background:
+    radial-gradient(circle at 34% 36%, rgb(205 215 235 / .55) 0 9%, transparent 10%),
+    radial-gradient(circle at 62% 58%, rgb(205 215 235 / .45) 0 13%, transparent 14%),
+    radial-gradient(circle at 48% 74%, rgb(205 215 235 / .4) 0 7%, transparent 8%),
+    radial-gradient(circle at 40% 35%, #fbfcff, #dde6f6 70%);
+  box-shadow: 0 0 calc(var(--d) * .5) rgb(var(--moon-halo) / .55); }
+.moon .halo { background: radial-gradient(circle, rgb(var(--moon-halo) / .32) 0%, rgb(var(--moon-halo) / .1) 32%, transparent 62%); }
+
+.clouds { position: absolute; inset: 0; pointer-events: none; }
+.cloud { position: absolute; left: 0; color: rgb(var(--cloud)); animation: drift linear infinite; will-change: transform; }
+.cloud svg { display: block; width: 100%; height: auto; filter: blur(.5px); }
+@keyframes drift { from { transform: translateX(-34cqw); } to { transform: translateX(134cqw); } }
+
+/* ---------- sea ---------- */
+.sea { position: absolute; left: 0; right: 0; top: var(--horizon); bottom: 0; overflow: hidden; isolation: isolate;
+  background: linear-gradient(to bottom, rgb(var(--sea-top)), rgb(var(--sea-bot))); }
+.sea::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 7%;
+  background: linear-gradient(to bottom, rgb(var(--sky-bot) / .6), transparent); z-index: 2; }
+.wave { position: absolute; left: 0; width: 200%; pointer-events: none; animation: slide linear infinite; }
+.wave svg { display: block; width: 100%; height: 100%; }
+.wave.l path { fill: rgb(var(--wave-l) / .2); }
+.wave.d path { fill: rgb(var(--wave-d) / .24); }
+@keyframes slide { to { transform: translateX(-50%); } }
+.glitter { position: absolute; top: 0; height: 100%; width: 22%; transform: translateX(-50%); opacity: var(--glit); pointer-events: none; }
+.gbar { position: absolute; left: 50%; height: max(2px, .5%); border-radius: 6px; background: rgb(var(--glit-c));
+  transform: translateX(-50%); animation: shimmer 3.2s ease-in-out infinite; }
+@keyframes shimmer { 0%, 100% { transform: translateX(-50%) scaleX(.55); opacity: .35; } 50% { transform: translateX(-50%) scaleX(1); opacity: .95; } }
+.sparkles { position: absolute; inset: 0; pointer-events: none; }
+.spark { position: absolute; width: var(--s); height: var(--s); background: rgb(var(--spark)); rotate: 45deg; opacity: 0; animation: sparkle 3.4s ease-in-out infinite; }
+@keyframes sparkle { 0%, 100% { opacity: 0; scale: .5; } 50% { opacity: .9; scale: 1; } }
+
+/* ---------- ship ---------- */
 .bob { transform-origin: 500px 470px; animation: bob 5.6s ease-in-out infinite; }
 .zooming .bob { animation-play-state: paused; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-.35deg); } 50% { transform: translateY(-4px) rotate(.4deg); } }
 .dim { filter: brightness(calc(1 - var(--stars) * .42)) saturate(calc(1 - var(--stars) * .2)); }
-.isles { opacity: .9; }
 .lit { opacity: calc(var(--stars) * .95); pointer-events: none; }
 .sailg { transform-box: fill-box; transform-origin: 50% 0; animation: sway 6s ease-in-out infinite alternate; }
-.foam { animation: foam 3s ease-in-out infinite; }
-.foamg, .stickers, .tips { pointer-events: none; }
+@keyframes sway { from { transform: skewX(-.9deg); } to { transform: skewX(.9deg); } }
+.flag { transform-box: fill-box; transform-origin: 0 50%; animation: wave 2.6s ease-in-out infinite; }
+@keyframes wave { 0%, 100% { transform: skewY(-4deg) scaleX(1); } 50% { transform: skewY(5deg) scaleX(.93); } }
+.foam { animation: foam 3.4s ease-in-out infinite; }
+@keyframes foam { 0%, 100% { opacity: .5; } 50% { opacity: .9; } }
+.foamg, .stickers, .tips, .lit { pointer-events: none; }
+.gull { fill: none; stroke: #fff; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: calc(1 - var(--stars) * 1.3); }
 
 /* ---------- the six spots (hover highlights; hit areas sit on top) ---------- */
 .hit { cursor: pointer; outline: none; fill: transparent; -webkit-tap-highlight-color: transparent; }
 .hit * { fill: transparent; }
 .hit:focus-visible * { stroke: #fff; stroke-width: 2; stroke-dasharray: 5 4; }
 .spot .house { transition: filter .25s; }
-.spot.hot .house { filter: brightness(1.14) drop-shadow(0 0 4px rgb(var(--g, 255 230 150))) drop-shadow(0 0 12px rgb(var(--g, 255 230 150) / .9)) drop-shadow(0 0 26px rgb(var(--g, 255 230 150) / .6)); }
+.spot.hot .house { filter: brightness(1.12) drop-shadow(0 0 4px rgb(var(--g, 255 230 150))) drop-shadow(0 0 12px rgb(var(--g, 255 230 150) / .9)) drop-shadow(0 0 26px rgb(var(--g, 255 230 150) / .6)); }
 .spot[data-key="workout"] { --g: 104 214 134; } .spot[data-key="finance"] { --g: 255 168 202; } .spot[data-key="learning"] { --g: 198 144 240; }
 .spot[data-key="meal"] { --g: 255 120 150; } .spot[data-key="wardrobe"] { --g: 127 166 255; } .spot[data-key="bank"] { --g: 255 200 97; }
 .leaf { transform-box: fill-box; transform-origin: 0% 50%; transition: transform .38s cubic-bezier(.3, 1.3, .5, 1); }
 .spot.hot .leaf { transform: scaleX(.2) skewY(-7deg); }
 .inside { opacity: .35; transition: opacity .3s; }
 .spot.hot .inside { opacity: 1; }
-.domeG, .domebody { transition: transform .35s cubic-bezier(.3, 1.5, .5, 1); transform-box: fill-box; transform-origin: 50% 100%; }
+.glow { opacity: 0; transition: opacity .3s; }
+.spot.hot .glow { opacity: 1; }
+.domebody { transition: transform .35s cubic-bezier(.3, 1.5, .5, 1); transform-box: fill-box; transform-origin: 50% 100%; }
 .spot.hot .domebody { transform: translateY(-4px) scale(1.03); }
 .tip { opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .25s cubic-bezier(.3, 1.4, .5, 1); transform-box: fill-box; }
 .tip.hot { opacity: 1; transform: translateY(0); }
 .tip rect { fill: rgb(22 28 44 / .94); stroke: rgb(var(--g) / .9); stroke-width: 1.6; }
-.tip text { fill: #fff; font-size: 13px; letter-spacing: .01em; }
+.tip text { fill: #fff; font-family: 'Quicksand', ui-rounded, 'Segoe UI', system-ui, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .01em; }
 .stk { transition: transform .3s; transform-box: fill-box; transform-origin: 50% 100%; }
 
 /* ---------- camera push-in ---------- */
@@ -95,29 +142,14 @@ a { color: inherit; }
   background: #1a1a1a; color: #ffe2a8; border: 2px solid #ffd27a; font-size: 15px; box-shadow: 0 8px 24px rgb(0 0 0 / .5); }
 .fallback[hidden] { display: none; }
 .stage.zooming .hit { pointer-events: none; }
+.stage.zooming .tip { opacity: 0 !important; transition: opacity .15s; }
 
 /* ---------- small screens ---------- */
 .list { display: none; gap: 8px; padding: 10px 14px 16px; flex-wrap: wrap; justify-content: center; }
 .list a { text-decoration: none; padding: 7px 13px; border-radius: 999px; font-size: 13px; background: rgb(22 30 50 / .95); border: 1.5px solid rgb(var(--g) / .7); }
 @media (max-width: 560px) { .list { display: flex; } .stage { --fx: 24px; --ft: 20px; --fb: 30px; } }
 
-/* ---------- motion ---------- */
-@keyframes twk { 0%, 100% { opacity: calc(var(--stars) * .25); } 50% { opacity: calc(var(--stars) * var(--o, .9)); } }
-@keyframes twinkle { 0%, 100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
-@keyframes drift { from { transform: translateX(-260px); } to { transform: translateX(1260px); } }
-@keyframes glint { 0%, 100% { opacity: 0; } 50% { opacity: .55; } }
-@keyframes fly { from { transform: translate(-60px, 0); } to { transform: translate(1080px, -30px); } }
-@keyframes wv { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
-@keyframes slide { from { transform: translateX(0); } to { transform: translateX(-500px); } }
-@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-.4deg); } 50% { transform: translateY(-5px) rotate(.45deg); } }
-@keyframes wave { 0%, 100% { transform: skewY(-5deg) scaleX(1); } 50% { transform: skewY(6deg) scaleX(.9); } }
-@keyframes sway { from { transform: skewX(-1.2deg); } to { transform: skewX(1.2deg); } }
-@keyframes steam { 0% { transform: translate(0, 0) scale(.5); opacity: 0; } 20% { opacity: .75; } 100% { transform: translate(6px, -30px) scale(1.5); opacity: 0; } }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes breathe { 0%, 100% { opacity: 0; transform: scale(.8); } 50% { opacity: .38; transform: scale(1.2); } }
-@keyframes foam { 0%, 100% { opacity: .55; } 50% { opacity: .95; } }
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  .cloud { transform: translateX(var(--rx, 20cqw)); }
 }
-.stage.zooming .tip { opacity: 0 !important; transition: opacity .15s; }
