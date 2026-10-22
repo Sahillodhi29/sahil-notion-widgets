@@ -140,3 +140,13 @@ a { color: inherit; }
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
   .cloud { transform: translateX(var(--rx, 20cqw)); }
 }
+
+/* ---------- title (same style as the other home titles) ---------- */
+.head { text-align: center; padding: 6px 0 12px; }
+.ttl { display: inline-flex; align-items: center; gap: 14px; }
+h1 { font-family: 'Pacifico', 'Segoe Script', 'Brush Script MT', cursive; font-weight: 400; font-size: clamp(26px, 4.4vw, 36px); line-height: 1.25; white-space: nowrap;
+  background: linear-gradient(180deg, #fff6e2 10%, #ffd9a0 60%, #ffb8a6 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 14px rgb(255 190 130 / .28)); }
+.tw { width: 9px; height: 9px; border-radius: 2px; rotate: 45deg; background: rgb(255 214 150); box-shadow: 0 0 10px rgb(255 190 120 / .8); animation: twinkleT 2.8s ease-in-out infinite; }
+.tw.r { animation-delay: 1.4s; background: rgb(246 168 200); box-shadow: 0 0 10px rgb(246 168 200 / .8); }
+@keyframes twinkleT { 0%, 100% { opacity: .35; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.15); } }
