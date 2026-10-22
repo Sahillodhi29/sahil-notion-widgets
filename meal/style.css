@@ -1,15 +1,34 @@
-/* Palette sampled from the "White & Red" reference image */
+/* ============================================================
+   Meal widgets: "Sail & Scarlet"
+   Dark blue, scarlet and cream (Aegean Sky, YInMn Blue, Scarlet, Old Lace), trimmed like the wardrobe:
+   a lit sailcloth wall, a cream frame with a scarlet inner line, cream pins like portholes.
+   The Luffy theme is a separate layer (luffy.css) and never edits this file.
+   ============================================================ */
 :root {
-  --oxblood:  #2C0609;
-  --burgundy: #4F0410;
-  --wine:     #671228;
-  --pedestal: #7D0519;
-  --stone:    #EAE1D8;
-  --ivory:    #D3CDC5;
-  --taupe:    #B6ACA2;
-  --umber:    #3A261F;
-  --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --oxblood:  #0B1530;   /* deep navy: ink on cream */
+  --burgundy: #14244E;   /* raised navy: tracks, hovers */
+  --wine:     #2E4C8C;   /* YInMn Blue */
+  --pedestal: #D91A2A;   /* Scarlet */
+  --stone:    #FFF3E1;   /* Old Lace */
+  --ivory:    #F5F0E8;   /* Sandy Linen */
+  --taupe:    #A3B2D2;   /* muted blue-grey */
+  --umber:    #1A2B55;
+  --sky:      #1A6FBF;   /* Aegean Sky */
+  --sky-hi:   #5B9BE6;
+  --scarlet-hi: #FF5B4A;
+  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --sans:  'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pins:
+    radial-gradient(circle at center, #FFF3E1 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) 11px 11px / 8px 8px no-repeat,
+    radial-gradient(circle at center, #FFF3E1 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) calc(100% - 11px) 11px / 8px 8px no-repeat,
+    radial-gradient(circle at center, #FFF3E1 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) 11px calc(100% - 11px) / 8px 8px no-repeat,
+    radial-gradient(circle at center, #FFF3E1 0 1.9px, rgba(0, 0, 0, .55) 2.2px 3px, transparent 3.3px) calc(100% - 11px) calc(100% - 11px) / 8px 8px no-repeat;
+  --wall:
+    radial-gradient(280px 170px at 0% 0%, rgba(26, 111, 191, .26), transparent 72%),
+    radial-gradient(280px 170px at 100% 0%, rgba(26, 111, 191, .12), transparent 72%),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 243, 225, .022) 3px 4px),
+    repeating-linear-gradient(90deg, transparent 0 3px, rgba(255, 243, 225, .022) 3px 4px),
+    linear-gradient(180deg, #14264F, #0A1430);
 }
 * { box-sizing: border-box; margin: 0; }
 [hidden] { display: none !important; }
@@ -119,3 +138,55 @@ h2 { font-size: 24px; color: var(--ivory); margin-bottom: 12px; line-height: 1.1
 
 @media (max-width: 640px) { body[data-mode="multi"] #stage { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+
+
+/* ============================================================
+   CLASSY LAYER
+   ============================================================ */
+h1, h2 { font-family: var(--serif); font-style: normal; font-weight: 700; color: var(--stone); letter-spacing: -.005em; }
+h1 { font-size: clamp(28px, 8.5cqw, 40px); }
+h2 { font-size: 26px; }
+.date { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--scarlet-hi); }
+.start-text, .stunit { font-family: var(--serif); font-style: italic; color: var(--ivory); }
+.ring-num, .stnum { font-family: var(--serif); font-weight: 700; color: var(--stone); }
+
+.card {
+  padding: 22px 26px; border: 1px solid rgba(255, 243, 225, .3);
+  outline: 1px solid rgba(250, 45, 26, .38); outline-offset: -8px;
+  background: var(--pins), var(--wall);
+  box-shadow: 0 26px 40px -28px rgba(0, 0, 0, .95), 0 0 0 1px rgba(0, 0, 0, .5);
+}
+body[data-mode="multi"] .card[data-w="skipped"] { grid-column: 1 / -1; }
+
+/* hero: a plate laid for the day, cropped by the frame */
+.card[data-w="ring"] {
+  background: var(--pins),
+    linear-gradient(90deg, rgba(10, 20, 48, .95) 0%, rgba(10, 20, 48, .82) 52%, rgba(10, 20, 48, .05) 100%),
+    url(assets/plate.svg) right -80px center / auto 108% no-repeat,
+    var(--wall);
+}
+#sticker { display: none; }
+
+#ring { filter: drop-shadow(0 0 16px rgba(26, 111, 191, .3)); }
+#ring .step { fill: #1D3670; }
+#ring .step.done { fill: var(--stone); filter: drop-shadow(0 0 3px rgba(255, 243, 225, .45)); }
+#ring .rail { stroke: #FA2D1A; opacity: .6; }
+
+.chip { border-color: rgba(255, 243, 225, .22); background: linear-gradient(150deg, rgba(26, 111, 191, .12), transparent 55%); }
+.chip:hover { border-color: rgba(255, 243, 225, .5); background: var(--burgundy); }
+.chip[aria-pressed="true"] { background: linear-gradient(180deg, #FFF8EC, #FFF3E1); box-shadow: 0 10px 20px -12px rgba(250, 45, 26, .7); }
+.btn { color: var(--stone); background: linear-gradient(180deg, #F23A2E, #D91A2A); border-bottom: 3px solid #8E0F1B;
+  box-shadow: 0 12px 26px -10px rgba(217, 26, 42, .7), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.btn:hover { background: linear-gradient(180deg, #FF4A3D, #E32030); }
+
+/* the ramp: dark navy, blue, scarlet, cream */
+.dot.c2 i, .cell.c2, .legend i.c2 { background: var(--pedestal); }
+.dot.c3 i, .cell.c3, .legend i.c3 { background: var(--stone); }
+.dot.c1 i, .cell.c1, .legend i.c1 { background: var(--wine); }
+.dot.today i, .cell.today { outline-color: var(--stone); }
+.bar { background: var(--burgundy); } .bar i { background: var(--sky-hi); } .bar.hit i { background: var(--stone); }
+.bar.future, .dot.future i, .cell.future { border-color: rgba(163, 178, 210, .35); }
+.sk .track, .cell, .dot i { background-color: var(--burgundy); }
+.cell.c1, .dot.c1 i { background: var(--wine); } .cell.c2, .dot.c2 i { background: var(--pedestal); } .cell.c3, .dot.c3 i { background: var(--stone); }
+.dot.future i, .cell.future { background: transparent; }
+#toast { background: var(--burgundy); color: var(--stone); border-color: rgba(255, 243, 225, .4); }
