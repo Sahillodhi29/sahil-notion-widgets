@@ -1,6 +1,6 @@
 /* ============================================================
    Current Status
-   Three glass cards on the live, time-synced sea:
+   Three wooden deck-plank log cards under a live Sky Banner slice:
      Must Do's  - daily completion + a habit-by-day grid + streaks
      Workout    - one column per session + which exercises you do
      Meals      - one column per logged day + most eaten / skipped
@@ -27,9 +27,9 @@
   const root = document.documentElement;
 
   const KINDS = {
-    mustdo:  { name: "Must Do's", c: '70 226 204',  c2: '170 250 235', icon: '<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>' },
-    workout: { name: 'Workout',   c: '104 214 134', c2: '214 244 140', icon: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>' },
-    meal:    { name: 'Meals',     c: '255 128 156', c2: '255 192 160', icon: '<path d="M6 3v7a2 2 0 0 0 4 0V3M8 3v18M17 3c-2.2 1.800-3 4.500-3 8h3v10"/>' },
+    mustdo:  { name: "Must Do's", c: '22 160 148',  c2: '74 218 198', icon: '<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>' },
+    workout: { name: 'Workout',   c: '58 168 92',   c2: '150 218 104', icon: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>' },
+    meal:    { name: 'Meals',     c: '224 82 104',  c2: '255 148 120', icon: '<path d="M6 3v7a2 2 0 0 0 4 0V3M8 3v18M17 3c-2.2 1.800-3 4.500-3 8h3v10"/>' },
   };
   const ORDER = ['mustdo', 'workout', 'meal'];
   const HABIT_ORDER = ['Wake up before 6 am', 'Morning Sunlight', 'Morning quick routine', 'Yoga & Workout', 'Grooming & Bathing',
@@ -48,20 +48,18 @@
   const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-  /* Which cards to show: ?cards=meal  or  ?cards=mustdo,workout  (use two embeds if you like). Default: all three. */
+  /* Workout days: Mon, Wed, Fri, Sun. Change with ?wdays=mon,tue,thu  (a day that has a log row is always shown) */
+  const SCHED = (() => {
+    const names = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const raw = (q.get('wdays') || 'mon,wed,fri,sun').toLowerCase().split(',').map(x => x.trim().slice(0, 3));
+    const set = new Set(raw.map(x => names.indexOf(x)).filter(i => i >= 0));
+    return set.size ? set : new Set([0, 2, 4, 6]);
+  })();
+  /* Which cards to show: ?cards=mustdo,workout  or  ?cards=meal  (to use two separate embeds) */
   const SHOW = (() => {
-    const c = (q.get('cards') || '').toLowerCase().split(',').map(x => x.trim());
+    const c = (q.get('cards') || '').split(',').map(x => x.trim());
     const list = ORDER.filter(k => c.includes(k));
     return list.length ? list : ORDER;
-  })();
-  /* Workout days: Mon, Wed, Fri, Sun by default. Change with ?wdays=mon,tue,thu  or show every day with ?wdays=all.
-     (A day that already has a log row is always shown, so nothing you log is hidden.) */
-  const SCHED = (() => {
-    const raw = (q.get('wdays') || 'mon,wed,fri,sun').toLowerCase();
-    if (raw === 'all') return null;
-    const names = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    const set = new Set(raw.split(',').map(x => names.indexOf(x.trim().slice(0, 3))).filter(i => i >= 0));
-    return set.size ? set : new Set([0, 2, 4, 6]);
   })();
 
   let RANGE = q.get('range') === 'month' ? 'month' : 'week';
@@ -97,7 +95,7 @@
       const date = addDays(per.start, i);
       const row = byDate.get(date);
       const isFuture = date > today;
-      const d = { date, i, dow: dowMon(date), state: 'future', pct: 0, done: 0, total: 0, missed: [], map: null, isToday: date === today };
+      const d = { date, i, k: i, dow: dowMon(date), state: 'future', pct: 0, done: 0, total: 0, missed: [], map: null, isToday: date === today };
       if (row) {
         d.map = new Map(row.items.map(x => [x.label, x.done]));
         d.total = row.items.length;
@@ -117,8 +115,8 @@
       }
       days.push(d);
     }
-    if (kind === 'workout' && SCHED) {
-      const keep = days.filter(d => SCHED.has(d.dow) || d.map);       // a day that has a log row is always shown
+    if (kind === 'workout') {
+      const keep = days.filter(d => SCHED.has(d.dow) || d.map);
       days.length = 0; keep.forEach((d, idx) => { d.i = idx; days.push(d); });
     }
     const out = { per, days, avg: counted ? Math.round((sum / counted) * 100) : null, counted, logged, sessions, planned, tally, rowsUsed: logged };
@@ -174,8 +172,8 @@
 
   /* week: glass columns with value pills (like the slider chart in your reference) */
   function columnsHTML(kind, comp) {
-    const nCols = comp.days.length;
-    let h = `<div class="cols" style="grid-template-columns:repeat(${nCols},1fr)">`;
+    let h = `<div class="cols" style="--n:${comp.days.length}">`;
+    const long = comp.days.length < 7;
     comp.days.forEach(d => {
       const has = d.state === 'row' && !d.noRow;
       const p = has ? d.pct : 0;
@@ -185,7 +183,7 @@
         ${has ? `<div class="pill" style="--p:${p}">${Math.round(p * 100)}</div>` : ''}
         ${d.state === 'plan' ? '<div class="pill ghost">plan</div>' : ''}
         ${d.isToday ? `<img class="hat" alt="" src="${HAT}" style="--p:${p}">` : ''}
-        <div class="dn">${nCols < 7 ? WD[d.dow] : WD[d.dow][0]}</div></div>`;
+        <div class="dn">${long ? WD[d.dow] : WD[d.dow][0]}</div></div>`;
     });
     return h + '</div>';
   }
@@ -222,7 +220,7 @@
     });
     comp.days.forEach(d => {
       const dn = +d.date.slice(8);
-      if ((kind === 'workout' && SCHED ? n <= 20 : (dn === 1 || dn % 5 === 0)) || d.isToday) s += `<text class="xl${d.isToday ? ' today' : ''}" x="${x(d.i).toFixed(1)}" y="${base + 18}">${dn}</text>`;
+      if ((kind === 'workout' ? n <= 20 : (dn === 1 || dn % 5 === 0)) || d.isToday) s += `<text class="xl${d.isToday ? ' today' : ''}" x="${x(d.i).toFixed(1)}" y="${base + 18}">${dn}</text>`;
     });
     const today = comp.days.find(d => d.isToday);
     if (today) {
@@ -245,10 +243,10 @@
   /* must do: habit-by-day grid */
   function gridHTML(comp) {
     const n = comp.days.length;
-    let h = `<div class="hgrid" style="--n:${n}"><div class="hrow hh"><div class="hl"></div><div class="hd">`;
+    let h = `<div class="hgrid${RANGE === 'month' ? ' m' : ''}" style="--n:${n}"><div class="hrow hh"><div class="hl"></div><div class="hd">`;
     comp.days.forEach(d => {
-      const show = RANGE === 'week' || d.i === 0 || (d.i + 1) % 5 === 0 || d.isToday;
-      h += `<span class="${d.isToday ? 'today' : ''}">${show ? (RANGE === 'week' ? WD[d.i][0] : d.i + 1) : ''}</span>`;
+      const show = RANGE === 'week' || d.k === 0 || (d.k + 1) % 5 === 0 || d.isToday;
+      h += `<span class="${d.isToday ? 'today' : ''}">${show ? (RANGE === 'week' ? WD[d.dow][0] : d.k + 1) : ''}</span>`;
     });
     h += '</div></div>';
     comp.habits.forEach((hb, hi) => {
@@ -278,6 +276,7 @@
     if (comp.error) return `<div class="panel"><div class="note"><b>Could not load</b><br>${esc(comp.error)}${comp.hint ? '<br>' + esc(comp.hint) : ''}</div></div>`;
     const noLogs = comp.logged === 0 && kind !== 'mustdo';
     let h = `<div class="panel chart ${RANGE}">${chartHTML(kind, comp)}${noLogs ? `<div class="note over">No logs ${comp.per.label} yet</div>` : ''}</div>`;
+    if (kind === 'meal') h = '<div class="two">' + h;
     const arr = [...comp.tally.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     if (kind === 'mustdo') {
       h += `<div class="streak">${comp.streak ? `<i class="sp"></i><span>Best streak</span> <b>${esc(comp.streak.label)}</b> <span>· ${comp.streak.n} days</span>` : '<i class="sp"></i><span>No streak yet. A few days in a row will light this up.</span>'}</div>`;
@@ -288,8 +287,8 @@
     } else {
       const top = arr.slice(0, 3);
       const low = arr.slice(-4).reverse().filter(x => !top.includes(x));
-      const b = barsHTML(top, comp.rowsUsed, 'days', 'Most eaten') + barsHTML(low, comp.rowsUsed, 'days', 'Most skipped');
-      h += `<div class="panel bars">${b || '<div class="note">Foods appear here once you log a day.</div>'}</div>`;
+      const b = barsHTML(top, comp.rowsUsed, 'days', 'Most eaten') + barsHTML(low.slice(0, 3), comp.rowsUsed, 'days', 'Most skipped');
+      h += `<div class="panel bars">${b || '<div class="note">Foods appear here once you log a day.</div>'}</div></div>`;
     }
     return h;
   }
@@ -308,7 +307,6 @@
       inner.className = 'inner'; inner.id = 'in-' + kind;
       card.appendChild(inner);
       wrap.appendChild(card);
-      decorate(card, 11 + idx * 17);
     });
   }
 
@@ -322,12 +320,32 @@
       $('in-' + kind).querySelectorAll('.mk').forEach(im => im.addEventListener('error', () => im.remove(), { once: true }));
     });
     $('cards').classList.toggle('anim', animateNext);
-    $('cards').classList.toggle('three', SHOW.length === 3);
     $('cards').classList.toggle('one', SHOW.length === 1);
     animateNext = false;
     document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.r === RANGE)));
     document.querySelector('.seg').dataset.r = RANGE;
+    refit();
   }
+
+  /* ---------- fit: scale the whole widget to the height of the Notion embed ---------- */
+  /* So there is never a scrollbar inside the widget, whatever height you drag the embed to. */
+  function fit() {
+    const box = $('fitBox'), el = $('fit');
+    el.style.transform = 'none'; el.style.width = ''; box.style.height = '';
+    if (innerWidth < 760) return;                 // phones: just stack and scroll the page
+    let z = 1;
+    for (let k = 0; k < 8; k++) {
+      const h = el.offsetHeight * z;               // height as currently drawn
+      const nz = Math.max(0.55, Math.min(1, z * (innerHeight - 3) / Math.max(1, h)));
+      if (Math.abs(nz - z) < 0.002) break;
+      z = nz;
+      el.style.width = `calc(100% / ${z})`;
+      el.style.transform = `scale(${z})`;
+    }
+    box.style.height = Math.ceil(el.offsetHeight * z) + 'px';
+  }
+  const refit = () => requestAnimationFrame(fit);
+  addEventListener('resize', refit);
 
   /* ---------- tooltip ---------- */
   const tip = $('tip');
@@ -397,8 +415,8 @@
         const e = new Error(d.error || `Request failed (${res.status})`); e.hint = d.hint; e.status = res.status; throw e;
       }
       const sig = JSON.stringify([d.today, d.mustdo, d.workout, d.meal]);
-      const errs = SHOW.filter(k => d[k] && d[k].error);
-      message(errs.length === SHOW.length ? 'Could not read your logs' : '', errs.length === SHOW.length ? (d[errs[0]].error + ' ' + (d[errs[0]].hint || '')) : '');
+      const errs = ORDER.filter(k => d[k] && d[k].error);
+      message(errs.length === 3 ? 'Could not read your logs' : '', errs.length === 3 ? (d[errs[0]].error + ' ' + (d[errs[0]].hint || '')) : '');
       if (sig !== lastSig) { lastSig = sig; DATA = d; draw(); }
     } catch (e) {
       if (!DATA) message(e.status === 401 ? 'Key not accepted' : "Couldn't reach the harbor", (e.message || '') + (e.hint ? ' ' + e.hint : ''));
@@ -498,6 +516,7 @@
     set('--sea-top', rgb(k.seaTop)); set('--sea-bot', rgb(k.seaBot));
     set('--spark', rgb(k.spark)); set('--stars', k.stars.toFixed(3));
     set('--cloud', rgb(k.cloud)); set('--cloud-a', k.cloudA.toFixed(3));
+    set('--wave-l', rgb(mixC(k.seaTop, [255, 255, 255], .35))); set('--wave-d', rgb(mixC(k.seaBot, [0, 6, 30], .35)));
   }
   async function fetchSun() {
     try {
@@ -517,37 +536,36 @@
     return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }
-  /* each card gets its own little sky + sea (same look as Today's Adventure) */
-  function decorate(card, seed) {
-    const r = seeded(seed);
-    const deco = document.createElement('div');
-    deco.className = 'deco';
-    const add = (cls, css) => { const i = document.createElement('i'); i.className = cls; i.style.cssText = css; deco.appendChild(i); };
-    add('aur', '');
-    for (let i = 0; i < 3; i++) add('cld', `top:${6 + r() * 12}%;left:0;--w:${90 + r() * 90}px;--h:${18 + r() * 18}px;--d:${55 + r() * 50}s;--dl:${-r() * 80}s`);
-    for (let i = 0; i < 20; i++) add('star', `left:${r() * 100}%;top:${r() * 16}%;--d:${2 + r() * 3}s;--dl:${-r() * 4}s`);
-    add('hz', '');
-    for (let i = 0; i < 9; i++) add('glint', `left:${r() * 92}%;top:${24 + r() * 66}%;--w:${14 + r() * 24}px;--d:${3.5 + r() * 4}s;--dl:${-r() * 6}s`);
-    for (let i = 0; i < 6; i++) add('spk', `left:${6 + r() * 88}%;top:${3 + r() * 90}%;--s:${4 + r() * 4}px;--d:${2.6 + r() * 2.6}s;--dl:${-r() * 4}s`);
-    card.insertBefore(deco, card.firstChild);
-    const sea = document.createElement('div');
-    sea.className = 'sea';
-    const wave = (cls, amp, off) => {
-      const sv = document.createElementNS(NS, 'svg');
-      sv.setAttribute('viewBox', '0 0 800 60'); sv.setAttribute('preserveAspectRatio', 'none'); sv.setAttribute('class', cls);
-      let d = `M0 ${30 + off}`;
-      for (let x = 0; x < 800; x += 100) d += ` q25 ${-amp} 50 0 t50 0`;
-      d += ' V60 H0 Z';
-      const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); sv.appendChild(p);
-      return sv;
+  /* the header banner: live sky, drifting clouds, layered waves (same recipe as the Sky Banner) */
+  function buildBanner() {
+    const r = seeded(9);
+    const stars = $('bStars');
+    for (let i = 0; i < 26; i++) {
+      const el = document.createElement('i'); el.className = 'star';
+      el.style.cssText = `left:${r() * 100}%;top:${r() * 46}%;--d:${2 + r() * 3}s;--dl:${-r() * 4}s;--s:${1.5 + r() * 1.5}px`;
+      stars.appendChild(el);
+    }
+    const CL = '<svg viewBox="0 0 200 80" aria-hidden="true"><g fill="currentColor"><ellipse cx="60" cy="52" rx="48" ry="22"/><ellipse cx="108" cy="38" rx="44" ry="28"/><ellipse cx="152" cy="54" rx="42" ry="20"/><ellipse cx="100" cy="58" rx="74" ry="20"/></g></svg>';
+    [{ top: 8, w: 13, sp: 130, ph: .1 }, { top: 30, w: 9, sp: 170, ph: .42 }, { top: 12, w: 15, sp: 150, ph: .74 }, { top: 34, w: 8, sp: 190, ph: .9 }].forEach(c => {
+      const el = document.createElement('div'); el.className = 'cld'; el.innerHTML = CL;
+      el.style.cssText = `top:${c.top}%;width:${c.w}%;animation-duration:${c.sp}s;animation-delay:-${(c.ph * c.sp).toFixed(1)}s`;
+      $('bClouds').appendChild(el);
+    });
+    const sea = $('bSea');
+    const wave = (cls, top, height, half, amp, dur, rev) => {
+      const wv = document.createElement('div'); wv.className = 'wv ' + cls;
+      wv.style.cssText = `top:${top}%;height:${height}%;animation-duration:${dur}s;${rev ? 'animation-direction:reverse;' : ''}`;
+      let d = `M0 30 q${half / 2} ${-amp} ${half} 0` + ` t${half} 0`.repeat(Math.round(2400 / half) - 1) + ' V60 H0 Z';
+      wv.innerHTML = `<svg viewBox="0 0 2400 60" preserveAspectRatio="none"><path d="${d}"/></svg>`;
+      sea.appendChild(wv);
     };
-    sea.append(wave('w1', 14, 4), wave('w2', 11, 14));
-    card.insertBefore(sea, deco.nextSibling);
+    wave('l', 0, 46, 120, 9, 34); wave('d', 22, 56, 170, 11, 26, true); wave('l', 48, 58, 230, 11, 19);
   }
 
   /* ---------- go ---------- */
   applySky();
   if (PREVIEW == null) { setInterval(applySky, 30000); fetchSun(); }
+  buildBanner();
   build();
   draw();
 
