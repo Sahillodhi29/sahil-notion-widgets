@@ -379,7 +379,7 @@ input[type="search"]::-webkit-search-cancel-button { filter: sepia(1) brightness
 
 /* ---------- the wardrobe: white, gold-trimmed, doors that open ---------- */
 .wd-layout { display: grid; grid-template-columns: 1fr; gap: 28px; }
-@container (min-width: 760px) { .wd-layout { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); align-items: start; } }
+@container (min-width: 640px) { .wd-layout { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); } }
 .wd-wrap { display: grid; justify-items: center; padding: 22px 6px 6px; }
 .wd { position: relative; width: 100%; max-width: 400px; padding: 12px 12px 14px; border-radius: 8px 8px 4px 4px;
   background: linear-gradient(90deg, #E4DECE, #F6F2E6 8%, #F1ECDF 92%, #DAD3C1);
@@ -484,7 +484,7 @@ input[type="search"]::-webkit-search-cancel-button { filter: sepia(1) brightness
 
 /* ---------- what's in it: ranked bars ---------- */
 .bars { display: grid; gap: 16px; }
-@container (min-width: 760px) { .bars { grid-template-columns: 1fr 1fr; column-gap: 56px; } .bars > .empty-state { grid-column: 1 / -1; } }
+@container (min-width: 640px) { .bars { grid-template-columns: 1fr 1fr; column-gap: 56px; } .bars > .empty-state { grid-column: 1 / -1; } }
 .brow { display: grid; grid-template-columns: minmax(92px, 32%) minmax(0, 1fr) 28px; align-items: center; gap: 14px; }
 .brow .bl { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; min-width: 0; }
 .brow .bl span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -556,3 +556,88 @@ input[type="search"]::-webkit-search-cancel-button { filter: sepia(1) brightness
   .pc-grid, .pc-grid.roomy { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* ============================================================
+   FIT: every embed's card fills its frame exactly (no blank gaps), and every
+   widget has a fixed height that never changes, whatever is in it.
+   ============================================================ */
+body[data-fit="fill"], body[data-fit="fill"] html { height: 100%; }
+body[data-fit="fill"] #stage { height: 100%; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+body[data-fit="fill"] #stage > .card { height: 100%; align-self: stretch; overflow: auto; scrollbar-width: none; }
+body[data-fit="fill"] #stage > .card::-webkit-scrollbar { display: none; }
+.head-r { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pager { display: inline-flex; align-items: center; gap: 4px; background: var(--well); border: 1px solid var(--line-2); border-radius: 999px; padding: 3px; }
+.pager[hidden] { display: none; }
+.pager button { width: 30px; height: 30px; border-radius: 50%; border: 0; background: transparent; color: var(--butter); font-size: 20px; line-height: 1; transition: background .2s; }
+.pager button:hover:not(:disabled) { background: rgba(245, 232, 170, .16); }
+.pager button:disabled { opacity: .3; cursor: default; }
+.pager span { min-width: 44px; text-align: center; font-size: 12.5px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.in-pager { align-self: center; margin-top: 10px; }
+
+/* today's outfit: always one row, always the same height */
+.card.hero #todayBody { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.look-strip { overflow: hidden; gap: 14px; }
+.look-piece { flex: 1 1 0; min-width: 48px; max-width: 150px; }
+.look-piece .th { aspect-ratio: auto; height: 170px; font-size: 36px; }
+.look-piece span:last-child { min-height: 2.5em; }
+.look-head .muted { font-size: 12.5px; }
+
+/* outfits gallery: one row, fixed collage height */
+.cv { aspect-ratio: auto; height: 214px; }
+.of-grid { padding: 4px; }
+
+/* wishlist: one row of fixed-height cards */
+.wc-th { aspect-ratio: auto; height: 188px; }
+.w-act { min-height: 32px; flex-wrap: nowrap; }
+.w-act .btn { padding: 6px 12px; white-space: nowrap; }
+.wc-photo { overflow: hidden; border-radius: 16px; }
+.wc-photo .wc-th { border-radius: 16px; }
+.buy-ask { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 2; background: rgba(24, 4, 10, .93); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); gap: 6px; padding: 10px; border-radius: 14px; }
+.buy-ask span { font-size: 12.5px; text-align: center; }
+
+/* wardrobe: fixed cabinet, the panel beside it is exactly as tall and pages instead of scrolling */
+.wd-layout { align-items: stretch; flex: 1; }
+.inside { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.inside.closed { display: grid; }
+.in-body { flex: 1; min-height: 0; overflow: hidden; align-content: start; }
+.in-head { margin-bottom: 10px; }
+.in-chips { margin-bottom: 10px; padding-bottom: 4px; }
+.ri-th { aspect-ratio: auto; height: 100px; }
+.si-th { aspect-ratio: auto; height: 96px; }
+.di-th { aspect-ratio: auto; height: 78px; }
+.ri { padding-top: 36px; }
+.si .pn { min-height: 2.6em; }
+.sleepers { grid-template-columns: repeat(auto-fill, minmax(88px, 112px)); }
+.sleeper .th { aspect-ratio: auto; height: 104px; }
+
+/* ----- pop-up windows (the form, the outfit builder, details) ----- */
+body.popup #stage { max-width: 880px; margin: 0 auto; padding: 18px; grid-template-columns: minmax(0, 1fr); }
+body.popup-sheet #stage { display: none; }
+body.popup .sheet { padding: 0; }
+body.popup .sheet-panel, body.popup .sheet-panel.detail { width: 100%; height: 100vh; max-height: none; border-radius: 0; border-width: 0; }
+body.popup .sheet-panel.detail { height: 100vh; }
+body.popup .sheet-backdrop { background: #1b0710; opacity: 1; }
+.done-screen { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(24, 6, 12, .96); padding: 24px; }
+.done-card { display: grid; justify-items: center; gap: 10px; text-align: center; max-width: 360px; }
+.done-card strong { font-family: var(--display); font-weight: 800; font-size: 26px; color: var(--butter-hi); }
+.done-card p { color: var(--muted); }
+.ftitle .muted { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .empty-state { padding: 4px 10px; gap: 6px; }
+.bars .empty-state .es-ico { display: none; }
+.bars .empty-state strong { font-size: 18px; }
+/* wishlist card: its own column, a fixed-height action area */
+.wc { grid-template-columns: minmax(0, 1fr); }
+.w-act { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; min-height: 0; }
+.w-act .sel { grid-column: 1 / -1; width: 100%; }
+.w-act .btn { margin-left: 0; justify-self: start; }
+.w-act a { justify-self: end; white-space: nowrap; }
+/* wardrobe panel: a little tighter so two rows fit */
+.ri { padding-top: 34px; gap: 7px; }
+.ri-th { height: 90px; }
+.si-th { height: 88px; }
+.si .pn { min-height: 2.4em; }
+.in-head h2 { font-size: 22px; }
+#fitchip { position: fixed; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 40; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: .02em; white-space: nowrap; pointer-events: none; box-shadow: 0 8px 20px -6px rgba(0, 0, 0, .8); }
+#fitchip.short { background: #C9285C; color: #fff; }
+#fitchip.tall { background: #E9CB6E; color: #3A0A1C; }
+#fitchip.ok { background: #F5E8AA; color: #3A0A1C; }

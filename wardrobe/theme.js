@@ -24,7 +24,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     const stage = document.getElementById('stage'), t = q.get('toggle');
-    const full = document.body.dataset.mode === 'multi' && stage && !stage.classList.contains('solo');
+    const full = document.body.dataset.all === '1' && !document.body.classList.contains('popup');   // only on the full dashboard page
     if (t === 'off' || t === '0' || (!full && t !== 'on' && t !== '1')) return;
     box = document.createElement('div');
     box.className = 'theme-toggle'; box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Theme');

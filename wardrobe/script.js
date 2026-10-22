@@ -35,6 +35,13 @@
   const FORM_ONLY = shown.length === 1 && (shown[0] === 'add' || shown[0] === 'wish');
   const MULTI = shown.length !== 1 || FORM_ONLY;       // a lone form still starts as the slim "+" card
   document.body.dataset.mode = MULTI ? 'multi' : 'single';
+  const POPUP = params.get('popup') === '1';                 // this page is the pop-up window itself
+  const ACT = params.get('act') || '';
+  const NOPOP = params.get('pop') === '0';                   // &pop=0 keeps everything inside the embed
+  const FIT = !wantAll && !POPUP && params.get('natural') !== '1';   // each embed's card fills its frame exactly
+  if (FIT) document.body.dataset.fit = 'fill';
+  if (wantAll && !POPUP) document.body.dataset.all = '1';
+  if (POPUP) { document.body.classList.add('popup'); if (['builder', 'piece', 'outfit'].includes(ACT)) document.body.classList.add('popup-sheet'); }
   if (shown.length === 1) $('stage').classList.add('solo');
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
@@ -44,7 +51,7 @@
   const need = [...new Set(shown.flatMap(w => NEEDS[w]))];
 
   const state = { today: null, items: [], outfits: [], wishes: [], schema: null, err: {}, pending: 0, loadedAt: 0, gaugeDone: false };
-  const ui = { sort: 'recent', by: 'cat', ask: null, catAnim: true, wd: null, wdCat: {}, wdAll: {} };
+  const ui = { sort: 'recent', by: 'cat', ask: null, catAnim: true, wd: null, wdCat: {}, wdAll: {}, page: { of: 0, wl: 0, wd: 0 } };
   const ob = { open: false, sel: [], cat: 'All', type: '', q: '', name: '' };
   const forms = {};
   const undoMap = new Map();
@@ -210,17 +217,72 @@
   }
   const secError = (k, what) => (state.err[k] ? `<p class="empty">Couldn't read ${what}: ${esc(state.err[k].error)}${state.err[k].hint ? ' ' + esc(state.err[k].hint) : ''}</p>` : '');
   const emptyState = (title, text, act, label, ico) => `<div class="empty-state"><span class="es-ico">${ICONS[ico || 'add']}</span><strong>${esc(title)}</strong><p>${esc(text)}</p>${act ? `<button type="button" class="btn sm primary" ${act}>${esc(label)}</button>` : ''}</div>`;
-  const openForm$ = w => (has(w) ? `data-open-form="${w}"` : '');
+  const openForm$ = w => `data-open-form="${w}"`;
 
+  let booted = false;
   async function refresh() {
     if (state.pending) return;
-    try { await load(); renderAll(); }
+    try { await load(); renderAll(); if (!booted) { booted = true; bootPopup(); } }
     catch (e) { if (!state.today) showBad(e); }       // keep what's on screen if a background refresh fails
   }
 
   // Widgets in separate embeds stay in step through this channel (when the browser lets them share it).
   let bc = null; try { bc = new BroadcastChannel('wardrobe-widgets'); bc.onmessage = () => setTimeout(refresh, 500); } catch (e) { /* not available in this sandbox */ }
-  const announce = () => { if (bc) bc.postMessage('changed'); setTimeout(refresh, 800); };
+  const announce = () => {
+    if (bc) bc.postMessage('changed');
+    try { if (window.opener && window.opener !== window) window.opener.postMessage('wardrobe-changed', '*'); } catch (e) { /* ignore */ }
+    setTimeout(refresh, 800);
+  };
+  window.addEventListener('message', e => { if (e.data === 'wardrobe-changed') setTimeout(refresh, 400); });
+  window.addEventListener('focus', () => { if (state.loadedAt && Date.now() - state.loadedAt > 4000) refresh(); });
+
+  /* ----- big things open in their own window, so the embeds never have to grow ----- */
+  let popWin = null, popTimer = null;
+  function popOut(q, w, h) {
+    if (POPUP || NOPOP) return false;
+    try {
+      const u = new URL(location.href); u.search = '';
+      u.searchParams.set('key', KEY);
+      if (params.get('cur')) u.searchParams.set('cur', params.get('cur'));
+      Object.entries(q).forEach(([k, v]) => { if (v) u.searchParams.set(k, v); });
+      const th = document.documentElement.dataset.theme; if (th) u.searchParams.set('theme', th);      // the pop-up wears the same theme
+      u.searchParams.set('popup', '1');
+      const left = Math.max(0, Math.round(((window.screen.availWidth || 1200) - w) / 2));
+      const top = Math.max(0, Math.round(((window.screen.availHeight || 800) - h) / 3));
+      const win = window.open(u.toString(), 'wardrobe-window', `popup=yes,width=${w},height=${h},left=${left},top=${top}`);
+      if (!win) return false;
+      popWin = win; try { win.focus(); } catch (e) { /* ignore */ }
+      clearInterval(popTimer);
+      popTimer = setInterval(() => { if (!popWin || popWin.closed) { clearInterval(popTimer); refresh(); } }, 900);
+      return true;
+    } catch (e) { return false; }
+  }
+  function leavePopup(msg) {      // inside a pop-up: close it, or say we're done if the browser won't let us
+    try { if (window.opener && window.opener !== window) window.opener.postMessage('wardrobe-changed', '*'); } catch (e) { /* ignore */ }
+    setTimeout(() => { try { window.close(); } catch (e) { /* ignore */ } }, 450);
+    setTimeout(() => {
+      if (document.getElementById('done')) return;
+      const d = document.createElement('div'); d.id = 'done'; d.className = 'done-screen';
+      d.innerHTML = `<div class="done-card"><span class="es-ico big">${CHECK}</span><strong>${esc(msg || 'All set')}</strong><p>You can close this window now. Your widgets update by themselves.</p></div>`;
+      document.body.append(d);
+    }, 1000);
+  }
+  function bootPopup() {
+    if (!POPUP) return;
+    const id = params.get('id') || '', pre = params.get('pre') || '';
+    if (ACT === 'builder') openBuilder(pre || undefined);
+    else if (ACT === 'piece') openPiece(id);
+    else if (ACT === 'outfit') openDetail(id);
+    else if (ACT === 'form') { const F = forms[shown[0]]; const i = F && F.root.querySelector('input[data-in]'); if (i) setTimeout(() => i.focus(), 120); }
+  }
+  // paging helpers: lists never scroll inside an embed, they page
+  const fitCols = (el, min, gap) => { const w = el.clientWidth || (el.parentElement && el.parentElement.clientWidth) || 0; return w ? Math.max(1, Math.floor((w + gap) / (min + gap))) : 4; };
+  function setPager(id, page, pages) {
+    const el = $(id); if (!el) return;
+    el.hidden = pages <= 1;
+    el.innerHTML = pages <= 1 ? '' : `<button type="button" data-pg="prev" aria-label="Previous page"${page <= 0 ? ' disabled' : ''}>&lsaquo;</button><span>${page + 1} / ${pages}</span><button type="button" data-pg="next" aria-label="Next page"${page >= pages - 1 ? ' disabled' : ''}>&rsaquo;</button>`;
+  }
+
 
   /* =========================================================
      FORMS  (New piece, New wish)
@@ -285,7 +347,7 @@
       root.innerHTML = `<h2>${esc(def.title)}</h2><p class="muted note">Notion has no "${esc(def.nameProp)}" property in this database. Open /api/wardrobe-health to see what's missing.</p>`;
       return;
     }
-    const F = { w, def, root, sch, values: {}, session: 0, showAll: false, search: {}, exp: {}, open: !MULTI, photo: freshPhoto() };
+    const F = { w, def, root, sch, values: {}, session: 0, showAll: false, search: {}, exp: {}, open: !MULTI || POPUP, photo: freshPhoto() };
     F.fields = [...def.essentials, ...def.more].filter(f => sch[f.p]);
     F.fieldOf = p => F.fields.find(f => f.p === p);
     F.fields.forEach(f => { F.values[f.p] = defaultFor(F, f); });
@@ -294,17 +356,17 @@
     // the essentials sit in two columns on a wide card, and stack on a narrow one
     const cols = list => `<div class="fcols"><div class="fgrid">${sect(list.filter(f => !f.col2))}</div><div class="fgrid">${sect(list.filter(f => f.col2))}</div></div>`;
     const headInner = `<span class="gico g-${w}">${ICONS[def.icon]}</span><div class="ftitle"><h2>${esc(def.title)}</h2><p class="muted">${esc(def.blurb)}</p></div><span class="fplus">${PLUS}</span>`;
-    root.classList.toggle('collapsible', MULTI);
+    root.classList.toggle('collapsible', MULTI && !POPUP);
     root.classList.toggle('open', F.open);
     root.innerHTML = `
-      ${MULTI ? `<button type="button" class="fhead" data-toggle aria-expanded="${F.open}">${headInner}</button>` : `<div class="fhead">${headInner}</div>`}
+      ${MULTI && !POPUP ? `<button type="button" class="fhead" data-toggle aria-expanded="${F.open}">${headInner}</button>` : `<div class="fhead">${headInner}</div>`}
       <div class="fbody"${F.open ? '' : ' hidden'}>
         <div class="fscroll">
           ${cols(def.essentials)}
           <button type="button" class="more-toggle" aria-expanded="false">${esc(def.moreLabel)}</button>
           <div class="fgrid more" hidden>${sect(def.more)}</div>
         </div>
-        <div class="ffoot"><span class="msg" data-msg></span><button type="button" class="btn primary" data-save>${esc(def.save)}</button></div>
+        <div class="ffoot"><span class="msg" data-msg></span>${POPUP ? '<button type="button" class="btn ghost" data-done>Done</button>' : ''}<button type="button" class="btn primary" data-save>${esc(def.save)}</button></div>
       </div>`;
     forms[w] = F;
     F.fields.filter(f => isPicker(F, f)).forEach(f => refreshPicker(F, f));
@@ -321,7 +383,8 @@
   }
 
   function openForm(w) {
-    const F = forms[w]; if (!F) return;
+    if (popOut({ w, act: 'form' }, 780, 900)) return;
+    const F = forms[w]; if (!F) { toast('Use the New piece / New wish widget to add things.'); return; }
     if (!F.open) setOpen(F, true);
     F.root.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const i = F.root.querySelector('input[data-in]'); if (i) setTimeout(() => i.focus({ preventScroll: true }), 120);
@@ -518,7 +581,8 @@
     root.addEventListener('click', e => {
       const t = e.target.closest('button');
       if (!t || !root.contains(t)) return;
-      if (t.matches('[data-toggle]')) { setOpen(F, !F.open); return; }
+      if (t.matches('[data-done]')) { leavePopup('Done'); return; }
+      if (t.matches('[data-toggle]')) { if (!F.open && popOut({ w: F.w, act: 'form' }, 780, 900)) return; setOpen(F, !F.open); return; }
       if (t.matches('[data-save]')) { submitForm(F); return; }
       if (t.matches('[data-upload]')) { const fi = root.querySelector('[data-file]'); if (fi) fi.click(); return; }
       if (t.classList.contains('more-toggle')) {
@@ -643,13 +707,11 @@
         : emptyState('Add a few pieces first', 'Once your wardrobe has some pieces, you can build and log outfits from it.', openForm$('add'), 'Add a piece', 'add');
       return;
     }
-    body.innerHTML = looks.slice(0, 2).map((o, k) => {
-      const ps = piecesOf(o);
-      return `<div class="look${k ? ' small' : ''}">
-        <div class="look-head"><span class="look-name">${esc(o.name)}</span><span class="pill">${plural(ps.length, 'piece')}</span></div>
+    const o = looks[0], ps = piecesOf(o);
+    body.innerHTML = `<div class="look">
+        <div class="look-head"><span class="look-name">${esc(o.name)}</span><span class="pill">${plural(ps.length, 'piece')}</span>${looks.length > 1 ? `<span class="muted">+${looks.length - 1} more ${looks.length > 2 ? 'looks' : 'look'} today, see Outfits</span>` : ''}</div>
         <div class="look-strip">${ps.map(p => `<div class="look-piece">${thumb(p)}<span>${esc(p.name)}</span></div>`).join('')}</div>
       </div>`;
-    }).join('');
   }
 
   /* ----- widget: outfits gallery ----- */
@@ -662,11 +724,18 @@
     if (ui.sort === 'worn') list.sort((a, b) => b.n - a.n || (b.last || '').localeCompare(a.last || ''));
     else list.sort((a, b) => (b.last || b.created || '').localeCompare(a.last || a.created || '') || (b.created || '').localeCompare(a.created || ''));
     if (!list.length) {
+      grid.style.gridTemplateColumns = ''; setPager('ofPager', 0, 1);
       grid.innerHTML = ui.sort === 'fav'
         ? emptyState('No favourites yet', 'Tap the heart on a look you love and it will live here.', '', '', 'wish')
         : emptyState('No outfits yet', "Log today's outfit and your looks will collect here.", has('outfit') ? 'data-open-builder' : '', "Add Today's Outfit", 'outfit');
       return;
     }
+    const cols = fitCols(grid, 168, 18);
+    const pages = Math.max(1, Math.ceil(list.length / cols));
+    ui.page.of = Math.min(ui.page.of, pages - 1);
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    setPager('ofPager', ui.page.of, pages);
+    list = list.slice(ui.page.of * cols, ui.page.of * cols + cols);
     grid.innerHTML = list.map(o => {
       const fav = o.status === 'Favorite';
       const today = o.last === state.today;
@@ -742,11 +811,14 @@
      ========================================================= */
   let detailId = null, pieceId = null;
   const sheet = () => $('sheet');
-  function openSheet() { sheet().hidden = false; document.body.classList.add('locked'); requestAnimationFrame(() => sheet().classList.add('in')); }
+  let sheetTimer = null;
+  function openSheet() { clearTimeout(sheetTimer); sheet().hidden = false; document.body.classList.add('locked'); requestAnimationFrame(() => sheet().classList.add('in')); }
   function closeSheet() {
+    if (POPUP && document.body.classList.contains('popup-sheet')) { leavePopup('Closed'); return; }
     ob.open = false; detailId = null; pieceId = null;
     sheet().classList.remove('in'); document.body.classList.remove('locked');
-    setTimeout(() => { if (!sheet().classList.contains('in')) { sheet().hidden = true; sheet().innerHTML = ''; } }, 220);
+    clearTimeout(sheetTimer);
+    sheetTimer = setTimeout(() => { if (!sheet().classList.contains('in')) { sheet().hidden = true; sheet().innerHTML = ''; } }, 220);
   }
 
   /* ----- outfit builder ----- */
@@ -759,6 +831,7 @@
   }
   function openBuilder(pre) {
     if (!obPool().length) { toast('Add a few pieces to your wardrobe first.'); return; }
+    if (!POPUP && popOut({ w: 'outfit', act: 'builder', pre: typeof pre === 'string' ? pre : '' }, 1080, 900)) return;
     if (typeof pre === 'string' && !ob.sel.includes(pre)) ob.sel.push(pre);
     detailId = null; pieceId = null;
     ob.open = true; ob.cat = 'All'; ob.type = ''; ob.q = '';
@@ -851,19 +924,20 @@
     prev.forEach(x => { x.p.n = (x.p.n || 0) + 1; x.p.last = state.today; });
     state.outfits.push(tmp);
     const saved = { sel: ids, name };
-    closeSheet(); ob.sel = []; ob.name = '';
+    if (!POPUP) { closeSheet(); ob.sel = []; ob.name = ''; } else { const sb = $('obSave'); if (sb) { sb.disabled = true; sb.textContent = 'Saving...'; } }
     state.pending++; renderLive();
     try {
       const res = await post({ action: 'outfit-create', items: ids, name });
       undoMap.set('o:' + res.id, res);
       toast(`Outfit logged: ${res.name}`, 7000, { label: 'Undo', fn: () => undoOutfit(res) });
       announce();
+      if (POPUP) leavePopup('Outfit logged');
     } catch (e) {
       const i = state.outfits.indexOf(tmp); if (i !== -1) state.outfits.splice(i, 1);
       prev.forEach(x => { x.p.n = x.n; x.p.last = x.last; });
       renderLive();
       toast(`Couldn't save: ${errText(e)}`, 9000);
-      ob.sel = saved.sel; openBuilder(); if ($('obName')) $('obName').value = saved.name; obRenderGrid(); obRenderTray();
+      if (POPUP) obRenderTray(); else { ob.sel = saved.sel; openBuilder(); if ($('obName')) $('obName').value = saved.name; obRenderGrid(); obRenderTray(); }
     } finally { state.pending--; }
   }
 
@@ -885,6 +959,7 @@
   /* ----- outfit details ----- */
   function openDetail(id) {
     if (!findOutfit(id)) return;
+    if (!String(id).startsWith('tmp-') && popOut({ w: 'outfits', act: 'outfit', id }, 840, 800)) return;
     detailId = id; pieceId = null; ob.open = false;
     renderDetail(); openSheet();
   }
@@ -994,12 +1069,39 @@
     el.className = `inside open-${c.kind}`;
     el.innerHTML = `<div class="in-head"><div class="title"><h2>${esc(c.name)}</h2><p class="eyebrow">${plural(group.length, 'piece')} \u00B7 ${esc(c.blurb)}</p></div><button type="button" class="btn sm ghost" data-wdclose>Close the door</button></div>
       ${chips}
-      ${shownList.length ? `<div class="in-body ${c.kind}" style="--ratio:${c.ratio}">${shownList.map(i => pieceHtml(i, c.kind)).join('')}</div>` : emptyState('Nothing in here yet', 'Add a piece in this category and it will be put away here.', openForm$('add'), 'Add a piece', 'add')}
-      ${list.length > WD_SHOW ? `<div class="more-row"><button type="button" class="link" data-wdall>${all ? 'Show fewer' : `Show all ${list.length}`}</button></div>` : ''}`;
+      <div class="in-body ${c.kind}" style="--ratio:${c.ratio}"></div>
+      <div class="pager in-pager" id="wdPager" hidden></div>`;
+    const body = el.querySelector('.in-body');
+    if (!list.length) { body.innerHTML = emptyState('Nothing in here yet', 'Add a piece in this category and it will be put away here.', openForm$('add'), 'Add a piece', 'add'); return; }
+    fillWardrobe(body, list, c);
+  }
+
+  const MIN_W = { rail: 108, shelf: 112, drawer: 96 };
+  function fillWardrobe(body, list, c) {
+    const cs = getComputedStyle(body);
+    const w = body.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const h = body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const gapX = c.kind === 'drawer' ? 12 : 0;
+    const cols = w > 0 ? Math.max(1, Math.floor((w + gapX) / (MIN_W[c.kind] + gapX))) : 5;
+    body.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    body.innerHTML = pieceHtml(list[0], c.kind);                       // measure one real row
+    const rowH = body.firstElementChild.offsetHeight || 170;
+    const gapY = parseFloat(getComputedStyle(body).rowGap) || 0;
+    const rows = h > 0 ? Math.max(1, Math.floor((h + gapY) / (rowH + gapY))) : 2;
+    const per = cols * rows, pages = Math.max(1, Math.ceil(list.length / per));
+    ui.page.wd = Math.min(ui.page.wd, pages - 1);
+    body.innerHTML = list.slice(ui.page.wd * per, ui.page.wd * per + per).map(i => pieceHtml(i, c.kind)).join('');
+    setPager('wdPager', ui.page.wd, pages);
+    if (pages > 1) {                                                    // the pager takes room: re-check with it in place
+      const h2 = body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const rows2 = Math.max(1, Math.floor((h2 + gapY) / (rowH + gapY)));
+      if (rows2 < rows) { const per2 = cols * rows2, pages2 = Math.max(1, Math.ceil(list.length / per2)); ui.page.wd = Math.min(ui.page.wd, pages2 - 1); body.innerHTML = list.slice(ui.page.wd * per2, ui.page.wd * per2 + per2).map(i => pieceHtml(i, c.kind)).join(''); setPager('wdPager', ui.page.wd, pages2); }
+    }
   }
 
   function toggleDoor(id) {
     ui.wd = ui.wd === id ? null : id;
+    ui.page.wd = 0;
     if (ui.wd) { ui.wdCat[id] = 'All'; ui.wdAll[id] = false; }      // a freshly opened door always starts on "All"
     renderWardrobe();
   }
@@ -1007,6 +1109,7 @@
   /* ----- one piece: a closer look ----- */
   function openPiece(id) {
     if (!state.items.find(i => i.id === id)) return;
+    if (!String(id).startsWith('tmp-') && popOut({ w: 'closet', act: 'piece', id }, 820, 740)) return;
     pieceId = id; detailId = null; ob.open = false;
     renderPiece(); openSheet();
   }
@@ -1096,15 +1199,19 @@
     const statuses = (state.schema && state.schema.wish && state.schema.wish['Wishlist Status'] && state.schema.wish['Wishlist Status'].options) || FALLBACK_STATUS;
     const rank = k => { const i2 = PRIORITY_ORDER.indexOf(k); return i2 === -1 ? (k === 'No priority' ? 999 : 500) : i2; };
     const sorted = open.slice().sort((a, b) => rank(a.priority || 'No priority') - rank(b.priority || 'No priority') || a.name.localeCompare(b.name));
-    box.innerHTML = '<div class="wgrid">' + sorted.map(w => {
+    const cols = fitCols(box, 190, 22);
+    const pages = Math.max(1, Math.ceil(sorted.length / cols));
+    ui.page.wl = Math.min(ui.page.wl, pages - 1);
+    setPager('wlPager', ui.page.wl, pages);
+    const pageList = sorted.slice(ui.page.wl * cols, ui.page.wl * cols + cols);
+    box.innerHTML = `<div class="wgrid" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">` + pageList.map(w => {
       const opts = `<option value=""${w.status ? '' : ' selected'}>Set status</option>` + statuses.map(s2 => `<option${s2 === w.status ? ' selected' : ''}>${esc(s2)}</option>`).join('');
-      const ask = ui.ask === w.id
-        ? `<div class="buy-ask"><span>Add it to your wardrobe too?</span><button type="button" class="btn sm primary" data-act="toitem">Add to wardrobe</button><button type="button" class="btn sm ghost" data-act="bought">Just mark bought</button><button type="button" class="btn sm ghost" data-act="cancel">Cancel</button></div>`
-        : `<div class="w-act"><select class="sel" data-act="status" aria-label="Status for ${esc(w.name)}">${opts}</select><button type="button" class="btn sm ghost" data-act="buy">Bought it</button>${/^https?:/i.test(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener noreferrer">Link</a>` : ''}</div>`;
+      const ask = ui.ask === w.id ? `<div class="buy-ask"><span>Add it to your wardrobe too?</span><button type="button" class="btn sm primary" data-act="toitem">Add to wardrobe</button><button type="button" class="btn sm ghost" data-act="bought">Just mark bought</button><button type="button" class="btn sm ghost" data-act="cancel">Cancel</button></div>` : '';
+      const acts = `<div class="w-act"><select class="sel" data-act="status" aria-label="Status for ${esc(w.name)}">${opts}</select><button type="button" class="btn sm ghost" data-act="buy">Bought it</button>${/^https?:/i.test(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener noreferrer" title="Open the product link">Link &#8599;</a>` : '<span></span>'}</div>`;
       const pri = w.priority ? `<span class="wc-pri" style="--c:${PRI_HUE[w.priority] || '#C78A9B'}">${esc(w.priority)}</span>` : '';
       return `<article class="wc" data-id="${esc(w.id)}">
-        <div class="wc-photo">${thumb({ name: w.name, photo: w.photo, cat: (w.cat || [])[0] }, 'wc-th')}${pri}${w.price != null ? `<span class="wc-price">${esc(money(w.price))}</span>` : ''}</div>
-        <div class="w-main"><div class="w-name">${esc(w.name)}</div>${w.reason ? `<div class="w-sub">${esc(w.reason)}</div>` : ''}</div>${ask}</article>`;
+        <div class="wc-photo">${thumb({ name: w.name, photo: w.photo, cat: (w.cat || [])[0] }, 'wc-th')}${pri}${w.price != null ? `<span class="wc-price">${esc(money(w.price))}</span>` : ''}${ask}</div>
+        <div class="w-main"><div class="w-name">${esc(w.name)}</div>${w.reason ? `<div class="w-sub">${esc(w.reason)}</div>` : ''}</div>${acts}</article>`;
     }).join('') + '</div>';
   }
 
@@ -1142,10 +1249,11 @@
   if (has('outfit')) $('openBuilder').addEventListener('click', () => openBuilder());
   if (has('outfits')) {
     document.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => {
-      ui.sort = b.dataset.sort;
+      ui.sort = b.dataset.sort; ui.page.of = 0;
       document.querySelectorAll('[data-sort]').forEach(x => x.setAttribute('aria-selected', x === b));
       renderOutfits();
     }));
+    $('ofPager').addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if (!b) return; ui.page.of += b.dataset.pg === 'next' ? 1 : -1; renderOutfits(); });
     $('ofGrid').addEventListener('click', e => {
       const card = e.target.closest('.oc'); if (!card) return;
       if (e.target.closest('[data-fav]')) toggleFav(card.dataset.id);
@@ -1158,6 +1266,7 @@
     renderCats();
   }));
   if (has('wishlist')) {
+    $('wlPager').addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if (!b) return; ui.page.wl += b.dataset.pg === 'next' ? 1 : -1; renderWishlist(); });
     $('wl').addEventListener('click', e => {
       const b = e.target.closest('button[data-act]'); if (!b) return;
       const row = b.closest('.wc'); if (!row) return;
@@ -1179,7 +1288,8 @@
   if (has('closet')) $('wdInside').addEventListener('click', e => {
     const t = e.target;
     const pc = t.closest('[data-piece]'); if (pc) { openPiece(pc.dataset.piece); return; }
-    const ch = t.closest('[data-wdcat]'); if (ch) { ui.wdCat[ui.wd] = ch.dataset.wdcat; ui.wdAll[ui.wd] = false; renderWardrobe(); return; }
+    const ch = t.closest('[data-wdcat]'); if (ch) { ui.wdCat[ui.wd] = ch.dataset.wdcat; ui.page.wd = 0; renderWardrobe(); return; }
+    const pg = t.closest('[data-pg]'); if (pg) { ui.page.wd += pg.dataset.pg === 'next' ? 1 : -1; renderWardrobe(); return; }
     if (t.closest('[data-wdall]')) { ui.wdAll[ui.wd] = !ui.wdAll[ui.wd]; renderWardrobe(); return; }
     if (t.closest('[data-wdclose]')) { ui.wd = null; renderWardrobe(); }
   });
@@ -1194,7 +1304,7 @@
     if (t.closest('#obSave')) { saveOutfit(); return; }
     if (t.closest('[data-detail-fav]')) { toggleFav(detailId); return; }
     if (t.closest('[data-detail-wear]')) { wearOutfit(detailId); return; }
-    if (t.closest('[data-piece-wear]')) { const id = pieceId; if (String(id).startsWith('tmp-')) { toast('Still saving. Try again in a second.'); return; } closeSheet(); setTimeout(() => openBuilder(id), 240); return; }
+    if (t.closest('[data-piece-wear]')) { const id = pieceId; if (String(id).startsWith('tmp-')) { toast('Still saving. Try again in a second.'); return; } if (POPUP) { openBuilder(id); return; } closeSheet(); setTimeout(() => openBuilder(id), 240); return; }
   });
   sheet().addEventListener('input', e => { if (e.target.id === 'obSearch') { ob.q = e.target.value; obRenderGrid(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet().hidden) closeSheet(); });
@@ -1228,6 +1338,37 @@
   }
 
   ['add', 'wish'].forEach(w => { if (has(w)) document.querySelector(`.card[data-w="${w}"]`).innerHTML = `<h2>${esc(FORM_DEFS[w].title)}</h2><div class="skel"><i></i><i></i><i></i></div>`; });
+
+  /* ----- size guide: inside an embed, tells you how far to drag its bottom edge so it fits exactly ----- */
+  if (FIT && params.get('guide') !== '0') (() => {
+    const chip = document.createElement('div'); chip.id = 'fitchip'; chip.hidden = true; document.body.append(chip);
+    let last = '', timer = null;
+    const need = () => { const f = document.body.dataset.fit; document.body.dataset.fit = ''; const h = Math.ceil($('stage').getBoundingClientRect().height); if (f) document.body.dataset.fit = f; return h; };
+    const check = () => {
+      if (!state.today || document.hidden) return;
+      const n = need(), have = window.innerHeight, d = have - n;
+      const key = d < -6 ? 'short' : d > 60 ? 'tall' : 'ok';
+      const sig = key + ':' + (key === 'ok' ? '' : d);
+      if (sig === last) return;
+      last = sig; clearTimeout(timer);
+      chip.className = key; chip.hidden = false;
+      chip.textContent = key === 'short' ? `Drag the bottom edge down about ${-d}px` : key === 'tall' ? `Drag the bottom edge up about ${d}px` : 'Perfect size';
+      if (key === 'ok') timer = setTimeout(() => { chip.hidden = true; }, 3500);
+    };
+    window.addEventListener('resize', check); setInterval(check, 1500); setTimeout(check, 1400);
+  })();
+
+  // when an embed is resized, re-fit the pages to the new size
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(() => {
+      clearTimeout(ro.t);
+      ro.t = setTimeout(() => {
+        const sig = ['ofGrid', 'wl', 'wdInside'].map(id => { const e2 = $(id); return e2 ? e2.clientWidth + (id === 'wdInside' ? 'x' + e2.clientHeight : '') : ''; }).join('|');
+        if (sig !== ro.sig) { ro.sig = sig; if (state.today) renderLive(); }
+      }, 140);
+    });
+    ['ofGrid', 'wl', 'wdInside'].forEach(id => { if ($(id)) ro.observe($(id)); });
+  }
 
   refresh();
   setInterval(refresh, 60000);
