@@ -141,12 +141,15 @@ a { color: inherit; }
   .cloud { transform: translateX(var(--rx, 20cqw)); }
 }
 
-/* ---------- title (same style as the other home titles) ---------- */
-.head { text-align: center; padding: 6px 0 12px; }
+/* ---------- title, inside the sky ---------- */
+.title { position: absolute; left: 0; right: 0; top: 1.6%; z-index: 6; text-align: center; pointer-events: none; transition: opacity .3s; }
+.stage.zooming .title { opacity: 0; }
 .ttl { display: inline-flex; align-items: center; gap: 14px; }
-h1 { font-family: 'Pacifico', 'Segoe Script', 'Brush Script MT', cursive; font-weight: 400; font-size: clamp(26px, 4.4vw, 36px); line-height: 1.25; white-space: nowrap;
-  background: linear-gradient(180deg, #fff6e2 10%, #ffd9a0 60%, #ffb8a6 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 2px 14px rgb(255 190 130 / .28)); }
-.tw { width: 9px; height: 9px; border-radius: 2px; rotate: 45deg; background: rgb(255 214 150); box-shadow: 0 0 10px rgb(255 190 120 / .8); animation: twinkleT 2.8s ease-in-out infinite; }
-.tw.r { animation-delay: 1.4s; background: rgb(246 168 200); box-shadow: 0 0 10px rgb(246 168 200 / .8); }
-@keyframes twinkleT { 0%, 100% { opacity: .35; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.15); } }
+h1 { font-family: 'Pacifico', 'Segoe Script', 'Brush Script MT', cursive; font-weight: 400; font-size: clamp(22px, 4.2vw, 36px); line-height: 1.25; white-space: nowrap;
+  background: linear-gradient(180deg, #fffaf0 10%, #ffeabc 70%, #ffd89a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 rgb(70 36 12 / .75)) drop-shadow(0 0 12px rgb(255 214 140 / .3)); }
+.tw { width: 9px; height: 9px; border-radius: 2px; rotate: 45deg; background: #ffe2a0; box-shadow: 0 0 10px rgb(255 210 130 / .9); animation: twinkleT 2.8s ease-in-out infinite; }
+.tw.r { animation-delay: 1.4s; background: #ffc4da; box-shadow: 0 0 10px rgb(246 168 200 / .9); }
+@keyframes twinkleT { 0%, 100% { opacity: .4; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.15); } }
+/* make room under the title: the ship sits a touch lower and smaller */
+#scene { transform: scale(.92); transform-origin: 50% 100%; }

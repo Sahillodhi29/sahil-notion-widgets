@@ -189,7 +189,7 @@
     const sink = e => (e >= 0 ? e : e * 2.2), EDGE = .05;
     const t = (h - SR) / (SS - SR);
     let sunGlit = 0, sunX = 50, moonGlit = 0, moonX = 50;
-    const yOf = elev => (21 - 15.5 * sink(elev)) / .30;   // % of the sky box (30% of the stage): horizon at 75% of it
+    const yOf = elev => 62 - 16 * sink(elev);   // % of the sky box (30% of the stage): horizon at 75% of it
     if (t > -0.07 && t < 1.07) {
       const elev = Math.sin(Math.PI * t), e = clamp(elev), low = Math.pow(1 - e, 1.6);
       const dd = 3.4 + 2.2 * Math.pow(1 - e, 1.5);
