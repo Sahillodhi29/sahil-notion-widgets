@@ -1,0 +1,57 @@
+/* Enhanced theme: loaded only with ?theme=enhance. Original files are untouched. */
+html.enh .stage::after { content:''; position:absolute; inset:0; z-index:4; pointer-events:none; border-radius:inherit;
+  background: radial-gradient(ellipse at 50% 58%, transparent 56%, rgb(4 10 30 / calc(.26 + var(--stars) * .2)) 100%); }
+
+/* more headroom: ship a little smaller, water layer shares its transform */
+html.enh #scene, html.enh .ewater { transform: scale(.86); transform-origin: 50% 100%; }
+
+/* title: soft plate so it reads on any sky, slightly larger, gentle float */
+html.enh .title { top: 1.2%; }
+html.enh .ttl { position: relative; padding: 2px 18px; }
+html.enh .ttl::before { content:''; position:absolute; inset:-8% -4%; z-index:-1; border-radius:50%; filter: blur(14px);
+  background: radial-gradient(ellipse, rgb(10 18 44 / calc(.22 + var(--stars) * .22)), transparent 70%); }
+html.enh h1 { font-size: clamp(24px, 4.6vw, 40px); animation: efloat 6s ease-in-out infinite; }
+@keyframes efloat { 0%,100% { translate: 0 0; } 50% { translate: 0 -2px; } }
+
+/* water under the ship */
+.ewater { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+.ering { fill:none; stroke:#fff; stroke-width:1.6; opacity:0; transform-box:fill-box; transform-origin:center; animation: ering 6s ease-out infinite; }
+@keyframes ering { 0% { opacity:.0; transform:scale(.8); } 15% { opacity:.4; } 100% { opacity:0; transform:scale(1.28); } }
+.ewake { fill:none; stroke:#fff; stroke-linecap:round; stroke-dasharray:46 34; animation: ewake 2.4s linear infinite; }
+@keyframes ewake { to { stroke-dashoffset:-80; } }
+.efoam { fill:#fff; opacity:.5; animation: foam 3.4s ease-in-out infinite; }
+.eref { transform-box:fill-box; transform-origin:center; animation: eref 5.6s ease-in-out infinite; }
+@keyframes eref { 0%,100% { transform:scaleX(1); opacity:.5; } 50% { transform:scaleX(.96); opacity:.38; } }
+
+/* island + lighthouse on the horizon */
+.eisle { position:absolute; right:2.5%; top:calc(var(--horizon) - 12.6%); width:15%; pointer-events:none; }
+.eisle svg { display:block; width:100%; overflow:visible; }
+.eisle .land { fill: rgb(var(--wave-d)); }
+.eisle .rock { fill: rgb(var(--wave-d)); filter: brightness(.8); }
+.eisle .tower { filter: brightness(calc(1 - var(--stars) * .45)); }
+.eisle .lamp { fill:#ffe9a0; }
+.eisle .lglow { fill:#ffe9a0; opacity: calc(var(--stars) * .9); animation: lpulse 2.4s ease-in-out infinite; }
+@keyframes lpulse { 0%,100% { opacity: calc(var(--stars) * .45); } 50% { opacity: calc(var(--stars) * .95); } }
+.ebeam { fill: url(#eBeam); opacity: calc(var(--stars) * .75); transform-box:fill-box; transform-origin:0 50%; animation: ebeam 7s ease-in-out infinite alternate; }
+@keyframes ebeam { from { transform: scaleX(1); } to { transform: scaleX(-1); } }
+
+/* gulls (daytime only) */
+.egulls { position:absolute; inset:0; pointer-events:none; opacity: calc(1 - var(--stars) * 1.4); }
+.egull { position:absolute; left:0; width:2.4cqw; animation: efly linear infinite; }
+.egull svg { display:block; width:100%; overflow:visible; animation: eflap .75s ease-in-out infinite alternate; transform-origin:50% 60%; }
+.egull path { fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; filter: drop-shadow(0 1px 0 rgb(40 60 100 / .35)); }
+@keyframes efly { from { transform: translate(-8cqw, 0); } 50% { transform: translate(55cqw, -2cqw); } to { transform: translate(112cqw, 1cqw); } }
+@keyframes eflap { from { transform: scaleY(1); } to { transform: scaleY(.3); } }
+
+/* fireflies + shooting star (night / dusk) */
+.eflies { position:absolute; inset:0; pointer-events:none; opacity: var(--stars); }
+.efly { position:absolute; border-radius:50%; background:#ffeaa3; box-shadow: 0 0 6px 2px rgb(255 224 140 / .8);
+  animation: edrift var(--t) ease-in-out infinite alternate, eblink var(--b) ease-in-out infinite; }
+@keyframes edrift { from { translate: 0 0; } to { translate: var(--dx) var(--dy); } }
+@keyframes eblink { 0%,100% { opacity:.15; } 50% { opacity:1; } }
+.eshoot { position:absolute; top:7%; left:68%; width:9cqw; height:2px; border-radius:2px; opacity:0; pointer-events:none;
+  background: linear-gradient(to left, transparent, #fff); rotate: 18deg; animation: eshoot 16s linear infinite; }
+.eshootwrap { position:absolute; inset:0; pointer-events:none; opacity: var(--stars); }
+@keyframes eshoot { 0%,90% { opacity:0; transform: translate(0,0); } 91% { opacity:1; } 100% { opacity:0; transform: translate(-20cqw, 6cqw); } }
+
+.stage.zooming .egulls, .stage.zooming .eflies { opacity:0; transition: opacity .2s; }
