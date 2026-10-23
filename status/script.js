@@ -14,6 +14,7 @@
      ?time=18:30              preview the sky at a time of day
      ?lat= &lon=              sky location (default Gwalior)
      ?hat=../sail/assets/hat.png   the little hat on today's bar
+     ?theme=enhance           the enhanced look (default / original = the look you already have)
    ============================================================ */
 (() => {
   'use strict';
@@ -324,6 +325,7 @@
     animateNext = false;
     document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.r === RANGE)));
     document.querySelector('.seg').dataset.r = RANGE;
+    if (window.__statusAfterDraw) window.__statusAfterDraw({ COMPS, RANGE, SHOW }); // only defined by the enhanced theme
     refit();
   }
 
