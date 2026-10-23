@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>To-Do widgets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/todo/style.css">
+</head>
+<body>
+  <main id="stage">
+
+    <article class="card" data-w="sweep" hidden>
+      <div class="sw-top">
+        <div>
+          <h1>Today's sweep</h1>
+          <p id="swDate" class="date"></p>
+        </div>
+        <p class="sw-count"><span id="swDone" class="big">–</span><span id="swOf" class="of"></span></p>
+      </div>
+      <div id="swTray" class="tray" role="img" aria-label="Today's tasks as stripes: pink is open, teal is done"></div>
+      <p id="swLine" class="status"></p>
+    </article>
+
+    <article class="card" data-w="general" hidden>
+      <div class="head"><h2>General</h2><span class="cnt" data-count="general"></span></div>
+      <div class="rows" data-rows="general"></div>
+      <div class="shelf" data-shelf="general"></div>
+    </article>
+
+    <article class="card" data-w="self" hidden>
+      <div class="head"><h2>Self improvement</h2><span class="cnt" data-count="self"></span></div>
+      <div class="rows" data-rows="self"></div>
+      <div class="shelf" data-shelf="self"></div>
+    </article>
+
+    <article class="card" data-w="week" hidden>
+      <div class="head"><h2>Next 7 days</h2><span id="wkTotal" class="cnt"></span></div>
+      <div id="week" class="week"></div>
+      <div class="legend" aria-hidden="true"><span><i class="p-High"></i>High</span><span><i class="p-Medium"></i>Medium</span><span><i class="p-Low"></i>Low or none</span></div>
+    </article>
+
+    <article class="card" data-w="backlog" hidden>
+      <div class="head"><h2>Backlog</h2><span id="bkNum" class="big bk-num"></span></div>
+      <p id="bkLine" class="sub"></p>
+      <div id="bkRows" class="rows"></div>
+    </article>
+
+    <article class="card" data-w="add" hidden>
+      <div class="head"><h2>Quick add</h2></div>
+      <input id="adTitle" class="in title-in" type="text" maxlength="200" autocomplete="off" placeholder="What needs doing?" aria-label="Task name">
+      <div class="fields">
+        <div class="fld"><span class="lbl">List</span>
+          <div class="seg" data-f="list"><button type="button" data-v="general" aria-pressed="true">General</button><button type="button" data-v="self" aria-pressed="false">Self</button></div></div>
+        <div class="fld"><span class="lbl">Priority</span>
+          <div class="seg" data-f="priority"><button type="button" data-v="Low" aria-pressed="false">Low</button><button type="button" data-v="Medium" aria-pressed="true">Medium</button><button type="button" data-v="High" aria-pressed="false">High</button></div></div>
+        <div class="fld"><span class="lbl">Due</span>
+          <div class="seg" data-f="due"><button type="button" data-v="today" aria-pressed="true">Today</button><button type="button" data-v="tomorrow" aria-pressed="false">Tomorrow</button><button type="button" data-v="pick" aria-pressed="false">Pick</button><button type="button" data-v="none" aria-pressed="false">None</button></div>
+          <input id="adDate" class="in" type="date" aria-label="Due date" hidden></div>
+        <div class="fld"><span class="lbl">Category</span><select id="adCat" class="in" aria-label="Category"></select></div>
+        <div class="fld"><span class="lbl">Repeat every</span>
+          <div class="rep"><input id="adInt" class="in" type="number" min="1" max="365" inputmode="numeric" placeholder="–" aria-label="Repeat interval"><select id="adUnit" class="in" aria-label="Repeat unit"></select></div></div>
+      </div>
+      <button id="adGo" class="btn" type="button">Add task</button>
+    </article>
+
+    <article class="card" id="bad" hidden></article>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/todo/script.js"></script>
+</body>
+</html>
