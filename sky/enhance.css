@@ -11,15 +11,7 @@ html[data-theme="enhance"] .banner::after {            /* a soft inner frame and
 
 /* ---- sky ---- */
 html[data-theme="enhance"] .star[style*="2.6px"] { box-shadow: 0 0 6px 1px rgb(255 255 255 / .55); }
-html[data-theme="enhance"] .sun::before {              /* light rays fanning from the sun */
-  content: ''; position: absolute; pointer-events: none; mix-blend-mode: screen;
-  width: calc(var(--d) * 16); height: calc(var(--d) * 16); left: calc(var(--d) * -8); top: calc(var(--d) * -8); border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, rgb(var(--sun-halo) / .17) 0 2.2deg, transparent 2.2deg 9deg);
-  -webkit-mask-image: radial-gradient(circle, #000 0 8%, transparent 58%); mask-image: radial-gradient(circle, #000 0 8%, transparent 58%);
-  animation: x-spin 140s linear infinite;
-}
 html[data-theme="enhance"] .moon .halo { background: radial-gradient(circle, rgb(var(--moon-halo) / .4) 0%, rgb(var(--moon-halo) / .12) 32%, transparent 62%); }
-@keyframes x-spin { to { transform: rotate(360deg); } }
 
 .x-shooters { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .x-shooter { position: absolute; width: 11cqw; height: 1.6px; border-radius: 2px; opacity: 0; rotate: -20deg;
@@ -58,10 +50,6 @@ html[data-theme="enhance"] .ship-wrap { filter: brightness(var(--ship-b)) satura
 @keyframes x-lamp { 50% { transform: scale(.82); } }
 
 /* ---- clock and weather ---- */
-.x-greet { display: flex; align-items: center; gap: .55em; margin-bottom: .3em; font-family: 'Pacifico', 'Quicksand', cursive; font-size: clamp(13px, 5.4cqh, 20px); font-weight: 400; letter-spacing: .01em;
-  color: rgb(255 226 170); text-shadow: 0 0 18px rgb(255 190 110 / .5), 0 2px 10px rgb(4 18 46 / .55); }
-.x-greet i { font-style: normal; font-size: .55em; color: rgb(255 214 140); }
-@container (max-height: 190px) { .x-greet { display: none; } }
 html[data-theme="enhance"] .time { text-shadow: 0 2px 22px rgb(4 18 46 / .55), 0 1px 2px rgb(4 18 46 / .3); }
 html[data-theme="enhance"] .weather {
   border-radius: 20px; gap: 12px; padding: 10px 18px 10px 12px;
@@ -76,6 +64,6 @@ html[data-theme="enhance"] .weather[data-wx="rain"] .wicon svg, html[data-theme=
 html[data-theme="enhance"] .temp { font-size: 23px; letter-spacing: -.01em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .x-shooter, .x-gull, .x-gull svg, .x-isle .beam, .x-wake i, .x-lamps i, html[data-theme="enhance"] .sun::before, html[data-theme="enhance"] .wicon svg { animation: none !important; }
+  .x-shooter, .x-gull, .x-gull svg, .x-isle .beam, .x-wake i, .x-lamps i, html[data-theme="enhance"] .wicon svg { animation: none !important; }
   .x-gull { translate: 30cqw 0; }
 }

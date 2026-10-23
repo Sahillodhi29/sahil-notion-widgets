@@ -29,18 +29,6 @@
   const wrap = $('shipWrap');
   if (wrap) { mk('div', 'x-wake', '<i></i><i></i>', wrap); mk('div', 'x-lamps', '<i></i><i></i><i></i>', wrap); }
 
-  /* greeting above the clock, kept in sync by watching the clock script.js already updates */
-  const hm = $('hm'), ap = $('ampm'), clock = document.querySelector('.clock');
-  if (hm && ap && clock) {
-    const g = mk('div', 'x-greet', '<i>◆</i><span></span>', clock); clock.insertBefore(g, clock.firstChild);
-    const upd = () => {
-      const m = /^(\d+)/.exec(hm.textContent || ''); if (!m) return;
-      let h = (+m[1]) % 12; if ((ap.textContent || '').trim() === 'PM') h += 12;
-      g.lastChild.textContent = h < 5 ? 'Sleep well' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Good night';
-    };
-    [hm, ap].forEach(n => new MutationObserver(upd).observe(n, { childList: true, characterData: true, subtree: true })); upd();
-  }
-
   /* weather pill gets a condition tag so CSS can style it */
   const lab = $('wlabel'), pill = $('weather');
   if (lab && pill) {
