@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finance widgets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/finance/style.css">
+</head>
+<body>
+  <main id="stage">
+
+    <article class="card" data-w="add" hidden>
+      <div class="head"><h2>Add money</h2>
+        <div class="seg" data-for="addType" role="group" aria-label="Type"><button type="button" data-v="Expense" aria-pressed="true">Spent</button><button type="button" data-v="Income" aria-pressed="false">Got</button></div>
+      </div>
+      <label class="amt-wrap"><span class="rs">₹</span><input id="amt" class="amt" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Amount in rupees"></label>
+      <div id="addCats" class="chips" role="group" aria-label="Category"></div>
+      <div class="row2">
+        <div id="addModes" class="mini" role="group" aria-label="Paid with"></div>
+        <div id="addDay" class="mini" role="group" aria-label="Day"><button type="button" data-v="today" aria-pressed="true">Today</button><button type="button" data-v="yesterday" aria-pressed="false">Yesterday</button></div>
+      </div>
+      <input id="note" class="note" type="text" maxlength="120" placeholder="Note (optional)" aria-label="Note">
+      <button id="addBtn" class="btn" type="button" disabled>Add</button>
+      <ul id="recent" class="recent" aria-label="Latest entries"></ul>
+    </article>
+
+    <article class="card" data-w="left" hidden>
+      <div class="head"><h2 id="leftTitle">Left to spend</h2>
+        <div class="seg" data-for="left" role="group" aria-label="Period"><button type="button" data-v="week" aria-pressed="false">Week</button><button type="button" data-v="month" aria-pressed="true">Month</button></div>
+      </div>
+      <p class="hero"><span id="leftNum" class="num">–</span></p>
+      <p id="leftLine" class="muted"></p>
+      <p id="leftSafe" class="safe"></p>
+      <div id="days" class="days"></div>
+      <div class="legend" aria-hidden="true"><span><i class="t3"></i>Under daily allowance</span><span><i class="t2"></i>Over</span><span><i class="t1"></i>Way over</span><span><i class="t0"></i>Nothing logged</span></div>
+    </article>
+
+    <article class="card" data-w="ledger" hidden>
+      <div class="head"><h2>The ledger</h2>
+        <div class="seg" data-for="ledger" role="group" aria-label="Period"><button type="button" data-v="week" aria-pressed="false">Week</button><button type="button" data-v="month" aria-pressed="true">Month</button></div>
+      </div>
+      <p id="ledgerLine" class="muted"></p>
+      <div id="spines" class="spines"></div>
+    </article>
+
+    <article class="card" data-w="trend" hidden>
+      <div class="head"><h2>Spending trend</h2>
+        <div class="seg" data-for="trend" role="group" aria-label="Period"><button type="button" data-v="week" aria-pressed="true">Weeks</button><button type="button" data-v="month" aria-pressed="false">Months</button></div>
+      </div>
+      <p id="trendLine" class="muted"></p>
+      <div id="trend" class="trend"></div>
+      <p id="trendKey" class="muted small"></p>
+    </article>
+
+    <article class="card" data-w="term" hidden>
+      <div class="head"><h2>Term of the day</h2><span id="termCount" class="muted"></span></div>
+      <div id="termBox" class="termbox"></div>
+    </article>
+
+    <article class="card" data-w="wall" hidden>
+      <div class="head"><h2>Word wall</h2><span id="wallCount" class="muted"></span></div>
+      <div id="wall" class="wall"></div>
+      <div id="wallInfo" class="wallinfo"></div>
+    </article>
+
+    <article class="card" data-w="path" hidden>
+      <div class="head"><h2>Money roadmap</h2><span id="pathCount" class="muted"></span></div>
+      <div id="pathStrip" class="strip" aria-hidden="true"></div>
+      <ol id="steps" class="steps"></ol>
+    </article>
+
+    <article class="card" data-w="future" hidden>
+      <h2>Future me</h2>
+      <div class="sliders">
+        <label><span>Put in each month <b id="vSip"></b></span><input id="sSip" type="range" min="50" max="5000" step="50"></label>
+        <label><span>Yearly growth assumed <b id="vRate"></b></span><input id="sRate" type="range" min="4" max="14" step="1"></label>
+        <label><span>For how many years <b id="vYears"></b></span><input id="sYears" type="range" min="5" max="40" step="1"></label>
+        <label><span>What if I start later by <b id="vDelay"></b></span><input id="sDelay" type="range" min="1" max="15" step="1"></label>
+      </div>
+      <div id="futureOut" class="fout"></div>
+      <p id="futureNote" class="muted small"></p>
+    </article>
+
+    <article class="card" data-w="goals" hidden>
+      <div class="head"><h2>Goals</h2></div>
+      <div id="goalList" class="goals"></div>
+    </article>
+
+    <article class="card" id="bad" hidden></article>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/finance/script.js"></script>
+</body>
+</html>
