@@ -53,25 +53,21 @@
   const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>';
   const REPEAT = '<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-label="Repeats"><path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 2.5v3h-3"/></svg>';
 
-  /* ---------- sweep: one stripe per task, teal on the left, pink on the right ---------- */
+  /* ---------- sweep: raspberry (to go) stacked over lemon (done); the seam moves as you finish ---------- */
   function renderSweep() {
     const open = state.items, done = state.done, total = open.length + done.length;
     const late = open.filter(i => i.overdue).length;
+    $('swOpen').textContent = open.length;
     $('swDone').textContent = done.length;
-    $('swOf').textContent = total ? `of ${total} done` : 'nothing due';
     $('swDate').textContent = state.label;
     $('swLine').textContent = !total ? 'Nothing due today. Enjoy the quiet.'
-      : !open.length ? 'Clean sweep. Every stripe is teal.'
-      : `${open.length} ${open.length === 1 ? 'stripe' : 'stripes'} still pink${late ? `, ${late} overdue` : ''}.`;
-    const tray = $('swTray');
-    tray.classList.toggle('intro', state.first);
-    let h = '';
-    if (!total) h = [0, 1, 2, 3, 4, 5].map(i => `<i class="st dc${i}" style="--i:${i}"></i>`).join('');
-    else {
-      done.forEach((d, i) => { h += `<i class="st done a${i % 2}" style="--i:${i}" title="${esc(d.title)}"></i>`; });
-      open.forEach((o, i) => { h += `<i class="st ${pc(o.priority)}" style="--i:${done.length + i}" title="${esc(o.title)}"></i>`; });
-    }
-    tray.innerHTML = h;
+      : !open.length ? 'Clean sweep. Everything is done.'
+      : `${done.length} of ${total} finished${late ? `, ${late} overdue` : ''}.`;
+    // the blocks share the card's height in proportion to what is left and what is done
+    $('swTodo').style.setProperty('--g', open.length + 1);
+    $('swFin').style.setProperty('--g', done.length + 1);
+    $('swCellsOpen').innerHTML = open.map(o => `<i class="cell ${pc(o.priority)}" title="${esc(o.title)}"></i>`).join('');
+    $('swCellsDone').innerHTML = done.map(d => `<i class="cell" title="${esc(d.title)}"></i>`).join('');
   }
 
   /* ---------- the two lists ---------- */

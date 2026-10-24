@@ -1,0 +1,93 @@
+/* ============================================================
+   To-Do widgets: theme layer
+   1) the theme switch (floating pill + the standalone widget in theme.html)
+   2) the "Chopper" theme: the same raspberry and lemon, now with Tony Tony Chopper moved in:
+      studying at his lab desk, a nap in the sun, the pink hat, his wide eyes at the deadlines,
+      and the hat's X for every finished task.
+   Everything below the switch is scoped to html[data-theme="chopper"], so style.css (Classic) is never touched.
+   ============================================================ */
+
+/* ---------- the switch ---------- */
+.theme-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 20; display: inline-flex; padding: 3px; border-radius: 999px;
+  background: var(--rasp); border: 2px solid var(--lemon); box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .9); }
+.theme-toggle button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; background: transparent; color: var(--lemon);
+  font: inherit; font-size: 12.5px; font-weight: 700; padding: 6px 14px; border-radius: 999px; cursor: pointer; transition: background .2s, color .2s; }
+.theme-toggle button[aria-pressed="true"] { background: var(--lemon); color: var(--rasp); }
+.theme-toggle i { width: 18px; height: 18px; border-radius: 50%; background: url(chopper/chip.png) center / cover, var(--petal); box-shadow: 0 0 0 1.5px var(--rasp); }
+.theme-toggle button[aria-pressed="false"] i { box-shadow: 0 0 0 1.5px var(--lemon); }
+body.has-theme-toggle #stage { padding-bottom: 58px; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .5s; }
+.theme-toggle.in-slot { position: static; width: 100%; padding: 4px; box-shadow: none; }
+.theme-toggle.in-slot button { flex: 1; font-size: 14.5px; padding: 12px 18px; gap: 10px; }
+.theme-toggle.in-slot i { width: 26px; height: 26px; }
+.theme-toggle.in-slot button[data-t="classic"]::before { content: ''; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(180deg, var(--rasp) 0 50%, var(--lemon) 50%); box-shadow: 0 0 0 2px var(--lemon); }
+.theme-toggle.in-slot button[data-t="classic"][aria-pressed="true"]::before { box-shadow: 0 0 0 2px var(--rasp); }
+body.tw-page { margin: 0; min-height: 100%; display: grid; place-items: center; padding: 6px; }
+.card.tw { width: 100%; padding: 12px; background: var(--rasp); border-radius: 22px; overflow: visible; }
+
+/* ---------- Chopper theme ---------- */
+
+/* Today's sweep: Chopper at his lab desk behind "to go"; his happy face behind "done".
+   The art lives on its own full-height layer, so it covers the block at any embed height. */
+html[data-theme="chopper"] .card.sweep .blk::before { content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: 66%; }
+html[data-theme="chopper"] .card.sweep .blk.todo::before {
+  background:
+    linear-gradient(90deg, var(--rasp) 0%, rgba(200, 20, 76, .55) 28%, rgba(200, 20, 76, 0) 72%),
+    linear-gradient(rgba(200, 20, 76, .26), rgba(200, 20, 76, .26)),
+    url(chopper/hero.webp) 22% 82% / cover no-repeat;
+}
+html[data-theme="chopper"] .card.sweep .blk.fin::before {
+  width: 60%;
+  background:
+    linear-gradient(90deg, var(--lemon) 0%, rgba(255, 249, 183, .85) 34%, rgba(255, 249, 183, 0) 80%),
+    url(chopper/plate-sky.webp) 50% 56% / cover no-repeat;
+}
+html[data-theme="chopper"] .card.sweep .blk.todo h1, html[data-theme="chopper"] .card.sweep .blk.todo .date { text-shadow: 0 2px 14px rgba(120, 0, 40, .75); }
+html[data-theme="chopper"] .card.sweep .blk.todo .sw-count { padding: 2px 14px 6px; border-radius: 16px; background: var(--rasp); }
+
+/* picture plates: one framed picture behind each card heading */
+html[data-theme="chopper"] .card:not(.sweep) > .head { min-height: 124px; padding: 22px 26px; }
+html[data-theme="chopper"] .card:not(.sweep) > .head::before {
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 58%); border-radius: 0 20px 20px 0;
+  background:
+    linear-gradient(90deg, var(--rasp) 0%, rgba(200, 20, 76, 0) 42%),
+    linear-gradient(rgba(200, 20, 76, .28), rgba(200, 20, 76, .28)),
+    var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
+}
+html[data-theme="chopper"] .card[data-w="general"] { --plate-art: url(chopper/plate-hat.webp);   --plate-pos: 50% 24%; --plate-w: 60%; }
+html[data-theme="chopper"] .card[data-w="self"]    { --plate-art: url(chopper/hero.webp);        --plate-pos: 50% 72%; --plate-w: 58%; }
+html[data-theme="chopper"] .card[data-w="week"]    { --plate-art: url(chopper/plate-angry.webp); --plate-pos: 50% 30%; --plate-w: 52%; }
+html[data-theme="chopper"] .card[data-w="backlog"] { --plate-art: url(chopper/nap.webp);         --plate-pos: 50% 46%; --plate-w: 62%; }
+html[data-theme="chopper"] .card[data-w="add"]     { --plate-art: url(chopper/plate-face.webp);  --plate-pos: 50% 46%; --plate-w: 60%; }
+/* counts ride on the art in a raspberry pill, so they always read */
+html[data-theme="chopper"] .head .cnt, html[data-theme="chopper"] .head .bk-num { padding: 3px 14px 5px; border-radius: 99px; background: var(--rasp); }
+html[data-theme="chopper"] .head h2 { text-shadow: 0 2px 14px rgba(120, 0, 40, .7); }
+
+/* a finished task gets the X from his hat */
+html[data-theme="chopper"] .tick svg { display: none; }
+html[data-theme="chopper"] .tick::after {
+  content: ''; width: 13px; height: 13px; opacity: 0; background: var(--rasp);
+  -webkit-mask: var(--x) center / contain no-repeat; mask: var(--x) center / contain no-repeat;
+  --x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.4 2.4l7.2 7.2M9.6 2.4L2.4 9.6' stroke='black' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+html[data-theme="chopper"] .row:hover .tick::after { opacity: .6; }
+html[data-theme="chopper"] .row.done .tick::after, html[data-theme="chopper"] .row.finishing .tick::after { opacity: 1; background: var(--lemon); }
+html[data-theme="chopper"] button.row.done:hover .tick::after { background: var(--rasp); opacity: .6; }
+
+/* nothing due: Chopper, asleep, on a polaroid */
+html[data-theme="chopper"] .rows > .empty { position: relative; display: flex; align-items: center; min-height: 160px; padding: 6px 220px 6px 4px; }
+html[data-theme="chopper"] .rows > .empty::after {
+  content: ''; position: absolute; right: 4px; top: 50%; width: 196px; height: 142px; transform: translateY(-50%) rotate(3deg);
+  background: url(chopper/nap.webp) center 40% / cover no-repeat, var(--rasp); border: 7px solid var(--rasp); border-bottom-width: 24px; border-radius: 4px;
+  box-shadow: 0 16px 22px -12px rgba(120, 0, 40, .7);
+}
+
+@container (max-width: 440px) {
+  html[data-theme="chopper"] .card.sweep .blk.todo::before { width: 78%; }
+  html[data-theme="chopper"] .card.sweep .blk.fin::before { width: 62%; }
+  html[data-theme="chopper"] .card:not(.sweep) > .head { min-height: 108px; padding: 18px 20px; }
+  html[data-theme="chopper"] .card:not(.sweep) > .head::before { width: 68%; }
+  html[data-theme="chopper"] .rows > .empty { padding: 196px 0 6px; align-items: flex-start; }
+  html[data-theme="chopper"] .rows > .empty::after { right: auto; left: 4px; top: 0; transform: rotate(-2deg); }
+}
+html[data-theme="chopper"] .head .cnt:empty { display: none; }
