@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="theme.js"></script>
 </head>
 <body>
   <main class="wrap">
@@ -43,13 +44,5 @@
   </main>
   <script src="art.js"></script>
   <script src="script.js"></script>
-  <!-- theme switch: ?theme=enhance loads the extra layer; anything else = untouched original -->
-  <script>
-  (function(){var t=new URLSearchParams(location.search).get('theme');
-  if(t!=='enhance'&&t!=='enhanced')return;
-  document.documentElement.classList.add('enh');
-  var l=document.createElement('link');l.rel='stylesheet';l.href='enhance.css';document.head.appendChild(l);
-  var s=document.createElement('script');s.src='enhance.js';document.body.appendChild(s);})();
-  </script>
 </body>
 </html>

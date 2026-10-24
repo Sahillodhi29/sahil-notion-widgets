@@ -1,53 +1,37 @@
-/* Enhanced theme layer (loaded only with ?theme=enhance). Adds water life, an island with a
-   lighthouse, gulls, fireflies and a shooting star. It never edits the original scene. */
+/* Ship navigation: enhanced theme. Adds life around the ship; nothing here changes the original scene or its links. */
 (() => {
   'use strict';
-  const world = document.getElementById('world'), scene = document.getElementById('scene'), sea = document.getElementById('sea');
-  if (!world || !scene || !sea) return;
-  const NS = 'http://www.w3.org/2000/svg', r = (a, b) => a + Math.random() * (b - a);
-  const mk = (html, cls) => { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; return d; };
+  const world = document.getElementById('world'), sea = document.getElementById('sea'), sky = world && world.querySelector('.sky');
+  const bob = document.querySelector('.bob');
+  if (!world || !sea || !sky || !bob) return;
+  const html = (parent, str, where) => parent.insertAdjacentHTML(where || 'beforeend', str);
 
-  /* water: reflection, ripple rings round the hull, wake behind the stern */
-  const w = document.createElementNS(NS, 'svg');
-  w.setAttribute('class', 'ewater'); w.setAttribute('viewBox', '0 0 1000 609'); w.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  w.setAttribute('aria-hidden', 'true');
-  w.innerHTML = `<defs><radialGradient id="eRef"><stop offset="0" stop-color="#a8344b" stop-opacity=".55"/><stop offset="1" stop-color="#a8344b" stop-opacity="0"/></radialGradient>
-    <filter id="eBl" x="-30%" y="-100%" width="160%" height="300%"><feGaussianBlur stdDeviation="5"/></filter></defs>
-    <ellipse class="eref" cx="520" cy="566" rx="270" ry="15" fill="url(#eRef)" filter="url(#eBl)"/>
-    ${[0, 2, 4].map(d => `<ellipse class="ering" cx="520" cy="552" rx="250" ry="13" style="animation-delay:-${d}s"/>`).join('')}
-    <path class="ewake" d="M790 548 Q880 560 990 538" stroke-width="3" opacity=".5"/>
-    <path class="ewake" d="M770 556 Q870 572 995 556" stroke-width="2.2" opacity=".38" style="animation-delay:-.8s"/>
-    ${Array.from({ length: 9 }, (_, i) => `<circle class="efoam" cx="${240 + i * 62 + r(-10, 10)}" cy="${553 + r(-4, 4)}" r="${r(1.6, 3.2).toFixed(1)}" style="animation-delay:-${r(0, 3).toFixed(1)}s"/>`).join('')}`;
-  world.insertBefore(w, scene);
+  /* far islands on the horizon (tucked behind the sea, so they sit on the line), with a lighthouse that wakes at night */
+  const LAND = 'M0 90C18 72 38 64 62 62C80 42 96 40 110 54C126 46 150 54 168 68C190 72 206 80 220 90Z';
+  html(sea, `<div class="x-isle a"><svg viewBox="0 0 220 90" aria-hidden="true"><defs><linearGradient id="xBeam" x1="1" x2="0"><stop offset="0" stop-color="#FFF1C4" stop-opacity=".8"/><stop offset="1" stop-color="#FFF1C4" stop-opacity="0"/></linearGradient></defs>
+    <path class="beam" d="M118 17L-80 7L-80 27Z" fill="url(#xBeam)"/><path class="land" d="${LAND}"/><path class="land" d="M108 54L112 22H122L126 54Z"/><path class="land" d="M110 22H124L117 12Z"/><circle class="lamp" cx="117" cy="17" r="3.2"/></svg></div>
+    <div class="x-isle b"><svg viewBox="0 0 220 90" aria-hidden="true"><path class="land far" d="M0 90C30 66 56 60 84 66C104 50 130 52 150 70C176 66 200 76 220 90Z"/></svg></div>
+    <div class="x-boat"><svg viewBox="0 0 60 50" aria-hidden="true"><path class="sail" d="M28 4L28 34L8 34Z"/><path class="sail s2" d="M32 10L32 34L50 34Z"/><path class="hull" d="M4 36H56L50 44H10Z"/><circle class="blamp" cx="30" cy="40" r="2.2"/></svg></div>`, 'beforebegin');
 
-  /* island + lighthouse on the horizon (colours follow the sea, so it tints with the sky) */
-  const isle = mk(`<svg viewBox="0 0 160 90" aria-hidden="true"><defs><linearGradient id="eBeam" x1="0" x2="1"><stop offset="0" stop-color="#fff2b8" stop-opacity=".9"/><stop offset="1" stop-color="#fff2b8" stop-opacity="0"/></linearGradient></defs>
-    <path class="ebeam" d="M92 26 L190 4 L190 48 Z"/>
-    <path class="land" d="M0 90 Q10 62 42 54 Q74 44 104 56 Q138 62 160 90 Z"/>
-    <ellipse class="rock" cx="30" cy="84" rx="14" ry="5"/>
-    <g class="tower"><path d="M88 58 L92 28 L98 28 L102 58 Z" fill="#fff3da"/><path d="M89.4 46 L90.6 38 L99.4 38 L100.6 46 Z" fill="#d4505f"/>
-      <rect x="90" y="23" width="10" height="5" rx="1" fill="#4a2a28"/><path d="M89 23 L95 16 L101 23 Z" fill="#d4505f"/></g>
-    <circle class="lglow" cx="95" cy="25.5" r="9"/><circle class="lamp" cx="95" cy="25.5" r="2.4"/>
-    <g fill="#2f6d4a" opacity=".8"><path d="M52 60 L58 44 L64 60 Z"/><path d="M62 62 L67 50 L72 62 Z"/><path d="M118 62 L123 50 L128 62 Z"/></g></svg>`, 'eisle');
-  world.insertBefore(isle, w);
+  /* gulls and shooting stars live in the sky */
+  const GULL = '<svg viewBox="0 0 40 20" aria-hidden="true"><path d="M2 14C9 2 16 4 20 12C24 4 31 2 38 14C31 8 25 9 20 16C15 9 9 8 2 14Z" fill="currentColor"/></svg>';
+  html(sky, '<div class="x-gulls">' + [[16, 0, 52, 1], [34, -19, 60, .72], [24, -33, 68, .86]].map(([t, d, u, s]) =>
+    `<div class="x-gull" style="top:${t}%;animation-delay:${d}s;animation-duration:${u}s;--sc:${s}">${GULL}</div>`).join('') + '</div>');
+  html(sky, '<div class="x-shooters">' + [[56, 8, 4, 19], [74, 18, 11, 25], [30, 12, 17, 31]].map(([l, t, d, u]) =>
+    `<i class="x-shooter" style="left:${l}%;top:${t}%;animation-delay:${d}s;animation-duration:${u}s"></i>`).join('') + '</div>');
 
-  /* gulls */
-  const gulls = mk('', 'egulls');
-  [[8, 60, 0], [13, 78, .35], [5, 95, .7]].forEach(([top, dur, ph]) => {
-    const g = mk('<svg viewBox="0 0 20 10"><path d="M0 7 Q5 0 10 6 Q15 0 20 7"/></svg>', 'egull');
-    g.style.cssText = `top:${top}%;animation-duration:${dur}s;animation-delay:-${(ph * dur).toFixed(1)}s`;
-    g.firstChild.style.animationDelay = `-${r(0, .7).toFixed(2)}s`;
-    gulls.appendChild(g);
-  });
-  world.appendChild(gulls);
-
-  /* fireflies drifting over the deck at night */
-  const flies = mk('', 'eflies');
-  for (let i = 0; i < 18; i++) {
-    const f = document.createElement('i'); f.className = 'efly'; const s = r(2.5, 4.5);
-    f.style.cssText = `left:${r(22, 84)}%;top:${r(32, 80)}%;width:${s}px;height:${s}px;--dx:${r(-26, 26).toFixed(0)}px;--dy:${r(-34, 10).toFixed(0)}px;--t:${r(5, 10).toFixed(1)}s;--b:${r(2, 4.5).toFixed(1)}s;animation-delay:-${r(0, 6).toFixed(1)}s,-${r(0, 4).toFixed(1)}s`;
-    flies.appendChild(f);
+  /* the ship: a foamy wake behind the stern, spray at the bow, a soft bloom round the lit windows, and glints on the six spots */
+  const foamg = bob.querySelector('.foamg'), lit = bob.querySelector('.lit'), stickers = bob.querySelector('.stickers');
+  if (foamg) html(foamg, `<g class="x-wake" aria-hidden="true"><ellipse cx="790" cy="440" rx="62" ry="8"/><ellipse cx="790" cy="440" rx="62" ry="8" style="animation-delay:-1.8s"/><ellipse cx="760" cy="428" rx="44" ry="6" style="animation-delay:-.9s"/></g>`, 'afterend');
+  if (lit) {
+    const spray = [[-26, -30, 0], [-12, -38, .5], [6, -34, 1.1], [-34, -16, 1.6], [14, -24, 2.1], [-4, -42, 2.6], [-20, -26, 3]];
+    html(lit, `<g class="x-spray" aria-hidden="true">${spray.map(([dx, dy, d]) => `<circle cx="282" cy="552" r="${(1.6 + (Math.abs(dx) % 3) * .5).toFixed(1)}" style="--dx:${dx}px;--dy:${dy}px;animation-delay:-${d}s"/>`).join('')}</g>`, 'afterend');
+    const bloom = lit.cloneNode(true); bloom.setAttribute('class', 'x-bloom'); bloom.setAttribute('aria-hidden', 'true'); lit.after(bloom);
   }
-  world.appendChild(flies);
-  world.appendChild(mk('<i class="eshoot"></i>', 'eshootwrap'));
+  if (stickers) {
+    const ST = { workout: [474, 108], wardrobe: [826, 150], finance: [700, 206], learning: [572, 300], meal: [524, 280], bank: [800, 322] };
+    const star = 'M0-8C1.2-2 2-1.2 8 0C2 1.2 1.2 2 0 8C-1.2 2-2 1.2-8 0C-2-1.2-1.2-2 0-8Z';
+    html(stickers, '<g class="x-glints" aria-hidden="true">' + Object.values(ST).map(([x, y], i) =>
+      `<path d="${star}" transform="translate(${x + 30} ${y - 34})" style="animation-delay:-${(i * 1.5).toFixed(1)}s"/>`).join('') + '</g>', 'afterend');
+  }
 })();
