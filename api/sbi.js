@@ -22,6 +22,7 @@ const PRELIMS_ID = norm(process.env.SBI_PRELIMS_ID || '96ffa221698783209a3281f5e
 /* Sub-sections that a major heading gets when it has none yet. */
 const DEFAULT_MINORS = { 'hot questions': ['Questions', 'Mistakes / Solutions'] };
 
+const STAGES = ['Concept', 'Notes', 'Basic Qs', 'PYQs', 'Topic Test'];
 const TEXT_TYPES = ['paragraph', 'bulleted_list_item', 'numbered_list_item'];
 const dash = id => { const s = norm(id); return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`; };
 const plain = rt => (rt || []).map(t => t.plain_text || '').join('');
@@ -51,9 +52,11 @@ async function topics() {
     const t = p['Topic Name'] && p['Topic Name'].title;
     const sub = p['Subject'] && p['Subject'].relation && p['Subject'].relation[0];
     if (sub) subjectIds.add(sub.id);
-    const done = ['Concept', 'Notes', 'Basic Qs', 'PYQs', 'Topic Test']
-      .filter(n => p[n] && p[n].checkbox).length;
-    return { id: r.id, name: plain(t).trim(), subject: sub ? norm(sub.id) : '', steps: done, url: r.url };
+    const st = STAGES.map(n => !!(p[n] && p[n].checkbox));
+    const pr = p['Priority'] && p['Priority'].select && p['Priority'].select.name || '';
+    const pm = /P([123])/.exec(pr);
+    return { id: r.id, name: plain(t).trim(), subject: sub ? norm(sub.id) : '', steps: st.filter(Boolean).length,
+      st, pri: pm ? +pm[1] : 2, url: r.url };
   }).filter(t => t.name && t.subject);
 
   const subjects = await Promise.all([...subjectIds].map(async id => {
@@ -65,7 +68,13 @@ async function topics() {
   const rank = n => { const i = order.findIndex(o => n.toLowerCase().includes(o)); return i < 0 ? 9 : i; };
   subjects.sort((a, b) => rank(a.name) - rank(b.name));
   list.sort((a, b) => a.name.localeCompare(b.name));
-  return { subjects, topics: list };
+  let exam = null;
+  try {
+    const ap = await notion(`/pages/${PRELIMS_ID}`);
+    const d = ap.properties && ap.properties['Exam Date'] && ap.properties['Exam Date'].date;
+    exam = d && d.start ? d.start.slice(0, 10) : null;
+  } catch (e) { /* the countdown simply shows no date */ }
+  return { subjects, topics: list, stages: STAGES, exam };
 }
 
 /* ---------- read one topic page ---------- */
