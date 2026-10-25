@@ -28,8 +28,6 @@
   const unknown = asked.filter(w => w !== 'all' && !WIDGETS.includes(w));
   document.querySelectorAll('.card[data-w]').forEach(c => { c.hidden = !shown.includes(c.dataset.w); });
   document.body.dataset.mode = shown.length === 1 ? 'single' : 'multi';
-  const FIT = !asked.includes('all') && params.get('natural') !== '1';                         // an embed: the card fills its frame, lists page instead of scrolling
-  if (FIT) { document.body.dataset.fit = 'fill'; document.documentElement.style.height = '100%'; }   // html must be 100% tall for the card to fill the frame
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
     b.innerHTML = '<h2>Unknown widget</h2><p class="sub">Use w=sweep, general, self, week, backlog, add or all.</p>';
@@ -39,7 +37,7 @@
   const state = {
     today: null, label: '', items: [], done: [], upcoming: [], late: null,
     backlog: [], backlogTotal: 0, backlogHigh: 0, backlogCounts: {},
-    pending: 0, first: true, loadedAt: 0, meta: null, adding: false, page: { general: 0, self: 0 },
+    pending: 0, first: true, loadedAt: 0, meta: null, adding: false,
     form: { list: 'general', priority: 'Medium', due: 'today' },
   };
 
@@ -55,25 +53,21 @@
   const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>';
   const REPEAT = '<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-label="Repeats"><path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 2.5v3h-3"/></svg>';
 
-  /* ---------- sweep: one colour chip per task. Swept (done) chips go empty on the left, open ones stay raspberry ---------- */
+  /* ---------- sweep: raspberry (to go) stacked over lemon (done); the seam moves as you finish ---------- */
   function renderSweep() {
     const open = state.items, done = state.done, total = open.length + done.length;
     const late = open.filter(i => i.overdue).length;
+    $('swOpen').textContent = open.length;
     $('swDone').textContent = done.length;
-    $('swOf').textContent = total ? `of ${total} done` : 'nothing due';
     $('swDate').textContent = state.label;
     $('swLine').textContent = !total ? 'Nothing due today. Enjoy the quiet.'
       : !open.length ? 'Clean sweep. Everything is done.'
-      : `${open.length} ${open.length === 1 ? 'task' : 'tasks'} still open${late ? `, ${late} overdue` : ''}.`;
-    const tray = $('swTray');
-    tray.classList.toggle('intro', state.first);
-    let h = '';
-    if (!total) h = [0, 1, 2, 3, 4, 5].map(i => `<i class="st dc${i}" style="--i:${i}"></i>`).join('');
-    else {
-      done.forEach((d, i) => { h += `<i class="st done" style="--i:${i}" title="${esc(d.title)}">${CHECK}</i>`; });
-      open.forEach((o, i) => { h += `<i class="st ${pc(o.priority)}" style="--i:${done.length + i}" title="${esc(o.title)}"></i>`; });
-    }
-    tray.innerHTML = h;
+      : `${done.length} of ${total} finished${late ? `, ${late} overdue` : ''}.`;
+    // the blocks share the card's height in proportion to what is left and what is done
+    $('swTodo').style.setProperty('--g', open.length + 1);
+    $('swFin').style.setProperty('--g', done.length + 1);
+    $('swCellsOpen').innerHTML = open.map(o => `<i class="cell ${pc(o.priority)}" title="${esc(o.title)}"></i>`).join('');
+    $('swCellsDone').innerHTML = done.map(d => `<i class="cell" title="${esc(d.title)}"></i>`).join('');
   }
 
   /* ---------- the two lists ---------- */
@@ -92,41 +86,11 @@
   function renderList(key) {
     const open = state.items.filter(i => i.list === key), done = state.done.filter(i => i.list === key);
     document.querySelector(`[data-count="${key}"]`).textContent = open.length ? `${open.length} left` : done.length ? 'All done' : '';
-    const seq = open.length ? open.map(rowHtml)
-      : [`<p class="empty">${done.length ? 'Everything here is swept.' : 'Nothing due here.'}<small>${done.length ? 'Lovely work today.' : 'Clear skies.'}</small></p>`];
-    if (done.length) { seq.push(`<p class="shelf-h">Done today (${done.length})</p>`); done.forEach(d => seq.push(doneHtml(d))); }
-    document.querySelector(`[data-rows="${key}"]`).innerHTML = seq.join('');
-    document.querySelector(`.card[data-w="${key}"]`).classList.toggle('is-empty', !open.length && !done.length);
-    paginate(key);
-  }
-
-  /* A list never scrolls inside an embed. It packs as many rows as the frame allows and pages the rest. */
-  function paginate(key) {
-    const box = document.querySelector(`[data-rows="${key}"]`), pager = document.querySelector(`[data-pager="${key}"]`);
-    if (!box || !pager) return;
-    const kids = [...box.children];
-    kids.forEach(k => { k.hidden = false; });
-    pager.hidden = true; pager.innerHTML = '';
-    if (!FIT || kids.length < 2) return;
-    const fits = () => box.scrollHeight <= box.clientHeight + 1;
-    if (fits()) return;
-    pager.hidden = false; pager.innerHTML = '<button type="button">&lsaquo;</button><span>1 / 1</span><button type="button">&rsaquo;</button>';   // it takes room, so measure with it in place
-    const avail = box.clientHeight, gap = parseFloat(getComputedStyle(box).rowGap) || 0;
-    const pages = []; let cur = [], used = 0;
-    kids.forEach((k, idx) => {
-      const h = k.offsetHeight, add = (cur.length ? gap : 0) + h;
-      if (cur.length && used + add > avail) { pages.push(cur); cur = []; used = 0; }
-      used += (cur.length ? gap : 0) + h; cur.push(idx);
-    });
-    if (cur.length) pages.push(cur);
-    for (let p = 0; p < pages.length - 1; p++) {          // never leave a "Done today" heading stranded at the foot of a page
-      const last = pages[p][pages[p].length - 1];
-      if (kids[last].classList.contains('shelf-h') && pages[p].length > 1) pages[p + 1].unshift(pages[p].pop());
-    }
-    state.page[key] = Math.max(0, Math.min(state.page[key], pages.length - 1));
-    const pg = state.page[key];
-    kids.forEach((k, idx) => { k.hidden = !pages[pg].includes(idx); });
-    pager.innerHTML = `<button type="button" data-pg="prev" aria-label="Previous page"${pg === 0 ? ' disabled' : ''}>&lsaquo;</button><span>${pg + 1} / ${pages.length}</span><button type="button" data-pg="next" aria-label="Next page"${pg >= pages.length - 1 ? ' disabled' : ''}>&rsaquo;</button>`;
+    document.querySelector(`[data-rows="${key}"]`).innerHTML = open.length
+      ? open.map(rowHtml).join('')
+      : `<p class="empty">${done.length ? 'Every stripe is teal.' : 'Nothing due here. Clear skies.'}</p>`;
+    document.querySelector(`[data-shelf="${key}"]`).innerHTML = done.length
+      ? `<p class="shelf-h">Done today (${done.length})</p>` + done.map(doneHtml).join('') : '';
   }
 
   /* ---------- week ---------- */
@@ -136,9 +100,6 @@
     state.upcoming.forEach((u, i) => cols.push({ label: i === 0 ? 'Today' : wkShort(u.date), b: u, cls: i === 0 ? ' today' : '' }));
     const max = Math.max(1, ...cols.map(c => c.b.n));
     $('wkTotal').textContent = `${cols.reduce((s, c) => s + c.b.n, 0)} open`;
-    const wkEl = $('week'); const anyOpen = cols.some(c => c.b.n > 0);
-    wkEl.classList.toggle('is-empty', !anyOpen);
-    if (!anyOpen) { wkEl.innerHTML = '<p class="empty">A clear week ahead.<small>Nothing is scheduled.</small></p>'; return; }
     $('week').innerHTML = cols.map(c => {
       const blocks = ['High', 'Medium', 'Low', 'None'].map(p => `<i class="b ${pc(p)}"></i>`.repeat(c.b[p] || 0)).join('');
       return `<div class="wk${c.cls}"><span class="wn">${c.b.n || ''}</span><div class="col"><div class="stack" style="height:${(c.b.n / max) * 100}%">${blocks}</div></div><span class="wl">${esc(c.label)}</span></div>`;
@@ -155,30 +116,13 @@
   function renderBacklog() {
     const total = state.backlogTotal, c = state.backlogCounts;
     $('bkNum').textContent = total;
-    document.querySelector('.card[data-w="backlog"]').classList.toggle('is-empty', !total);
     $('bkLine').textContent = total
       ? `No due date. ${state.backlogHigh} high priority. General ${c.general || 0}, Self ${c.self || 0}.`
       : 'Nothing is floating without a date.';
-    const rows = state.backlog.slice(0, FIT ? 20 : BACKLOG_SHOWN);
+    const rows = state.backlog.slice(0, BACKLOG_SHOWN);
     $('bkRows').innerHTML = rows.map(b =>
       `<div class="row bk ${pc(b.priority)}"><span class="rt">${esc(b.title)}</span><span class="meta"><span class="lt">${b.list === 'self' ? 'S' : 'G'}</span><span class="age${b.age >= 30 ? ' stale' : ''}">${b.age}d</span></span></div>`).join('')
       + (total > rows.length ? `<p class="more">${total - rows.length} more in Notion.</p>` : '');
-    fitBacklog(total);
-  }
-  /* in an embed, show only the rows that fit and say how many more are waiting in Notion */
-  function fitBacklog(total) {
-    const box = $('bkRows'); if (!FIT) return;
-    const kids = [...box.querySelectorAll('.row')], more = box.querySelector('.more');
-    kids.forEach(k => { k.hidden = false; });
-    if (more) more.hidden = true;
-    const gap = parseFloat(getComputedStyle(box).rowGap) || 0, avail = box.clientHeight;
-    let used = 0, shownN = 0;
-    kids.forEach(k => { const h = k.offsetHeight + (shownN ? gap : 0); const reserve = (shownN + 1 < total) ? 30 : 0; if (used + h + reserve <= avail || shownN === 0 && avail === 0) { used += h; shownN++; } });
-    kids.forEach((k, idx) => { k.hidden = idx >= shownN; });
-    if (total > shownN) {
-      let m = more; if (!m) { m = document.createElement('p'); m.className = 'more'; box.append(m); }
-      m.hidden = false; m.textContent = `${total - shownN} more in Notion.`;
-    } else if (more) more.hidden = true;
   }
 
   /* ---------- quick add ---------- */
@@ -324,35 +268,11 @@
   const render1 = renderAll;
 
   document.addEventListener('click', e => {
-    const pgb = e.target.closest('[data-pg]');
-    if (pgb) { const key = pgb.closest('[data-pager]').dataset.pager; state.page[key] += pgb.dataset.pg === 'next' ? 1 : -1; renderList(key); return; }
     const a = e.target.closest('[data-act]'); if (!a) return;
     if (a.dataset.act === 'complete') complete(a.dataset.id);
     else if (a.dataset.act === 'undo') undo(a.dataset.id);
   });
 
-  if (typeof ResizeObserver === 'function' && FIT) {
-    const ro = new ResizeObserver(() => { clearTimeout(ro.t); ro.t = setTimeout(() => { if (state.today) renderAll(); }, 120); });
-    document.querySelectorAll('.card').forEach(c => ro.observe(c));
-  }
-  /* size guide (Sweep, Next 7 days and Quick add have a fixed natural height): inside the embed, it says how far to drag the bottom edge */
-  if (FIT && shown.length === 1 && ['sweep', 'week', 'add'].includes(shown[0]) && params.get('guide') !== '0') (() => {
-    const chip = document.createElement('div'); chip.id = 'fitchip'; chip.hidden = true; document.body.append(chip);
-    let last = '', timer = null;
-    const need = () => { const f = document.body.dataset.fit; document.body.dataset.fit = ''; const h = Math.ceil($('stage').getBoundingClientRect().height); if (f) document.body.dataset.fit = f; return h; };
-    const check = () => {
-      if (!state.today || document.hidden) return;
-      const n = need(), have = window.innerHeight, d = have - n;
-      const key = d < -6 ? 'short' : d > 60 ? 'tall' : 'ok';
-      const sig = key + ':' + (key === 'ok' ? '' : d);
-      if (sig === last) return;
-      last = sig; clearTimeout(timer);
-      chip.className = key; chip.hidden = false;
-      chip.textContent = key === 'short' ? `Drag the bottom edge down about ${-d}px` : key === 'tall' ? `Drag the bottom edge up about ${d}px` : 'Perfect size';
-      if (key === 'ok') timer = setTimeout(() => { chip.hidden = true; }, 3500);
-    };
-    window.addEventListener('resize', check); setInterval(check, 1500); setTimeout(check, 1400);
-  })();
   if (has('add')) { initAdd(); loadMeta(); }
   refresh();
   setInterval(refresh, 60000);
