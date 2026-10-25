@@ -151,6 +151,7 @@
     const spent = sum(spends(P.from, t)), left = P.budget - spent, over = left < 0, has$ = P.budget > 0;
     const saved = sum(state.tx.filter(x => isSav(x) && x.type === 'Expense' && x.date >= P.from && x.date <= t));
     $('leftTitle').textContent = has$ && over ? 'Over plan' : 'Left to spend';
+    $('leftTitle').classList.toggle('over', has$ && over);
     $('leftNum').textContent = money(has$ ? Math.abs(left) : spent);
     $('leftNum').classList.toggle('over', has$ && over);
     $('leftLine').textContent = has$ ? `${money(spent)} spent of ${money(P.budget)} this ${P.word}.${saved ? ` ${money(saved)} saved.` : ''}` : 'Add monthly limits in the Budgets database to see what is left.';
@@ -176,7 +177,7 @@
     rows.sort((a, b) => b.spent - a.spent || b.limit - a.limit);
     const maxV = Math.max(1, ...rows.map(r => Math.max(r.limit, r.spent)));
     const totalSpent = rows.reduce((s, r) => s + r.spent, 0), totalLimit = rows.reduce((s, r) => s + r.limit, 0);
-    $('ledgerLine').textContent = rows.length ? (totalLimit ? `${money(totalSpent)} of ${money(totalLimit)} this ${P.word}. Raspberry means past the budget.` : `${money(totalSpent)} spent this ${P.word}.`) : '';
+    $('ledgerLine').textContent = rows.length ? (totalLimit ? `${money(totalSpent)} of ${money(totalLimit)} this ${P.word}. Orange means past the budget.` : `${money(totalSpent)} spent this ${P.word}.`) : '';
     $('spines').innerHTML = rows.length ? rows.map(r => {
       const cap = Math.max(r.limit, r.spent) || 1, w = Math.max(10, cap / maxV * 100);
       const inside = r.limit ? Math.min(r.spent, r.limit) : r.spent, ratio = r.limit ? r.spent / r.limit : 0;
@@ -206,8 +207,8 @@
     cols.forEach((c, k) => {
       const x = 3 + k * PX + (PX - TW) / 2, full = Math.floor(c.v / unit), rem = c.v / unit - full;
       const tile = (i, h) => {
-        const y = base - i * PY - 2 - h, col = (budget && i * unit >= budget) ? '#d43b59' : c.cur ? '#f3e5ad' : '#d96f7c';
-        return `<rect x="${x}" y="${y}" width="${TW}" height="${h}" rx="3.5" fill="${col}"/><rect x="${x}" y="${y}" width="${TW}" height="${h}" rx="3.5" fill="url(#glg)"/>`;
+        const y = base - i * PY - 2 - h, col = (budget && i * unit >= budget) ? 'tl-o' : c.cur ? 'tl-c' : 'tl-p';
+        return `<rect x="${x}" y="${y}" width="${TW}" height="${h}" rx="3.5" class="${col}"/><rect x="${x}" y="${y}" width="${TW}" height="${h}" rx="3.5" fill="url(#glg)"/>`;
       };
       for (let i = 0; i < full; i++) s += tile(i, TH);
       let stackTop = base - full * PY;
@@ -216,7 +217,7 @@
       s += `<text class="${c.cur ? 'cur' : ''}" x="${x + TW / 2}" y="${base + 13}">${esc(c.label)}</text>`;
       if (c.sub) s += `<text class="sub" x="${x + TW / 2}" y="${base + 25}">${esc(c.sub)}</text>`;
     });
-    if (budget) { const y = base - (budget / unit) * PY; s += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#ccae6d" stroke-width="1" stroke-dasharray="4 3"/>`; }
+    if (budget) { const y = base - (budget / unit) * PY; s += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" class="tl-line" stroke-width="1" stroke-dasharray="4 3"/>`; }
     s += '</svg>';
     $('trend').innerHTML = s;
     const cur = cols[cols.length - 1].v, prev = cols[cols.length - 2].v, d = cur - prev, w = m === 'week' ? 'week' : 'month';
@@ -303,7 +304,7 @@
       `<div class="fcol"><span class="muted">Start now, ${F.years} years</span><span class="big">${big(now)}</span>${mosaic(now, invNow, unit)}<span class="muted small">${big(invNow)} put in, ${big(now - invNow)} growth</span></div>` +
       `<div class="fcol"><span class="muted">Start in ${F.delay} ${F.delay === 1 ? 'year' : 'years'}, ${ly} years</span><span class="big dim">${big(late)}</span>${mosaic(late, invLate, unit)}<span class="muted small">${big(invLate)} put in, ${big(late - invLate)} growth</span></div>` +
       `<p class="fverdict">Starting ${F.delay} ${F.delay === 1 ? 'year' : 'years'} later means putting in ${big(invNow - invLate)} less but finishing <b>${big(now - late)}</b> behind.</p>` +
-      `<div class="fkey"><span><i style="background:var(--butter)"></i>Money you put in</span><span><i style="background:var(--rasp)"></i>Growth</span><span><i style="border:1px solid var(--deep)"></i>Not reached</span></div>`;
+      `<div class="fkey"><span><i class="k-in"></i>Money you put in</span><span><i class="k-gr"></i>Growth</span><span><i class="k-no"></i>Not reached</span></div>`;
     $('futureNote').textContent = `Assumes ${F.rate}% a year, added every month. These are not promises: real returns go up and down, and some years are negative. In today's prices the first result is about ${big(now / Math.pow(1.06, F.years))} (at 6% inflation). At a cautious 6% it would be ${big(fv(F.sip, 6, F.years))}.`;
   }
 
@@ -314,7 +315,7 @@
       const f = Math.max(0, Math.min(1, p * 6 - i)), cls = f >= 1 ? 'full' : f > 0 ? 'part' : '';
       s += `<ellipse class="p ${cls}" cx="50" cy="26" rx="12" ry="24" transform="rotate(${i * 60} 50 50)"/>`;
     }
-    return s + '<circle cx="50" cy="50" r="15" fill="#330810"/></svg>';
+    return s + `<circle class="core${p >= 1 ? ' full' : ''}" cx="50" cy="50" r="15"/></svg>`;
   }
   function renderGoals() {
     const gs = state.goals.slice().sort((a, b) => (a.status === 'Done') - (b.status === 'Done'));

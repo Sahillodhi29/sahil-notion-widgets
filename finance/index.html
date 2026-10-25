@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
   <title>Finance widgets</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/finance/theme.js"></script>
   <link rel="stylesheet" href="/finance/style.css">
+  <link rel="stylesheet" href="/finance/nami.css">
 </head>
 <body>
   <main id="stage">
 
     <article class="card" data-w="add" hidden>
-      <div class="head"><h2>Add money</h2>
+      <div class="head"><div class="ttl"><span class="gico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 8h6M9 11h6M9 8c3.5 0 3.5 4 0 4l4 4"/></svg></span><h2>Add money</h2></div>
         <div class="seg" data-for="addType" role="group" aria-label="Type"><button type="button" data-v="Expense" aria-pressed="true">Spent</button><button type="button" data-v="Income" aria-pressed="false">Got</button></div>
       </div>
       <label class="amt-wrap"><span class="rs">₹</span><input id="amt" class="amt" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Amount in rupees"></label>
@@ -32,6 +35,7 @@
         <div class="seg" data-for="left" role="group" aria-label="Period"><button type="button" data-v="week" aria-pressed="false">Week</button><button type="button" data-v="month" aria-pressed="true">Month</button></div>
       </div>
       <p class="hero"><span id="leftNum" class="num">–</span></p>
+      <span class="sign" aria-hidden="true"></span>
       <p id="leftLine" class="muted"></p>
       <p id="leftSafe" class="safe"></p>
       <div id="days" class="days"></div>
@@ -73,7 +77,7 @@
     </article>
 
     <article class="card" data-w="future" hidden>
-      <h2>Future me</h2>
+      <div class="head"><h2>Future me</h2></div>
       <div class="sliders">
         <label><span>Put in each month <b id="vSip"></b></span><input id="sSip" type="range" min="50" max="5000" step="50"></label>
         <label><span>Yearly growth assumed <b id="vRate"></b></span><input id="sRate" type="range" min="4" max="14" step="1"></label>
