@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning widgets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,700;1,6..96,800&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/learning/style.css">
+</head>
+<body>
+  <main id="stage">
+    <article class="card" data-w="today" hidden></article>
+    <article class="card" data-w="focus" hidden></article>
+    <article class="card" data-w="streak" hidden></article>
+    <article class="card" data-w="topics" hidden></article>
+    <article class="card" data-w="newtopic" hidden></article>
+    <article class="card" data-w="newtask" hidden></article>
+    <article class="card" id="bad" hidden></article>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/learning/script.js"></script>
+</body>
+</html>
