@@ -7,63 +7,63 @@
   <title>To-Do widgets</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="/todo/theme.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/todo/style.css">
-  <link rel="stylesheet" href="/todo/chopper.css">
 </head>
 <body>
   <main id="stage">
 
-    <article class="card sweep" data-w="sweep" hidden>
-      <section id="swTodo" class="blk todo">
-        <div class="sw-top">
-          <div><h1>Today's sweep</h1><p id="swDate" class="date"></p></div>
-          <p class="sw-count"><span id="swOpen" class="big">–</span><span class="of">to go</span></p>
+    <article class="card hero" data-w="sweep" hidden>
+      <div class="hero-in">
+        <div class="blk hero-top">
+          <div class="hero-l">
+            <p id="swDate" class="eyebrow"></p>
+            <h1>Today's sweep</h1>
+            <p id="swLine" class="status"></p>
+          </div>
+          <p class="sw-count"><span id="swDone" class="big">–</span><span id="swOf" class="of"></span></p>
         </div>
-        <div id="swCellsOpen" class="cells" role="img" aria-label="Open tasks, one square each"></div>
-      </section>
-      <section id="swFin" class="blk fin">
-        <p class="sw-count"><span id="swDone" class="big">–</span><span class="of">done</span></p>
-        <div class="fin-text"><p id="swLine" class="status"></p><div id="swCellsDone" class="cells" role="img" aria-label="Finished tasks, one square each"></div></div>
-      </section>
+        <div class="tray-blk">
+          <div id="swTray" class="tray" role="img" aria-label="Today's tasks as colour chips: raspberry is open, an empty slot is swept"></div>
+        </div>
+      </div>
     </article>
 
-    <article class="card" data-w="general" hidden>
-      <div class="head"><h2>General</h2><span class="cnt" data-count="general"></span></div>
-      <div class="pane">
+    <article class="card tone-lemon" data-w="general" hidden>
+      <header class="blk"><h2>General</h2><span class="cnt" data-count="general"></span></header>
+      <div class="body">
         <div class="rows" data-rows="general"></div>
-        <div class="shelf" data-shelf="general"></div>
+        <div class="pager" data-pager="general" hidden></div>
       </div>
     </article>
 
-    <article class="card" data-w="self" hidden>
-      <div class="head"><h2>Self improvement</h2><span class="cnt" data-count="self"></span></div>
-      <div class="pane">
+    <article class="card tone-lemon" data-w="self" hidden>
+      <header class="blk"><h2>Self improvement</h2><span class="cnt" data-count="self"></span></header>
+      <div class="body">
         <div class="rows" data-rows="self"></div>
-        <div class="shelf" data-shelf="self"></div>
+        <div class="pager" data-pager="self" hidden></div>
       </div>
     </article>
 
-    <article class="card" data-w="week" hidden>
-      <div class="head"><h2>Next 7 days</h2><span id="wkTotal" class="cnt"></span></div>
-      <div class="pane">
+    <article class="card tone-rasp" data-w="week" hidden>
+      <header class="blk"><h2>Next 7 days</h2><span id="wkTotal" class="cnt"></span></header>
+      <div class="body">
         <div id="week" class="week"></div>
         <div class="legend" aria-hidden="true"><span><i class="p-High"></i>High</span><span><i class="p-Medium"></i>Medium</span><span><i class="p-Low"></i>Low or none</span></div>
       </div>
     </article>
 
-    <article class="card" data-w="backlog" hidden>
-      <div class="head"><h2>Backlog</h2><span id="bkNum" class="big bk-num"></span></div>
-      <div class="pane">
+    <article class="card tone-lemon" data-w="backlog" hidden>
+      <header class="blk"><h2>Backlog</h2><span id="bkNum" class="big bk-num"></span></header>
+      <div class="body">
         <p id="bkLine" class="sub"></p>
-        <div id="bkRows" class="rows"></div>
+        <div id="bkRows" class="rows bk-rows"></div>
       </div>
     </article>
 
-    <article class="card" data-w="add" hidden>
-      <div class="head"><h2>Quick add</h2></div>
-      <div class="pane">
+    <article class="card tone-rasp" data-w="add" hidden>
+      <header class="blk"><h2>Quick add</h2></header>
+      <div class="body">
         <input id="adTitle" class="in title-in" type="text" maxlength="200" autocomplete="off" placeholder="What needs doing?" aria-label="Task name">
         <div class="fields">
           <div class="fld"><span class="lbl">List</span>
