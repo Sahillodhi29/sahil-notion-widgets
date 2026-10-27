@@ -8,7 +8,8 @@
   const KEY = params.get('key') || '';
   const WIDGETS = ['sweep', 'general', 'self', 'week', 'backlog', 'add'];
   const FALLBACK = { categories: ['Skill', 'Hobby', 'Personal', 'Work', 'Selfcare', 'Workout'], units: ['Days', 'Weeks', 'Months', 'Quaters', 'Years'] };
-  const BACKLOG_SHOWN = 7;
+  const BACKLOG_SHOWN = 10;   // overdue rows shown in the Backlog widget
+  const STALE_DAYS = 7;       // an overdue task this old gets the highlighted badge
   const keyQ = sep => (KEY ? `${sep}key=${encodeURIComponent(KEY)}` : '');
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -112,17 +113,23 @@
     b.n = Math.max(0, b.n + delta); b[k] = Math.max(0, b[k] + delta);
   }
 
-  /* ---------- backlog: undated tasks, read-only ---------- */
+  /* ---------- backlog: everything overdue (the tasks you keep skipping), longest-skipped first. Read-only: finish them in General / Self ---------- */
   function renderBacklog() {
-    const total = state.backlogTotal, c = state.backlogCounts;
+    const late = state.items.filter(i => i.overdue).sort((a, b) =>
+      (b.overdueDays || 0) - (a.overdueDays || 0) || ((RANK[a.priority] ?? 3) - (RANK[b.priority] ?? 3)) || a.title.localeCompare(b.title));
+    const total = late.length, high = late.filter(i => i.priority === 'High').length;
+    const gen = late.filter(i => i.list === 'general').length, self = late.filter(i => i.list === 'self').length;
     $('bkNum').textContent = total;
     $('bkLine').textContent = total
-      ? `No due date. ${state.backlogHigh} high priority. General ${c.general || 0}, Self ${c.self || 0}.`
-      : 'Nothing is floating without a date.';
-    const rows = state.backlog.slice(0, BACKLOG_SHOWN);
-    $('bkRows').innerHTML = rows.map(b =>
-      `<div class="row bk ${pc(b.priority)}"><span class="rt">${esc(b.title)}</span><span class="meta"><span class="lt">${b.list === 'self' ? 'S' : 'G'}</span><span class="age${b.age >= 30 ? ' stale' : ''}">${b.age}d</span></span></div>`).join('')
-      + (total > rows.length ? `<p class="more">${total - rows.length} more in Notion.</p>` : '');
+      ? `Oldest is ${late[0].overdueDays || 1}d late. ${high} high priority. General ${gen}, Self ${self}.`
+      : 'Nothing is overdue. Nothing is being skipped.';
+    const rows = late.slice(0, BACKLOG_SHOWN);
+    $('bkRows').innerHTML = total
+      ? rows.map(b => {
+        const d = b.overdueDays || 1;
+        return `<div class="row bk ${pc(b.priority)}"><span class="rt">${esc(b.title)}</span><span class="meta">${b.recur ? REPEAT : ''}<span class="lt">${b.list === 'self' ? 'S' : 'G'}</span><span class="age${d >= STALE_DAYS ? ' stale' : ''}">${d}d late</span></span></div>`;
+      }).join('') + (total > rows.length ? `<p class="more">${total - rows.length} more overdue, in General and Self.</p>` : '')
+      : '<p class="empty">Nothing skipped. Clear skies.</p>';
   }
 
   /* ---------- quick add ---------- */
