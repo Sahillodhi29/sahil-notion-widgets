@@ -7,6 +7,8 @@
    Everything in section 2 is scoped to html[data-theme="chopper"], so style.css (Classic) is never touched.
    ============================================================ */
 
+html { --chopper-css: 1; }   /* a marker theme.js looks for, to be sure this file arrived */
+
 /* ---------- the switch ---------- */
 .theme-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 20; display: inline-flex; padding: 3px; border-radius: 999px;
   background: var(--rasp); border: 2px solid var(--lemon); box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .9); }
@@ -26,19 +28,20 @@ body.tw-page { margin: 0; min-height: 100%; display: grid; place-items: center; 
 .card.tw { width: 100%; padding: 8px; gap: 0; overflow: visible; }
 
 /* ---------- Chopper theme ---------- */
+html { --chopper-css: 1; }   /* a marker the page checks, to know this file arrived */
 html[data-theme="chopper"] { --pearl: var(--petal); }          /* the corner pearls turn pink */
 html[data-theme="chopper"] .gico { display: none; }            /* the pictures take the icons' place */
 
 /* Today's sweep: Chopper at his lab desk behind "to go"; his happy face behind "done".
    The art sits on its own full-height layer with a soft left edge, so it covers the block at any embed height. */
 html[data-theme="chopper"] .card.sweep .blk.todo::before {
-  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: 64%;
-  background: url(chopper/hero.webp) 50% 70% / cover no-repeat;
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: min(64%, 460px);
+  background: url(chopper/hero.webp) 50% 84% / cover no-repeat;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 46%); mask-image: linear-gradient(90deg, transparent 0, #000 46%);
 }
 html[data-theme="chopper"] .card.sweep .blk.fin::before { z-index: 1; }
 html[data-theme="chopper"] .card.sweep .blk.fin::after {
-  content: ''; position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: 38%;
+  content: ''; position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: min(38%, 300px);
   background: url(chopper/plate-sky.webp) 50% 54% / cover no-repeat;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 58%); mask-image: linear-gradient(90deg, transparent 0, #000 58%);
 }
@@ -56,7 +59,7 @@ html[data-theme="chopper"] .card:not(.sweep) > .head {
     var(--rasp);
 }
 html[data-theme="chopper"] .card:not(.sweep) > .head::before {
-  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 60%); border-radius: 0 14px 14px 0;
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: min(var(--plate-w, 60%), 420px); border-radius: 0 14px 14px 0;
   background: var(--plate-art) var(--plate-pos, 50% 50%) / var(--plate-size, cover) no-repeat;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 42%); mask-image: linear-gradient(90deg, transparent 0, #000 42%);
 }
