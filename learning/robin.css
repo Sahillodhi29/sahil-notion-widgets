@@ -1,0 +1,67 @@
+/* ============================================================
+   Learning widgets: theme layer
+   1) the theme switch (floating pill + the standalone widget in theme.html)
+   2) the "Robin" theme: the same dark purple, wisteria and sunglow, now with her world in the card headers: the many hands,
+      the eyes, the Wano scene, an unhurried portrait. Done tasks bloom as flowers, and petals drift over Today's study.
+   Everything below is scoped to html[data-theme="robin"], so style.css (Classic) is never touched.
+   ============================================================ */
+
+/* ---------- the switch ---------- */
+.theme-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 20; display: inline-flex; padding: 3px; border-radius: 999px;
+  background: rgba(33, 11, 44, .92); border: 1px solid rgba(255, 209, 102, .5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .9); }
+.theme-toggle button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; background: transparent; color: rgba(244, 236, 251, .7);
+  font: inherit; font-size: 12.5px; font-weight: 600; padding: 6px 14px; border-radius: 999px; cursor: pointer; transition: background .2s, color .2s; }
+.theme-toggle button:hover { color: #FFE59A; }
+.theme-toggle button[aria-pressed="true"] { background: linear-gradient(180deg, #FFE59A, #FFD166); color: #2A1038; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
+.theme-toggle i { width: 18px; height: 18px; border-radius: 50%; background: url(robin/chip.png) center / cover, #4A2563; box-shadow: 0 0 0 1px rgba(255, 209, 102, .7); }
+body.has-theme-toggle #stage { padding-bottom: 58px; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .5s; }
+.theme-toggle.in-slot { position: static; width: 100%; padding: 4px; }
+.theme-toggle.in-slot button { flex: 1; font-size: 14.5px; padding: 12px 18px; gap: 10px; }
+.theme-toggle.in-slot i { width: 26px; height: 26px; }
+.theme-toggle.in-slot button[data-t="classic"]::before { content: '\2726'; font-size: 18px; line-height: 1; color: #FFD166; }
+.theme-toggle.in-slot button[data-t="classic"][aria-pressed="true"]::before { color: #2A1038; }
+body.tw-page { margin: 0; min-height: 100%; display: grid; place-items: center; padding: 6px; }
+.card.tw { width: 100%; padding: 14px 16px; overflow: visible; height: auto; }
+
+/* ---------- Robin theme ---------- */
+/* a picture plate on the right of every card header; the art fades into the wisteria band */
+html[data-theme="robin"] .band { isolation: isolate; min-height: 104px; }
+html[data-theme="robin"] .band::before {
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 58%);
+  background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
+}
+html[data-theme="robin"] .card[data-w="today"]    { --plate-art: url(robin/plate-hands.webp);    --plate-pos: 50% 40%; }
+html[data-theme="robin"] .card[data-w="focus"]    { --plate-art: url(robin/plate-eyes.webp);     --plate-pos: 50% 45%; }
+html[data-theme="robin"] .card[data-w="streak"]   { --plate-art: url(robin/plate-kimono.webp);   --plate-pos: 50% 60%; }
+html[data-theme="robin"] .card[data-w="topics"]   { --plate-art: url(robin/plate-painting.webp); --plate-pos: 50% 38%; --plate-w: 48%; }
+html[data-theme="robin"] .card[data-w="newtopic"] { --plate-art: url(robin/plate-cheese.webp);   --plate-pos: 50% 35%; }
+html[data-theme="robin"] .card[data-w="newtask"]  { --plate-art: url(robin/plate-hands2.webp);   --plate-pos: 50% 50%; }
+html[data-theme="robin"] .band h2, html[data-theme="robin"] .band .sub { position: relative; z-index: 1; }
+
+/* done tasks bloom like her flowers */
+html[data-theme="robin"] .chk { position: relative; }
+html[data-theme="robin"] .chk svg { display: none; }
+html[data-theme="robin"] .chk::after {
+  content: ''; position: absolute; inset: 2px; opacity: 0; transform: scale(.3) rotate(-40deg); transition: opacity .2s, transform .45s cubic-bezier(.3, 1.6, .5, 1);
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='%23BC96E6'><circle cx='12' cy='5.4' r='4.3'/><circle cx='18.3' cy='10' r='4.3'/><circle cx='15.9' cy='17.6' r='4.3'/><circle cx='8.1' cy='17.6' r='4.3'/><circle cx='5.7' cy='10' r='4.3'/></g><circle cx='12' cy='12' r='3.1' fill='%23FFD166'/></svg>") center / contain no-repeat;
+}
+html[data-theme="robin"] .chk:hover::after { opacity: .6; transform: scale(.9) rotate(0deg); }
+html[data-theme="robin"] .tk.leaving .chk { background: #210B2C; border-color: var(--sun); }
+html[data-theme="robin"] .tk.leaving .chk::after { opacity: 1; transform: scale(1.12) rotate(36deg); }
+
+/* petals drifting over Today's study */
+html[data-theme="robin"] .card[data-w="today"] { position: relative; }
+html[data-theme="robin"] .card[data-w="today"]::after {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
+  background:
+    radial-gradient(ellipse 6px 3.5px at 40px 30px, rgba(255, 209, 102, .75), transparent 72%), radial-gradient(ellipse 5px 3px at 150px 120px, rgba(188, 150, 230, .85), transparent 72%),
+    radial-gradient(ellipse 7px 4px at 90px 200px, rgba(255, 229, 154, .7), transparent 72%), radial-gradient(ellipse 5px 3px at 210px 60px, rgba(188, 150, 230, .8), transparent 72%),
+    radial-gradient(ellipse 6px 3.5px at 20px 250px, rgba(188, 150, 230, .8), transparent 72%), radial-gradient(ellipse 5px 3px at 190px 270px, rgba(255, 209, 102, .65), transparent 72%);
+  background-size: 260px 300px; animation: r-petals 46s linear infinite;
+}
+@keyframes r-petals { to { background-position: -260px 300px; } }
+
+@media (prefers-reduced-motion: reduce) { html[data-theme="robin"] .card[data-w="today"]::after { animation: none !important; } }
+@media (max-width: 560px) { html[data-theme="robin"] .band::before { width: 70%; opacity: .75; } }
