@@ -1,67 +1,80 @@
 /* ============================================================
    Learning widgets: theme layer
    1) the theme switch (floating pill + the standalone widget in theme.html)
-   2) the "Robin" theme: the same dark purple, wisteria and sunglow, now with her world in the card headers: the many hands,
-      the eyes, the Wano scene, an unhurried portrait. Done tasks bloom as flowers, and petals drift over Today's study.
-   Everything below is scoped to html[data-theme="robin"], so style.css (Classic) is never touched.
+   2) the "Robin" theme: the same reading room and the same three colours, with Nico Robin moved in:
+      a framed picture of her behind every title (her eyes over the timer, her hands for the topics, the Wano portrait on
+      Today's study, the sky portrait on the streak), wisteria corner pieces, her signature, and Robin eating cheese
+      wherever there is nothing to show yet.
+   Everything in section 2 is scoped to html[data-theme="robin"], so style.css (Classic) is never touched.
    ============================================================ */
+html { --robin-css: 1; }   /* a marker theme.js looks for, to be sure this file arrived */
 
 /* ---------- the switch ---------- */
 .theme-toggle { position: fixed; right: 14px; bottom: 14px; z-index: 20; display: inline-flex; padding: 3px; border-radius: 999px;
-  background: rgba(33, 11, 44, .92); border: 1px solid rgba(255, 209, 102, .5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .9); }
-.theme-toggle button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; background: transparent; color: rgba(244, 236, 251, .7);
-  font: inherit; font-size: 12.5px; font-weight: 600; padding: 6px 14px; border-radius: 999px; cursor: pointer; transition: background .2s, color .2s; }
-.theme-toggle button:hover { color: #FFE59A; }
-.theme-toggle button[aria-pressed="true"] { background: linear-gradient(180deg, #FFE59A, #FFD166); color: #2A1038; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
-.theme-toggle i { width: 18px; height: 18px; border-radius: 50%; background: url(robin/chip.png) center / cover, #4A2563; box-shadow: 0 0 0 1px rgba(255, 209, 102, .7); }
+  background: var(--night); border: 1.5px solid var(--sun); box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .9); }
+.theme-toggle button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; background: transparent; color: var(--wist);
+  font: inherit; font-size: 12.5px; font-weight: 700; padding: 6px 14px; border-radius: 999px; cursor: pointer; transition: background .2s, color .2s; }
+.theme-toggle button[aria-pressed="true"] { background: var(--sun); color: var(--night); }
+.theme-toggle i { width: 18px; height: 18px; border-radius: 50%; background: url(robin/chip.png) center / cover, var(--wist); box-shadow: 0 0 0 1.5px var(--night); }
+.theme-toggle button[aria-pressed="false"] i { box-shadow: 0 0 0 1.5px var(--sun); }
 body.has-theme-toggle #stage { padding-bottom: 58px; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .5s; }
-.theme-toggle.in-slot { position: static; width: 100%; padding: 4px; }
+.theme-toggle.in-slot { position: static; width: 100%; padding: 4px; box-shadow: none; }
 .theme-toggle.in-slot button { flex: 1; font-size: 14.5px; padding: 12px 18px; gap: 10px; }
 .theme-toggle.in-slot i { width: 26px; height: 26px; }
-.theme-toggle.in-slot button[data-t="classic"]::before { content: '\2726'; font-size: 18px; line-height: 1; color: #FFD166; }
-.theme-toggle.in-slot button[data-t="classic"][aria-pressed="true"]::before { color: #2A1038; }
+.theme-toggle.in-slot button[data-t="classic"]::before { content: ''; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(180deg, var(--night) 0 34%, var(--wist) 34% 67%, var(--sun) 67%); box-shadow: 0 0 0 2px var(--sun); }
+.theme-toggle.in-slot button[data-t="classic"][aria-pressed="true"]::before { box-shadow: 0 0 0 2px var(--night); }
 body.tw-page { margin: 0; min-height: 100%; display: grid; place-items: center; padding: 6px; }
-.card.tw { width: 100%; padding: 14px 16px; overflow: visible; height: auto; }
+.card.tw { width: 100%; padding: 10px; overflow: visible; }
 
 /* ---------- Robin theme ---------- */
-/* a picture plate on the right of every card header; the art fades into the wisteria band */
-html[data-theme="robin"] .band { isolation: isolate; }
-html[data-theme="robin"] .band::before {
-  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 58%);
-  background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
-}
-html[data-theme="robin"] .card[data-w="today"]    { --plate-art: url(robin/plate-hands.webp);    --plate-pos: 50% 40%; }
-html[data-theme="robin"] .card[data-w="focus"]    { --plate-art: url(robin/plate-eyes.webp);     --plate-pos: 50% 45%; }
-html[data-theme="robin"] .card[data-w="streak"]   { --plate-art: url(robin/plate-kimono.webp);   --plate-pos: 50% 60%; }
-html[data-theme="robin"] .card[data-w="topics"]   { --plate-art: url(robin/plate-painting.webp); --plate-pos: 50% 38%; --plate-w: 48%; }
-html[data-theme="robin"] .card[data-w="newtopic"] { --plate-art: url(robin/plate-cheese.webp);   --plate-pos: 50% 35%; }
-html[data-theme="robin"] .card[data-w="newtask"]  { --plate-art: url(robin/plate-hands2.webp);   --plate-pos: 50% 50%; }
-html[data-theme="robin"] .band h2, html[data-theme="robin"] .band .sub { position: relative; z-index: 1; }
+html[data-theme="robin"] { --corner: var(--wist); }          /* the corner pieces turn wisteria */
 
-/* done tasks bloom like her flowers */
-html[data-theme="robin"] .chk { position: relative; }
-html[data-theme="robin"] .chk svg { display: none; }
-html[data-theme="robin"] .chk::after {
-  content: ''; position: absolute; inset: 2px; opacity: 0; transform: scale(.3) rotate(-40deg); transition: opacity .2s, transform .45s cubic-bezier(.3, 1.6, .5, 1);
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='%23BC96E6'><circle cx='12' cy='5.4' r='4.3'/><circle cx='18.3' cy='10' r='4.3'/><circle cx='15.9' cy='17.6' r='4.3'/><circle cx='8.1' cy='17.6' r='4.3'/><circle cx='5.7' cy='10' r='4.3'/></g><circle cx='12' cy='12' r='3.1' fill='%23FFD166'/></svg>") center / contain no-repeat;
-}
-html[data-theme="robin"] .chk:hover::after { opacity: .6; transform: scale(.9) rotate(0deg); }
-html[data-theme="robin"] .tk.leaving .chk { background: #210B2C; border-color: var(--sun); }
-html[data-theme="robin"] .tk.leaving .chk::after { opacity: 1; transform: scale(1.12) rotate(36deg); }
-
-/* petals drifting over Today's study */
-html[data-theme="robin"] .card[data-w="today"] { position: relative; }
-html[data-theme="robin"] .card[data-w="today"]::after {
-  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
+/* picture plates: one framed picture of her behind every title, the art fading in from the right */
+html[data-theme="robin"] .band {
+  isolation: isolate; align-items: center; min-height: 124px; padding: 16px 22px; margin: 3px 4px 10px; border-radius: 14px;
+  outline: 2px solid var(--gilt); outline-offset: 3px;
+  box-shadow: inset 0 0 0 1px rgba(25, 25, 25, .5), inset 0 0 50px rgba(25, 25, 25, .5), 0 16px 24px -18px rgba(0, 0, 0, .9);
   background:
-    radial-gradient(ellipse 6px 3.5px at 40px 30px, rgba(255, 209, 102, .75), transparent 72%), radial-gradient(ellipse 5px 3px at 150px 120px, rgba(188, 150, 230, .85), transparent 72%),
-    radial-gradient(ellipse 7px 4px at 90px 200px, rgba(255, 229, 154, .7), transparent 72%), radial-gradient(ellipse 5px 3px at 210px 60px, rgba(188, 150, 230, .8), transparent 72%),
-    radial-gradient(ellipse 6px 3.5px at 20px 250px, rgba(188, 150, 230, .8), transparent 72%), radial-gradient(ellipse 5px 3px at 190px 270px, rgba(255, 209, 102, .65), transparent 72%);
-  background-size: 260px 300px; animation: r-petals 46s linear infinite;
+    linear-gradient(90deg, rgba(33, 11, 44, .98) 0%, rgba(33, 11, 44, .72) 34%, rgba(33, 11, 44, 0) 60%),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(188, 150, 230, .04) 3px 4px), repeating-linear-gradient(90deg, transparent 0 3px, rgba(188, 150, 230, .04) 3px 4px),
+    var(--night);
 }
-@keyframes r-petals { to { background-position: -260px 300px; } }
+html[data-theme="robin"] .band::after { display: none; }                     /* the plate has its own frame */
+html[data-theme="robin"] .band::before {
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: min(var(--plate-w, 62%), 440px); border-radius: 0 14px 14px 0;
+  background: var(--plate-art) var(--plate-pos, 50% 50%) / var(--plate-size, cover) no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44%); mask-image: linear-gradient(90deg, transparent 0, #000 44%);
+}
+html[data-theme="robin"] .band > div:first-child { padding-left: 0; min-height: 0; }
+html[data-theme="robin"] .band > div:first-child::before { display: none; }   /* her picture takes the arched icon's place */
+html[data-theme="robin"] .card[data-w="today"]    { --plate-art: url(robin/wano.webp);  --plate-pos: 46% 36%; --plate-w: 64%; }
+html[data-theme="robin"] .card[data-w="focus"]    { --plate-art: url(robin/eyes.webp);  --plate-pos: 50% 26%; --plate-w: 62%; }
+html[data-theme="robin"] .card[data-w="streak"]   { --plate-art: url(robin/sky.webp);   --plate-pos: 50% 34%; --plate-w: 54%; }
+html[data-theme="robin"] .card[data-w="topics"]   { --plate-art: url(robin/hands.webp); --plate-pos: 50% 58%; --plate-w: 52%; }
+html[data-theme="robin"] .card[data-w="newtopic"] { --plate-art: url(robin/cheese.webp); --plate-pos: 50% 26%; --plate-w: 54%; }
+html[data-theme="robin"] .card[data-w="newtask"]  { --plate-art: url(robin/wano.webp);  --plate-pos: 50% 62%; --plate-size: auto 210%; --plate-w: 56%; }
+html[data-theme="robin"] .band h2 { text-shadow: 0 2px 16px rgba(25, 25, 25, .9); }
+html[data-theme="robin"] .band .sub { color: var(--wist); text-shadow: 0 1px 10px rgba(25, 25, 25, .95); }
+html[data-theme="robin"] .band .prog { position: absolute; left: 22px; bottom: 11px; padding: 6px 10px; background: rgba(25, 25, 25, .6); border-radius: 999px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
-@media (prefers-reduced-motion: reduce) { html[data-theme="robin"] .card[data-w="today"]::after { animation: none !important; } }
-@media (max-width: 560px) { html[data-theme="robin"] .band::before { width: 70%; opacity: .75; } }
+/* the Focus card carries her signature */
+html[data-theme="robin"] .fc-body::after { content: ''; justify-self: end; width: 118px; height: 39px; margin-top: -6px; background: url(robin/robin-sign.png) center / contain no-repeat; pointer-events: none; }
+
+/* the primary button glints a little, and the toast carries a wisteria dot */
+html[data-theme="robin"] .btn.hot:not([disabled]) { animation: glint 3.8s ease-in-out infinite; }
+@keyframes glint { 0%, 100% { box-shadow: 0 3px 0 var(--wist); } 45% { box-shadow: 0 3px 0 var(--wist), 0 0 16px 2px rgba(255, 209, 102, .55); } }
+html[data-theme="robin"] #toast::before { content: ''; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--wist); box-shadow: 0 0 0 2px var(--night), 0 0 10px 2px rgba(188, 150, 230, .7); }
+
+/* nothing to show: Robin, eating cheese */
+html[data-theme="robin"] :is(.tgrid > .empty, .card[data-w="today"] .body > div > .empty)::before {
+  content: ''; display: block; width: 100%; max-width: 260px; height: 108px; margin-bottom: 12px; border-radius: 12px; outline: 2px solid var(--gilt); outline-offset: 2px;
+  background: url(robin/cheese.webp) 50% 24% / cover no-repeat; }
+html[data-theme="robin"] .tgrid > .empty { display: grid; justify-items: center; text-align: center; }
+
+@container (max-width: 440px) {
+  html[data-theme="robin"] .band { min-height: 104px; padding: 14px 16px; }
+  html[data-theme="robin"] .band::before { width: 62%; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 66%); mask-image: linear-gradient(90deg, transparent 0, #000 66%); }
+  html[data-theme="robin"] .band .prog { left: 16px; bottom: 9px; }
+  html[data-theme="robin"] .fc-body::after { display: none; }
+}

@@ -367,7 +367,7 @@
       <div class="wk">${week.map((x, i) => `<div class="col${x.d === state.today ? ' today' : ''}"><span class="bar ${x.m === 0 ? 'zero' : x.m < GOAL ? 'low' : ''}" style="height:${x.fut ? 0 : Math.max(4, Math.round(x.m / scale * 100))}%" title="${esc(fmtShort(x.d))}: ${x.m} min"></span><span class="d">${'MTWTFSS'[i]}</span></div>`).join('')}
         <div class="goal-line" style="bottom:${Math.round(GOAL / scale * 100) * 0.78 + 22}%"></div></div>
       <div class="heat" aria-label="Last 12 weeks">${cells}</div>
-      <div class="legend"><span>Last 12 weeks. A streak counts any day you studied.</span><span class="keys">Less <i style="background:var(--plum)"></i><i style="background:var(--berry)"></i><i style="background:var(--orchid)"></i><i style="background:var(--fuch)"></i> Goal (${GOAL} min)</span></div>`;
+      <div class="legend"><span>Last 12 weeks. A streak counts any day you studied.</span><span class="keys">Less <i class="k0"></i><i class="k1"></i><i class="k2"></i><i class="k3"></i> Goal (${GOAL} min)</span></div>`;
   }
 
   /* =========================================================
