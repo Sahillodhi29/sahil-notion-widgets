@@ -27,7 +27,7 @@ body.tw-page { margin: 0; min-height: 100%; display: grid; place-items: center; 
 
 /* ---------- Robin theme ---------- */
 /* a picture plate on the right of every card header; the art fades into the wisteria band */
-html[data-theme="robin"] .band { isolation: isolate; min-height: 104px; }
+html[data-theme="robin"] .band { isolation: isolate; }
 html[data-theme="robin"] .band::before {
   content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 58%);
   background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
