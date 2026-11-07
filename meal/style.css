@@ -190,3 +190,92 @@ body[data-mode="multi"] .card[data-w="skipped"] { grid-column: 1 / -1; }
 .cell.c1, .dot.c1 i { background: var(--wine); } .cell.c2, .dot.c2 i { background: var(--pedestal); } .cell.c3, .dot.c3 i { background: var(--stone); }
 .dot.future i, .cell.future { background: transparent; }
 #toast { background: var(--burgundy); color: var(--stone); border-color: rgba(255, 243, 225, .4); }
+
+
+/* ============================================================
+   MEAL PLAN LAYER
+   Today's five meals, the meal-by-meal record and the plan editor.
+   Same palette and frame as everything above; nothing in the theme files changes.
+   ============================================================ */
+body[data-mode="multi"] .card[data-w="plate"],
+body[data-mode="multi"] .card[data-w="plan"] { grid-column: 1 / -1; }
+
+/* ---------- today's meals ---------- */
+.meals { display: grid; gap: 12px; }
+.meal { border: 1px solid rgba(255, 243, 225, .16); border-radius: 14px; padding: 11px 13px 13px;
+  background: linear-gradient(150deg, rgba(26, 111, 191, .10), transparent 60%); }
+.meal.done { border-color: rgba(255, 243, 225, .42); background: linear-gradient(150deg, rgba(255, 243, 225, .10), transparent 60%); }
+.meal-head { display: flex; align-items: center; gap: 10px; }
+.mnum { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 12px; font-weight: 700; color: var(--oxblood); background: var(--stone); }
+.meal.done .mnum { background: var(--pedestal); color: var(--stone); }
+.mt { flex: 1; min-width: 0; }
+.mt h3 { font-family: var(--sans); font-size: 15px; font-weight: 700; letter-spacing: .01em; color: var(--stone); line-height: 1.2; }
+.mmeta { display: block; font-size: 11.5px; color: var(--taupe); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mcount { font-size: 12px; color: var(--taupe); white-space: nowrap; }
+.mall { font: inherit; font-size: 11.5px; font-weight: 700; color: var(--taupe); background: transparent;
+  border: 1px solid rgba(255, 243, 225, .22); border-radius: 999px; padding: 4px 10px; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.mall:hover { color: var(--stone); border-color: var(--stone); }
+.mall[aria-pressed="true"] { background: var(--stone); border-color: var(--stone); color: var(--oxblood); }
+.mbar { height: 3px; border-radius: 99px; background: var(--burgundy); overflow: hidden; margin: 9px 0 10px; }
+.mbar i { display: block; height: 100%; background: var(--stone); border-radius: 99px; transition: width .45s ease; }
+.meal .chips { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.chip .cf { flex: 1; min-width: 0; }
+.chip .qty { color: var(--taupe); font-size: 12px; }
+.chip[aria-pressed="true"] .qty { color: var(--oxblood); opacity: .65; }
+.chip .tag { flex: none; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--taupe);
+  border: 1px solid currentColor; border-radius: 999px; padding: 1px 5px; }
+.chip.opt:not([aria-pressed="true"]) { border-style: dashed; }
+.chip[aria-pressed="true"] .tag { color: var(--oxblood); opacity: .55; }
+.sk .skm { display: block; font-style: normal; font-size: 11.5px; color: var(--taupe); }
+
+/* ---------- meal by meal ---------- */
+.habits { display: grid; gap: 12px; margin-top: 4px; }
+.hb { display: grid; grid-template-columns: minmax(110px, 190px) 1fr auto; gap: 14px; align-items: center; font-size: 14px; }
+.hb .track { height: 8px; background: var(--burgundy); border-radius: 99px; overflow: hidden; }
+.hb .track i { display: block; height: 100%; background: var(--stone); border-radius: 99px; transition: width .5s ease; }
+.hb .n { color: var(--taupe); font-size: 13px; white-space: nowrap; }
+.hb.quiet { opacity: .62; }
+@media (max-width: 420px) { .hb { grid-template-columns: 1fr auto; } .hb .track { grid-column: 1 / -1; order: 3; } }
+
+/* ---------- the plan editor ---------- */
+.plan { display: grid; gap: 12px; margin-top: 12px; }
+.pmeal { border: 1px solid rgba(255, 243, 225, .16); border-radius: 14px; padding: 10px 12px; display: grid; gap: 9px;
+  background: linear-gradient(150deg, rgba(26, 111, 191, .10), transparent 60%); }
+.phead { display: flex; align-items: center; gap: 6px; }
+.phead .pname { flex: 1; }
+.pcount { font-size: 11.5px; color: var(--taupe); white-space: nowrap; }
+.pgn { flex: 1; font-size: 13.5px; }
+.pfoods { display: grid; gap: 6px; }
+.pfood { display: grid; grid-template-columns: auto auto minmax(0, 1fr) 62px auto auto; gap: 6px; align-items: center; }
+.pfood.dead { opacity: .58; }
+input.pname, input.pqty, .padd input { font: inherit; font-size: 13.5px; color: var(--stone); background: #101E44;
+  border: 1px solid rgba(255, 243, 225, .18); border-radius: 8px; padding: 6px 8px; min-width: 0; -webkit-appearance: none; appearance: none; }
+input.pname { font-weight: 600; }
+input.pqty { font-size: 12.5px; text-align: center; }
+input.pname::placeholder, input.pqty::placeholder, .padd input::placeholder { color: var(--taupe); opacity: .85; }
+.iconbtn { flex: none; width: 28px; height: 28px; padding: 0; display: grid; place-items: center; font: inherit; font-size: 12.5px;
+  color: var(--taupe); background: transparent; border: 1px solid rgba(255, 243, 225, .2); border-radius: 8px; cursor: pointer; transition: background .2s, color .2s; }
+.iconbtn:hover { color: var(--stone); background: var(--burgundy); }
+.pdrop { flex: none; font: inherit; font-size: 11.5px; font-weight: 600; color: var(--taupe); background: transparent;
+  border: 1px solid rgba(255, 243, 225, .2); border-radius: 8px; padding: 5px 9px; cursor: pointer; white-space: nowrap; transition: color .2s, border-color .2s; }
+.pdrop:hover { color: var(--stone); border-color: var(--stone); }
+.popt { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--taupe); white-space: nowrap; cursor: pointer; }
+.popt input { accent-color: var(--pedestal); width: 13px; height: 13px; }
+.padd { display: flex; gap: 6px; }
+.padd input { flex: 1; }
+.padd button { flex: none; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--stone); padding: 6px 12px; cursor: pointer;
+  background: linear-gradient(180deg, #F23A2E, #D91A2A); border: 0; border-bottom: 2px solid #8E0F1B; border-radius: 8px; }
+.padd button:hover { background: linear-gradient(180deg, #FF4A3D, #E32030); }
+.padd button:active { transform: translateY(1px); border-bottom-width: 1px; }
+.pmadd { margin-top: 2px; }
+.pdead { margin-top: 2px; }
+.pdead summary { font-size: 11.5px; color: var(--taupe); cursor: pointer; padding: 2px 0; }
+.pdead summary:hover { color: var(--stone); }
+.pmdead .phead { margin-top: 6px; }
+
+@media (max-width: 560px) {
+  .pfood { display: flex; flex-wrap: wrap; }
+  .pfood .pname { flex: 1 1 100%; order: -1; }
+  .pfood .pqty { width: 72px; }
+}
