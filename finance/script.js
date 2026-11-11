@@ -148,13 +148,15 @@
   /* ---------- left to spend: a month of glass tiles ---------- */
   function renderLeft() {
     const m = state.mode.left, P = period(m), t = state.today;
-    const spent = sum(spends(P.from, t)), left = P.budget - spent, over = left < 0, has$ = P.budget > 0;
+    const spent = sum(spends(P.from, t));
+    const earned = sum(state.tx.filter(x => x.type === 'Income' && x.date >= P.from && x.date <= t));
+    const left = P.budget + earned - spent, over = left < 0, has$ = P.budget > 0;
     const saved = sum(state.tx.filter(x => isSav(x) && x.type === 'Expense' && x.date >= P.from && x.date <= t));
     $('leftTitle').textContent = has$ && over ? 'Over plan' : 'Left to spend';
     $('leftTitle').classList.toggle('over', has$ && over);
     $('leftNum').textContent = money(has$ ? Math.abs(left) : spent);
     $('leftNum').classList.toggle('over', has$ && over);
-    $('leftLine').textContent = has$ ? `${money(spent)} spent of ${money(P.budget)} this ${P.word}.${saved ? ` ${money(saved)} saved.` : ''}` : 'Add monthly limits in the Budgets database to see what is left.';
+    $('leftLine').textContent = has$ ? `${money(spent)} spent of ${money(P.budget)} this ${P.word}.${earned ? ` ${money(earned)} added.` : ''}${saved ? ` ${money(saved)} saved.` : ''}` : 'Add monthly limits in the Budgets database to see what is left.';
     const dl = daysBetween(t, P.to) + 1;
     $('leftSafe').textContent = !has$ ? '' : over ? `You are ${money(-left)} past the plan for this ${P.word}.` : `About ${money(left / dl)} a day for the next ${dl} ${dl === 1 ? 'day' : 'days'}.`;
     const allow = monthlyBudget() / dim(t);
