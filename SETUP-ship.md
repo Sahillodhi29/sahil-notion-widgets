@@ -14,5 +14,5 @@ Drop PNG, GIF or WEBP files into `ship/assets/` named `workout`, `learning`, `me
 - `?workoutLink=URL` send a door elsewhere (also learning, meal, wardrobe, bank, finance)
 - `?workout=assets/x.gif` use a different sticker for one door
 
-Spots (hover shows the name): Workout = foremast dome, Finance & Investing = arched doors of the stern cabin, Learning = deck door beside the trees, Meal = thatched pavilion, Wardrobe = stern dome, Bank Officer = door on the stern gallery.
+Spots (hover shows the name): Workout = foremast dome, Finance & Investing = arched doors of the stern cabin, Learning = deck door beside the trees, Meal = thatched pavilion, Wardrobe = stern dome, My Stock & Resources = door on the stern gallery.
 Pages open in a new tab; the ship zooms back out when you return. If the browser blocks the pop-up, an "Open page" button appears.

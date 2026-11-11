@@ -30,7 +30,7 @@
     learning: { name: 'Learning Planner',       g: '198 144 240', url: 'https://app.notion.com/p/Learning-Planner-f76fa221698783db8e2681ce2394c6a7' },
     meal:     { name: 'Meal Planner',           g: '255 120 150', url: 'https://app.notion.com/p/Meal-Planner-3eefa221698780818e5fc99b43a74a87' },
     wardrobe: { name: 'Wardrobe',               g: '127 166 255', url: 'https://app.notion.com/p/Wardrobe-Organizer-305fa22169878363870b8121ff54b768' },
-    bank:     { name: 'Bank Officer in Making', g: '255 200 97',  url: 'https://app.notion.com/p/Bank-Officer-in-Making-3f0fa22169878133a416e22d1592203b' },
+    bank:     { name: 'My Stock & Resources', g: '255 200 97',  url: 'https://app.notion.com/p/My-Stock-Resources-3f0fa22169878133a416e22d1592203b' },
   };
   const KEYS = Object.keys(PAGES);
   const linkOf = k => q.get(k + 'Link') || PAGES[k].url;
