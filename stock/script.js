@@ -329,7 +329,10 @@
     const r = await fetch(`${API}?parts=items,meta${KEY ? '&key=' + encodeURIComponent(KEY) : ''}`, { cache: 'no-store' });
     const data = await r.json().catch(() => ({}));
     if (!r.ok || data.error) { const e = new Error(data.error || `Could not load your stock (HTTP ${r.status}).`); e.hint = data.hint; throw e; }
-    if (Array.isArray(data.items)) state.items = data.items;
+    const items = Array.isArray(data.items) ? data.items
+      : data.items && Array.isArray(data.items.rows) ? data.items.rows
+      : null;
+    if (items) state.items = items;
     else throw new Error(`items: ${(data.items && data.items.error) || 'no data'}${data.items && data.items.hint ? ' ' + data.items.hint : ''}`);
     if (data.meta && !data.meta.error) state.meta = data.meta;
     state.today = data.today; state.loadedAt = Date.now(); state.loaded = true;
