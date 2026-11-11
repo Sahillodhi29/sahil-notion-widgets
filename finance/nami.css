@@ -26,13 +26,17 @@ html[data-theme="nami"] { --stud: var(--orange); }   /* the corner studs become 
 html[data-theme="nami"] .gico { background: url(nami/nami-chip.png) center / cover no-repeat, var(--orange); }
 html[data-theme="nami"] .gico svg { display: none; }
 
-/* hero: Nami counts her money beside your "left to spend" */
+/* hero: she sleeps in the clouds and the chart room's wall becomes her sky.
+   The art is a card-shaped plate with the clouds already running to every edge and the figure feathered
+   in, so there is no rectangle to notice at any embed size; the blue veils then keep the amount and the
+   day grid sitting on the wall's own colour. */
 html[data-theme="nami"] .card[data-w="left"] {
   background:
     var(--studs),
-    linear-gradient(180deg, transparent 0, transparent 70px, rgba(38, 87, 124, .88) 190px, var(--blue) 262px),
-    linear-gradient(90deg, rgba(38, 87, 124, .98) 0%, rgba(38, 87, 124, .94) 40%, rgba(38, 87, 124, .5) 64%, rgba(38, 87, 124, 0) 90%),
-    url(nami/hero-money.webp) right -24px top / auto 300px no-repeat,
+    radial-gradient(30% 22% at 72% 24%, rgba(235, 228, 209, .10), rgba(235, 228, 209, 0) 76%),   /* a breath of moon-light on her */
+    linear-gradient(90deg, rgba(38, 87, 124, .98) 0%, rgba(38, 87, 124, .94) 26%, rgba(38, 87, 124, .66) 48%, rgba(38, 87, 124, .26) 68%, rgba(38, 87, 124, .10) 100%),
+    linear-gradient(180deg, rgba(38, 87, 124, .02) 0%, rgba(38, 87, 124, .18) 40%, rgba(38, 87, 124, .68) 72%, var(--blue) 94%),
+    url(nami/hero-sleep.webp?v=3) 50% 22% / cover no-repeat,
     var(--wall);
 }
 html[data-theme="nami"] .card[data-w="left"] :is(.muted, .safe, .num, .hd) { text-shadow: 0 1px 10px rgba(38, 87, 124, .95), 0 0 3px rgba(38, 87, 124, .9); }
@@ -52,6 +56,9 @@ html[data-theme="nami"] #toast::before { content: ''; flex: none; width: 9px; he
 
 /* ---------- picture plates: each lower card hangs one framed picture behind its heading ----------
    Same cream frame as the cards, the same wall boards, the art sitting in the chart room. */
+/* Each heading holds a wide still, baked at the strip's own aspect (see the band art), so the crop is
+   composed once instead of drifting with background-position. It fills the frame edge to edge and the
+   mask melts it into the wall behind the heading, which is what stops it reading as a pasted block. */
 html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head {
   position: relative; isolation: isolate; min-height: 112px; padding: 16px 22px; margin: 3px 4px 6px; border-radius: 14px;
   outline: 2px solid rgba(235, 228, 209, .5); outline-offset: 3px;
@@ -62,17 +69,22 @@ html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"]
     var(--blue);
 }
 html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::before {
-  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--plate-w, 62%); border-radius: 0 14px 14px 0;
-  background: var(--plate-art) var(--plate-pos, 50% 50%) / var(--plate-size, cover) no-repeat;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 42%); mask-image: linear-gradient(90deg, transparent 0, #000 42%);
+  content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit;
+  background: var(--plate-art) right center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 34%); mask-image: linear-gradient(90deg, transparent 0, #000 34%);
 }
-html[data-theme="nami"] [data-w="ledger"] > .head  { --plate-art: url(nami/plate-sea.webp);     --plate-pos: 86% 50%; --plate-w: 64%; }
-html[data-theme="nami"] [data-w="trend"] > .head   { --plate-art: url(nami/plate-stars.webp);   --plate-pos: 50% 34%; --plate-w: 58%; }
-html[data-theme="nami"] [data-w="term"] > .head    { --plate-art: url(nami/plate-oranges.webp); --plate-pos: 72% 34%; --plate-w: 62%; }
-html[data-theme="nami"] [data-w="wall"] > .head    { --plate-art: url(nami/plate-clouds.webp);  --plate-pos: 38% 52%; --plate-w: 64%; }
-html[data-theme="nami"] [data-w="path"] > .head    { --plate-art: url(nami/plate-sea.webp);     --plate-pos: 6% 56%; --plate-size: 150% auto; --plate-w: 62%; }
-html[data-theme="nami"] [data-w="future"] > .head  { --plate-art: url(nami/plate-night.webp);   --plate-pos: 56% 22%; --plate-w: 60%; }
-html[data-theme="nami"] [data-w="goals"] > .head   { --plate-art: url(nami/plate-wink.webp);    --plate-pos: 50% 42%; --plate-w: 54%; }
+/* wall colour melting over the top and bottom of the still: the frame reads as a window rather than a crop. */
+html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::after {
+  content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, rgba(38, 87, 124, .52) 0%, rgba(38, 87, 124, .05) 20%, rgba(38, 87, 124, .03) 72%, rgba(38, 87, 124, .56) 100%);
+}
+html[data-theme="nami"] [data-w="ledger"] > .head { --plate-art: url(nami/band-ledger.webp?v=1); }
+html[data-theme="nami"] [data-w="trend"] > .head  { --plate-art: url(nami/band-trend.webp?v=1); }
+html[data-theme="nami"] [data-w="term"] > .head   { --plate-art: url(nami/band-term.webp?v=1); }
+html[data-theme="nami"] [data-w="wall"] > .head   { --plate-art: url(nami/band-wall.webp?v=1); }
+html[data-theme="nami"] [data-w="path"] > .head   { --plate-art: url(nami/band-path.webp?v=1); }
+html[data-theme="nami"] [data-w="future"] > .head { --plate-art: url(nami/band-future.webp?v=1); }
+html[data-theme="nami"] [data-w="goals"] > .head  { --plate-art: url(nami/band-goals.webp?v=1); }
 html[data-theme="nami"] .card > .head > h2 { text-shadow: 0 2px 14px rgba(25, 25, 25, .85); }
 html[data-theme="nami"] .card > .head .seg { background: rgba(25, 25, 25, .62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 html[data-theme="nami"] :is([data-w="term"], [data-w="wall"], [data-w="path"]) > .head > .muted {
@@ -81,7 +93,7 @@ html[data-theme="nami"] :is([data-w="term"], [data-w="wall"], [data-w="path"]) >
 @container (max-width: 430px) {
   html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head { min-height: 96px; padding: 14px 16px; }
   html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::before {
-    width: 66%; opacity: .9; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 60%); mask-image: linear-gradient(90deg, transparent 0, #000 60%); }
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44%); mask-image: linear-gradient(90deg, transparent 0, #000 44%); }
 }
 
 /* ---------- nothing here yet: Nami, asleep ---------- */
