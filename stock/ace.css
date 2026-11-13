@@ -1,0 +1,212 @@
+/* ============================================================
+   Stock & Resources — "ACE"
+   The same pantry, repainted with Portgas D. Ace: cobalt sky, sunset
+   orange, crimson and sand. Only colour and light change here; every
+   layout, size and behaviour comes from style.css untouched.
+
+   Palette (sampled from the reference art): Cobalt #1B4FA8, Navy #0E1A33,
+   Sunset #EC6A1E, Ember #D3262F, Sand #F4E7CF. Everything else is one of
+   those five at partial opacity, so the whole page keeps agreeing.
+   ============================================================ */
+html[data-theme="ace"] {
+  --ace-cobalt: #1B4FA8;
+  --ace-navy:   #0E1A33;
+  --ace-sun:    #EC6A1E;
+  --ace-ember:  #D3262F;
+  --ace-sand:   #F4E7CF;
+
+  /* the variables style.css already paints with */
+  --bg:     #0E1A33;
+  --pine:   #153F86;
+  --pine2:  #0E2C5E;
+  --cream:  #F4E7CF;
+  --copper: #EC6A1E;
+  --sage:   #F0C9A2;
+  --ink:    #1A1006;
+  --line:   rgba(244, 231, 207, .16);
+  --line2:  rgba(244, 231, 207, .34);
+  --muted:  rgba(244, 231, 207, .88);
+  --faint:  rgba(244, 231, 207, .66);
+  --deep:   rgba(9, 22, 46, .36);
+  --deeper: rgba(9, 22, 46, .55);
+}
+html[data-theme="ace"], html[data-theme="ace"] body { background: #0E1A33; }
+
+/* ---------- the card: open sky over deep water ---------- */
+html[data-theme="ace"] .card {
+  background:
+    radial-gradient(300px 180px at 8% -10%, rgba(244, 231, 207, .22), transparent 70%),      /* the sun's glare */
+    radial-gradient(340px 200px at 100% 0%, rgba(236, 106, 30, .34), transparent 72%),        /* sunset burning the top edge */
+    radial-gradient(260px 200px at 100% 105%, rgba(211, 38, 47, .22), transparent 76%),       /* ember at the foot */
+    linear-gradient(180deg, transparent 52%, rgba(9, 22, 46, .42)),
+    repeating-linear-gradient(90deg, transparent 0 57px, rgba(9, 22, 46, .16) 57px 58px, rgba(244, 231, 207, .05) 58px 59px),
+    linear-gradient(178deg, #1E5AC0 0%, #1B4FA8 46%, #123A7E 100%);
+  box-shadow: inset 0 0 0 1px var(--line), inset 0 0 64px rgba(9, 22, 46, .38), 0 18px 30px -22px rgba(0, 0, 0, .9);
+}
+/* the shelf board becomes a sunlit rail */
+html[data-theme="ace"] .card::before {
+  background: linear-gradient(90deg, transparent, rgba(236, 106, 30, .5), rgba(244, 231, 207, .5), rgba(236, 106, 30, .5), transparent);
+  height: 2px;
+}
+
+/* ---------- type ---------- */
+html[data-theme="ace"] .head h2,
+html[data-theme="ace"] #bad h2 { color: #FFF6E8; text-shadow: 0 1px 12px rgba(9, 22, 46, .5); }
+html[data-theme="ace"] .num { color: #FFF6E8; }
+html[data-theme="ace"] .eyebrow { color: rgba(244, 231, 207, .72); }
+html[data-theme="ace"] .grp h3 { color: rgba(244, 231, 207, .84); border-bottom-color: rgba(244, 231, 207, .26); }
+html[data-theme="ace"] .grp h3 span { color: rgba(244, 231, 207, .68); }
+
+/* ---------- controls ---------- */
+html[data-theme="ace"] .seg,
+html[data-theme="ace"] .mini { background: rgba(9, 22, 46, .58); box-shadow: inset 0 0 0 1px rgba(244, 231, 207, .18); }
+html[data-theme="ace"] .seg button[aria-pressed="true"],
+html[data-theme="ace"] .mini button[aria-pressed="true"] { background: var(--ace-sand); color: #17233D; }
+
+html[data-theme="ace"] .chip { border-color: rgba(244, 231, 207, .24); background: rgba(9, 22, 46, .38); color: rgba(244, 231, 207, .9); }
+html[data-theme="ace"] .chip[aria-pressed="true"] { background: var(--ace-ember); border-color: transparent; color: #FFF3E4; box-shadow: 0 6px 16px -10px rgba(211, 38, 47, .9); }
+
+html[data-theme="ace"] .field input,
+html[data-theme="ace"] .note { background: rgba(9, 22, 46, .42); border-color: rgba(244, 231, 207, .2); }
+html[data-theme="ace"] .field input:focus,
+html[data-theme="ace"] .note:focus { border-color: rgba(244, 231, 207, .5); background: rgba(9, 22, 46, .6); }
+
+html[data-theme="ace"] .btn { background: linear-gradient(180deg, #F27A22, #E05F14); color: #1A1006; box-shadow: 0 10px 20px -12px rgba(236, 106, 30, .95); }
+html[data-theme="ace"] .btn:disabled { background: rgba(244, 231, 207, .12); color: rgba(244, 231, 207, .38); }
+html[data-theme="ace"] .undo { color: var(--ace-sand); }
+html[data-theme="ace"] .undo:disabled { color: rgba(244, 231, 207, .24); }
+html[data-theme="ace"] .recent { border-top-color: rgba(244, 231, 207, .18); }
+
+/* ---------- the shopping list ---------- */
+html[data-theme="ace"] .row { background: rgba(9, 22, 46, .52); box-shadow: inset 0 0 0 1px rgba(244, 231, 207, .16); }
+html[data-theme="ace"] .list.quiet .row { background: rgba(9, 22, 46, .34); box-shadow: inset 0 0 0 1px rgba(244, 231, 207, .08); opacity: 1; }
+html[data-theme="ace"] .tick { border-color: rgba(244, 231, 207, .42); }
+html[data-theme="ace"] .tick:hover { background: rgba(236, 106, 30, .26); border-color: var(--ace-sun); }
+html[data-theme="ace"] .tick::after { border-color: #1A1006; }
+
+html[data-theme="ace"] .pill.late { background: rgba(211, 38, 47, .3); color: #FFB9B4; box-shadow: inset 0 0 0 1px rgba(211, 38, 47, .55); }
+html[data-theme="ace"] .pill.today { background: rgba(236, 106, 30, .26); color: #FFC79B; box-shadow: inset 0 0 0 1px rgba(236, 106, 30, .5); }
+html[data-theme="ace"] .pill.soon { background: rgba(236, 106, 30, .16); color: #F5B384; }
+html[data-theme="ace"] .pill.ok { background: rgba(244, 231, 207, .08); color: rgba(244, 231, 207, .66); }
+html[data-theme="ace"] .pill.new { background: rgba(244, 231, 207, .06); color: rgba(244, 231, 207, .5); }
+
+html[data-theme="ace"] .need { border-color: rgba(244, 231, 207, .22); color: rgba(244, 231, 207, .52); }
+html[data-theme="ace"] .need.on { background: rgba(236, 106, 30, .24); border-color: rgba(236, 106, 30, .55); color: #FFC79B; }
+html[data-theme="ace"] .allgood { color: #FFD2A6; }
+
+/* ---------- the shelf ---------- */
+html[data-theme="ace"] .track { background: rgba(9, 22, 46, .6); box-shadow: inset 0 0 0 1px rgba(244, 231, 207, .14); }
+html[data-theme="ace"] .track i { background: rgba(244, 231, 207, .4); }
+html[data-theme="ace"] .srow.late .track i { background: var(--ace-ember); }
+html[data-theme="ace"] .srow.today .track i,
+html[data-theme="ace"] .srow.soon .track i { background: var(--ace-sun); }
+html[data-theme="ace"] .srow.ok .track i { background: rgba(244, 231, 207, .55); }
+html[data-theme="ace"] .srow.late .when { color: #FFB9B4; }
+html[data-theme="ace"] .srow.today .when,
+html[data-theme="ace"] .srow.soon .when { color: #FFC79B; }
+html[data-theme="ace"] .srow .per { color: rgba(244, 231, 207, .72); }
+html[data-theme="ace"] .srow .rn i { color: rgba(244, 231, 207, .72); }
+html[data-theme="ace"] .srow .when { color: rgba(244, 231, 207, .86); }
+
+/* ---------- the run rate ---------- */
+html[data-theme="ace"] .ctrack { background: rgba(9, 22, 46, .6); box-shadow: inset 0 0 0 1px rgba(244, 231, 207, .14); }
+html[data-theme="ace"] .ctrack i { background: linear-gradient(90deg, var(--ace-ember), var(--ace-sun) 65%, #F4A259); }
+html[data-theme="ace"] .cname i { color: rgba(244, 231, 207, .72); }
+html[data-theme="ace"] .cval { color: #FFF3E4; }
+
+/* ---------- toast ---------- */
+html[data-theme="ace"] #toast { background: rgba(10, 18, 34, .95); border-color: rgba(236, 106, 30, .5); box-shadow: 0 16px 30px -18px rgba(0, 0, 0, .9), inset 0 0 0 1px rgba(244, 231, 207, .12); }
+html[data-theme="ace"] .small,
+html[data-theme="ace"] .empty { color: rgba(244, 231, 207, .7); }
+
+/* ============================================================
+   The art: every heading gets a wide still from the reference set, and
+   the three big cards get a feathered portrait. Each band is baked at the
+   strip's own aspect, so the crop is composed once instead of drifting
+   with background-position; the mask melts it into the cobalt wall, and
+   the warm vignette keeps the top and bottom edges from looking cut.
+   ============================================================ */
+html[data-theme="ace"] .card { isolation: isolate; }
+
+html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head {
+  position: relative; isolation: isolate; align-items: center; flex-wrap: wrap; row-gap: 8px;
+  min-height: 104px; padding: 12px; margin: -8px -10px 10px; border-radius: 14px;
+  outline: 2px solid rgba(244, 231, 207, .32); outline-offset: 3px;
+  box-shadow: inset 0 0 0 1px rgba(9, 22, 46, .5), inset 0 0 44px rgba(9, 22, 46, .38);
+  background: var(--ace-cobalt);
+}
+html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head::before {
+  content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit;
+  background: var(--band) right center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 34%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 34%);
+}
+html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head::after {
+  content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(9, 22, 46, .34) 0%, rgba(9, 22, 46, 0) 42%, rgba(12, 42, 92, .34) 100%),
+    linear-gradient(180deg,
+      rgba(27, 79, 168, .3) 0%, rgba(27, 79, 168, .04) 16%,
+      rgba(27, 79, 168, .02) 62%, rgba(12, 42, 92, .74) 100%);
+}
+/* the plate must not steal width from the title: on a ~200px card the shelf's
+   Category/When-due control would otherwise spill past the card edge */
+html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head > .ttl {
+  flex: 1 1 auto; min-width: 0;
+}
+html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head > .seg {
+  flex: 0 1 auto; min-width: 0;
+}
+/* whatever sits on the still keeps a shadow so bright sky cannot swallow it */
+html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head :is(h2, .eyebrow, .muted, .seg, .mini) {
+  text-shadow: 0 1px 10px rgba(9, 22, 46, .85);
+}
+html[data-theme="ace"] [data-w="due"] > .head   { --band: url(/stock/ace/band-due.webp?v=2); }
+html[data-theme="ace"] [data-w="shelf"] > .head { --band: url(/stock/ace/band-shelf.webp?v=2); }
+html[data-theme="ace"] [data-w="cost"] > .head  { --band: url(/stock/ace/band-cost.webp?v=2); }
+html[data-theme="ace"] [data-w="add"] > .head   { --band: url(/stock/ace/band-add.webp?v=2); }
+
+/* The big cards carry a portrait, but it stays a plate at the foot of the card:
+   full-bleed on a 200px-wide card it became a giant face behind every row. It is
+   veiled into the navy here, so the head still holds the sharp still and the body
+   keeps its contrast. */
+html[data-theme="ace"] .card[data-w="due"]::after,
+html[data-theme="ace"] .card[data-w="shelf"]::after,
+html[data-theme="ace"] .card[data-w="cost"]::after {
+  content: ''; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: 172px;
+  border-radius: 0 0 var(--r-card) var(--r-card); pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      rgba(14, 26, 51, .97) 0%, rgba(14, 26, 51, .86) 34%,
+      rgba(9, 22, 46, .82) 72%, rgba(9, 22, 46, .9) 100%),
+    var(--art) center 22% / cover no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 58%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 58%);
+}
+html[data-theme="ace"] .card[data-w="due"]   { --art: url(/stock/ace/hero-due.webp?v=1); }
+html[data-theme="ace"] .card[data-w="shelf"] { --art: url(/stock/ace/hero-shelf.webp?v=1); }
+html[data-theme="ace"] .card[data-w="cost"]  { --art: url(/stock/ace/hero-cost.webp?v=1); }
+
+/* rows sit on their own navy, so the art can pass behind them and they stay readable */
+html[data-theme="ace"] .row { backdrop-filter: blur(1px); }
+
+/* the print pinned on the new-item card */
+html[data-theme="ace"] .head .ace-print {
+  display: block; flex: none; width: 84px; height: 84px; border-radius: 10px; transform: rotate(2.5deg);
+  background: url(/stock/ace/print-add.webp?v=1) center / cover no-repeat;
+  border: 4px solid #F4E7CF; box-shadow: 0 12px 24px -14px rgba(0, 0, 0, .95), inset 0 0 0 1px rgba(9, 22, 46, .5);
+}
+
+/* the switch (shared look with the other pages) */
+.theme-toggle {
+  position: fixed; right: 14px; bottom: 14px; z-index: 30; display: flex; gap: 2px; padding: 3px;
+  border-radius: 999px; background: rgba(20, 20, 20, .9); border: 1px solid rgba(244, 231, 207, .26);
+  backdrop-filter: blur(6px); box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .9);
+}
+.theme-toggle button {
+  display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: rgba(244, 231, 207, .68);
+  font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+}
+.theme-toggle button[aria-pressed="true"] { background: #F4E7CF; color: #1A1006; }
+.theme-toggle i { width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(135deg, #EC6A1E, #D3262F); display: block; }
+.has-theme-toggle #toast { bottom: 58px; }
