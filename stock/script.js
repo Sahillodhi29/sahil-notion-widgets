@@ -2,9 +2,13 @@
 /* ============================================================
    Stock & Resources widgets: what you keep at home and when it runs out.
 
-   /stock/index.html?key=KEY&w=due        -> just that widget
-   w = add | due | shelf | cost | all     (comma-separate to combine)
+   /stock/index.html?key=KEY&w=shelf      -> just that widget
+   w = add | shelf | restock | cost | all (comma-separate to combine)
    Optional: &bg=transparent | &bg=HEX
+
+   The shelf lists one category at a time; pressing "Need restocking" on an
+   item moves it into the Restocking area, which lists the same categories and
+   clears an item when you press "Restocked!".
 
    Every item lives in the Notion "Stock" database with a cadence
    (Every + Unit) and the date it was last restocked. The next due date
@@ -15,7 +19,8 @@
   const API = '/api/stock';
   const params = new URLSearchParams(location.search);
   const KEY = params.get('key') || '';
-  const WIDGETS = ['add', 'due', 'shelf', 'cost'];
+  const WIDGETS = ['add', 'shelf', 'restock', 'cost'];
+  const ALIAS = { due: 'restock' };            // old links to the shopping list keep working
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -27,7 +32,7 @@
   }
 
   /* ---------- which widgets? ---------- */
-  const asked = (params.get('w') || 'all').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+  const asked = (params.get('w') || 'all').toLowerCase().split(',').map(s => s.trim()).filter(Boolean).map(s => ALIAS[s] || s);
   const wantAll = asked.includes('all');
   const shown = wantAll ? WIDGETS.slice() : asked.filter(w => WIDGETS.includes(w));
   const unknown = asked.filter(w => w !== 'all' && !WIDGETS.includes(w));
@@ -36,14 +41,14 @@
   const has = w => shown.includes(w);
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
-    b.innerHTML = '<h2>Unknown widget</h2><p class="muted">Use w=add, due, shelf, cost or all.</p>';
+    b.innerHTML = '<h2>Unknown widget</h2><p class="muted">Use w=add, shelf, restock, cost or all.</p>';
   }
 
   /* ---------- state ---------- */
   const state = {
     today: null, items: [], meta: { categories: [], units: [] },
     loaded: false, loadedAt: 0, pending: 0,
-    group: 'cat',
+    shelfCat: null, restockCat: null,
     add: { cat: null, unit: 'Month' },
     undo: new Map(),          // item id -> what to put back if Undo is pressed
   };
@@ -51,7 +56,6 @@
   /* ---------- formatting & dates ---------- */
   const money = n => '₹' + Math.round(n).toLocaleString('en-IN');
   const short = n => (n >= 1000 ? '₹' + (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k' : money(n));
-  const pad2 = n => String(n).padStart(2, '0');
   const addDays = (d, n) => { const t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
   const addMonths = (d, n) => {
     const [y, m, day] = d.split('-').map(Number);
@@ -115,7 +119,6 @@
       .map(u => `<button type="button" data-v="${esc(u)}" aria-pressed="${A.unit === u}">${esc(u)}</button>`).join('');
     const rows = state.items.filter(x => x.last).sort((a, b) => b.last.localeCompare(a.last)).slice(0, 4);
     $('recent').innerHTML = rows.length ? rows.map(t => {
-      const x = info(t);
       return `<li><span class="rn">${esc(t.item)}<small>${esc(dm(t.last))} · ${esc(cadence(t))}</small></span>` +
         `<span class="ra">${t.cost ? short(t.cost) : ''}</span>` +
         `<button type="button" class="undo" data-id="${esc(t.id)}"${state.undo.has(t.id) ? '' : ' disabled'}>Undo</button></li>`;
@@ -145,7 +148,7 @@
       state.items.push(j.row);
       if (cat && !state.meta.categories.includes(cat)) { state.meta.categories.push(cat); state.meta.categories.sort(); }
       $('iName').value = ''; $('iPack').value = ''; $('iCost').value = ''; $('iNote').value = ''; $('iNewCat').value = ''; $('iEvery').value = '1';
-      toast(`${name} added. Press Restocked when you buy it.`);
+      toast(`${name} added. Press Need restocking when it runs out.`);
       if (bc) bc.postMessage('changed');
     } catch (e) {
       console.error('Add failed:', e);
@@ -193,89 +196,58 @@
     const before = it.needed;
     it.needed = !before;
     state.pending++; renderAll();
-    try { await post({ action: 'need', id, value: it.needed }); if (bc) bc.postMessage('changed'); }
-    catch (e) { console.error('Need failed:', e); it.needed = before; toast(`Couldn't save: ${errText(e)}`, 7000); }
+    try {
+      await post({ action: 'need', id, value: it.needed });
+      if (bc) bc.postMessage('changed');
+      toast(it.needed ? `${it.item} moved to the restocking area.` : `${it.item} taken off the restocking list.`, 2400);
+    } catch (e) { console.error('Need failed:', e); it.needed = before; toast(`Couldn't save: ${errText(e)}`, 7000); }
     finally { state.pending--; renderAll(); }
   }
 
-  /* ---------- due: the shopping list ---------- */
-  function rowHtml(it, x) {
-    return `<li class="row ${x.tone}">
-      <button type="button" class="tick" data-id="${esc(it.id)}" aria-label="Restock ${esc(it.item)}"></button>
-      <span class="rn">${esc(it.item)}${it.pack ? `<small>${esc(it.pack)} · ${esc(cadence(it))}</small>` : `<small>${esc(cadence(it))}</small>`}</span>
-      <span class="pill ${x.tone}">${esc(dueLabel(x))}</span>
-      <button type="button" class="need${it.needed ? ' on' : ''}" data-id="${esc(it.id)}" aria-pressed="${it.needed}" title="Mark as needed">Need</button>
+  /* ---------- categories: one at a time ---------- */
+  function catsOf() {
+    const set = new Set();
+    state.items.forEach(it => { if (it.cat) set.add(it.cat); });
+    return [...set].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+  }
+  const pickCat = (cats, cur) => (cur && cats.includes(cur) ? cur : cats[0] || null);
+  function catChips(id, cats, pick) {
+    $(id).innerHTML = cats
+      .map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${pick === c}">${esc(c)}</button>`)
+      .join('');
+  }
+  const itemRow = (it, x, action) => `<li class="stockrow">
+      <span class="rn">${esc(it.item)}${it.pack ? ` <i>${esc(it.pack)}</i>` : ''}<small>${esc(cadence(it))} · ${esc(dueLabel(x))}</small></span>
+      ${action}
     </li>`;
-  }
-  function renderDue() {
-    const rows = state.items.map(it => ({ it, x: info(it) }));
-    const tracked = rows.filter(r => r.x.left !== null).sort((a, b) => a.x.left - b.x.left);
-    const fresh = rows.filter(r => r.x.left === null).sort((a, b) => byName(a.it, b.it));
-    const soon = tracked.filter(r => r.x.left <= 7);
-    $('dueDate').textContent = state.today ? fmtDate(state.today) : '';
-    const late = soon.filter(r => r.x.left < 0).length;
-    $('dueTitle').textContent = late ? 'Past due' : 'Restock soon';
-    const count = soon.length + fresh.length;
-    $('dueCount').textContent = count ? `${count} to buy` : '';
 
-    if (!state.items.length) {
-      $('dueList').innerHTML = '<p class="empty">Nothing on the shelf yet. Add your first item with the “New stock item” widget.</p>';
-      return;
-    }
-    let html = '';
-    if (soon.length) html += `<ul class="list">${soon.map(r => rowHtml(r.it, r.x)).join('')}</ul>`;
-    else {
-      const next = tracked.slice(0, 3);
-      html += `<p class="allgood">Nothing needs buying this week.</p>`;
-      if (next.length) html += `<ul class="list quiet">${next.map(r => rowHtml(r.it, r.x)).join('')}</ul>`;
-    }
-    if (fresh.length) {
-      html += `<p class="grp-note">Never logged yet — press the circle once to start the clock.</p>` +
-        `<ul class="list quiet">${fresh.map(r => rowHtml(r.it, r.x)).join('')}</ul>`;
-    }
-    $('dueList').innerHTML = html;
-  }
-
-  /* ---------- shelf: everything, grouped ---------- */
-  function shelfRow(it, x) {
-    const pct = x.left === null ? 0 : Math.max(0, Math.min(100, Math.round((x.span - Math.max(0, x.left)) / x.span * 100)));
-    return `<li class="srow ${x.tone}">
-      <span class="rn">${esc(it.item)}${it.pack ? ` <i>${esc(it.pack)}</i>` : ''}</span>
-      <span class="when">${esc(dueLabel(x))}</span>
-      <span class="track" aria-hidden="true"><i style="width:${x.left === null ? 0 : pct}%"></i></span>
-      <span class="per">${it.cost ? esc(short(x.per)) + '/mo' : ''}</span>
-    </li>`;
-  }
+  /* ---------- the shelf: every item in the chosen category ---------- */
   function renderShelf() {
-    const rows = state.items.map(it => ({ it, x: info(it) }));
-    $('shelfNote').textContent = rows.length ? `${rows.length} ${rows.length === 1 ? 'thing' : 'things'} tracked` : '';
-    if (!rows.length) { $('shelf').innerHTML = '<p class="empty">Your shelf is empty. Add something with the “New stock item” widget.</p>'; return; }
+    const cats = catsOf();
+    state.shelfCat = pickCat(cats, state.shelfCat);
+    catChips('shelfCats', cats, state.shelfCat);
+    const rows = (state.shelfCat ? state.items.filter(it => it.cat === state.shelfCat) : state.items.slice()).sort(byName);
+    $('shelfNote').textContent = rows.length ? `${rows.length} ${rows.length === 1 ? 'item' : 'items'}` : '';
+    const box = $('shelfList');
+    if (!state.items.length) { box.innerHTML = '<p class="empty">Your shelf is empty. Add something with the “New stock item” widget.</p>'; return; }
+    if (!rows.length) { box.innerHTML = `<p class="empty">Nothing in ${esc(state.shelfCat)} yet.</p>`; return; }
+    box.innerHTML = `<ul class="stocklist" style="list-style:none;margin:0;padding:0">${rows.map(it => itemRow(it, info(it),
+      `<button type="button" class="want" data-id="${esc(it.id)}" aria-pressed="${!!it.needed}">${it.needed ? 'Needed' : 'Need restocking'}</button>`)).join('')}</ul>`;
+  }
 
-    const groups = new Map();
-    if (state.group === 'cat') {
-      rows.sort((a, b) => byName(a.it, b.it)).forEach(r => {
-        const k = r.it.cat || 'Uncategorised';
-        if (!groups.has(k)) groups.set(k, []);
-        groups.get(k).push(r);
-      });
-    } else {
-      const buckets = [
-        ['Late', r => r.x.tone === 'late'],
-        ['This week', r => r.x.tone === 'today' || r.x.tone === 'soon'],
-        ['Later', r => r.x.tone === 'ok'],
-        ['Not logged yet', r => r.x.tone === 'new'],
-      ];
-      buckets.forEach(([name, test]) => {
-        const hit = rows.filter(test).sort((a, b) => (a.x.left === null ? 0 : a.x.left) - (b.x.left === null ? 0 : b.x.left) || byName(a.it, b.it));
-        if (hit.length) groups.set(name, hit);
-      });
-    }
-
-    $('shelf').innerHTML = [...groups.entries()].map(([name, list]) => {
-      const per = list.reduce((s, r) => s + r.x.per, 0);
-      return `<section class="grp"><h3>${esc(name)}<span>${list.length} · ${esc(short(per))} a month</span></h3>` +
-        `<ul>${list.map(r => shelfRow(r.it, r.x)).join('')}</ul></section>`;
-    }).join('');
+  /* ---------- the restocking area: what you ticked as needed ---------- */
+  function renderRestock() {
+    const cats = catsOf();
+    state.restockCat = pickCat(cats, state.restockCat);
+    catChips('restockCats', cats, state.restockCat);
+    const needed = state.items.filter(it => it.needed);
+    const rows = (state.restockCat ? needed.filter(it => it.cat === state.restockCat) : needed).sort(byName);
+    $('restockNote').textContent = rows.length ? `${rows.length} waiting` : '';
+    const box = $('restockList');
+    if (!state.items.length) { box.innerHTML = '<p class="empty">Nothing to restock yet.</p>'; return; }
+    if (!rows.length) { box.innerHTML = `<p class="empty">Nothing waiting${state.restockCat ? ' in ' + esc(state.restockCat) : ''}. Press “Need restocking” on the shelf.</p>`; return; }
+    box.innerHTML = `<ul class="stocklist" style="list-style:none;margin:0;padding:0">${rows.map(it => itemRow(it, info(it),
+      `<button type="button" class="done" data-id="${esc(it.id)}">Restocked!</button>`)).join('')}</ul>`;
   }
 
   /* ---------- cost: what keeping stock actually costs ---------- */
@@ -306,15 +278,11 @@
   }
 
   /* ---------- render everything ---------- */
-  function syncSeg() {
-    document.querySelectorAll('.seg[data-for="group"] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.group)));
-  }
   function renderAll() {
-    syncSeg();
     if (!state.loaded) return;
     if (has('add')) renderAdd();
-    if (has('due')) renderDue();
     if (has('shelf')) renderShelf();
+    if (has('restock')) renderRestock();
     if (has('cost')) renderCost();
   }
 
@@ -355,13 +323,14 @@
   document.addEventListener('click', e => {
     const q = s => e.target.closest(s);
     let el;
-    if ((el = q('.seg[data-for="group"] button'))) { state.group = el.dataset.v; return renderAll(); }
+    if ((el = q('#shelfCats .chip'))) { state.shelfCat = el.dataset.c; return renderAll(); }
+    if ((el = q('#restockCats .chip'))) { state.restockCat = el.dataset.c; return renderAll(); }
     if ((el = q('#iCats .chip'))) { state.add.cat = state.add.cat === el.dataset.c ? null : el.dataset.c; return renderAdd(); }
     if ((el = q('#iUnit button'))) { state.add.unit = el.dataset.v; return renderAdd(); }
     if (q('#iSave')) return submitItem();
-    if ((el = q('.tick'))) return doRestock(el.dataset.id);
+    if ((el = q('.want'))) return toggleNeed(el.dataset.id);
+    if ((el = q('.done'))) return doRestock(el.dataset.id);
     if ((el = q('.undo'))) return undoRestock(el.dataset.id);
-    if ((el = q('.need'))) return toggleNeed(el.dataset.id);
   });
 
   if (has('add')) {

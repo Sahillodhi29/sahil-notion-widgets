@@ -14,7 +14,7 @@ Everything is driven by one Notion database called **Stock**.
 | Unit | Select | Day, Week, Month, Quarter, Year |
 | Cost | Number | What one restock costs (optional) |
 | Pack | Text | 3 trays, 150 g, 1 bottle (optional) |
-| Last Restocked | Date | Set by the widget when you press the circle |
+| Last Restocked | Date | Set by the widget when you press Restocked! |
 | Needed | Checkbox | Ticked from the widget, cleared on restock |
 | Note | Text | Anything worth remembering |
 
@@ -25,7 +25,7 @@ Your starting shelf:
 - **Foods** — Eggs (3 trays, ₹600/month), Pumpkin / Chia / Flax Seeds (₹200 each/month), Curd (150 g, ₹50 a day), Fruits, Peanuts, Roasted Channa, Sweet Potato (every 3 days)
 - **Skincare & Haircare** — Rosehip Oil, Simple Moisturizer, Sunscreen (₹400 each/month), Vaseline, Lip Balm, Rosewater, Aloe Vera Gel, Multani Powder, Neem Powder
 
-Nothing has a Last Restocked date yet, so the widget lists them under "never logged" until you press the circle on each one once. Change any cadence or price straight in Notion.
+Nothing has a Last Restocked date yet, so items read "never logged" until you press Restocked! on them once. Change any cadence or price straight in Notion.
 
 ## Embed URLs
 
@@ -35,18 +35,18 @@ Base address:
 
 | Add this at the end | Widget | Height |
 |---|---|---|
-| `due` | Restock soon — the shopping list, one tap to restock | 420 |
-| `shelf` | The shelf — everything grouped by category or by when it is due | 380 |
+| `shelf` | The shelf — one category at a time, each item has Need restocking | 420 |
+| `restock` | Restocking area — what you ticked as needed, one press to clear | 380 |
 | `cost` | Monthly run rate — what the shelf costs a month, by category | 300 |
 | `add` | New stock item (form) | 620 |
 | `all` | Everything as separate cards (for testing) | tall |
 
-Combine with commas, for example `w=due,shelf`. Add `&bg=transparent` or `&bg=HEX` to change the page background.
+Combine with commas, for example `w=shelf,restock`. Add `&bg=transparent` or `&bg=HEX` to change the page background. Old `w=due` links still open the restocking area.
 
 ## What each widget does
 
-- **due**: everything due in the next 7 days, plus anything past due, newest first by urgency. The circle on the left marks it restocked today (and clears "Need"). "Need" is a separate flag: tick it when you have noticed you are out, so it stays on the list even before its date.
-- **shelf**: every item with a bar showing how much of its cycle has gone, the days left, and its monthly cost. Switch between *Category* and *When due*.
+- **shelf**: the categories you actually have items in, as chips. Pick one and only that category's items are listed, each with its cadence and when it is next due, plus a **Need restocking** button that ticks the Notion *Needed* box. Press it again to untick.
+- **restock**: the same category chips. Pick a category and the items you ticked as needed appear there with a **Restocked!** button — pressing it sets *Last Restocked* to today and clears *Needed*, so the item leaves the list.
 - **cost**: the monthly run rate. One restock's price spread across its cadence: ₹600 of eggs monthly is ₹600/month, ₹100 of fruit every 3 days is about ₹1,000/month.
 - **add**: name, category (or type a brand-new one — Notion creates the option), pack, cadence, cost, note.
 

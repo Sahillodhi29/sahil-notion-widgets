@@ -114,6 +114,15 @@ html[data-theme="ace"] .ctrack i { background: linear-gradient(90deg, var(--ace-
 html[data-theme="ace"] .cname i { color: rgba(244, 231, 207, .72); }
 html[data-theme="ace"] .cval { color: #FFF3E4; }
 
+/* ---------- the shelf & the restocking area ---------- */
+html[data-theme="ace"] .stockrow { border-bottom-color: rgba(244, 231, 207, .16); }
+html[data-theme="ace"] .stockrow .rn i,
+html[data-theme="ace"] .stockrow .rn small { color: rgba(244, 231, 207, .72); }
+html[data-theme="ace"] .want { border-color: rgba(244, 231, 207, .22); background: rgba(9, 22, 46, .42); color: rgba(244, 231, 207, .9); }
+html[data-theme="ace"] .want:hover { border-color: var(--ace-sun); color: var(--ace-sand); }
+html[data-theme="ace"] .want[aria-pressed="true"] { background: var(--ace-sun); border-color: transparent; color: #1A1006; box-shadow: 0 8px 18px -12px rgba(236, 106, 30, .95); }
+html[data-theme="ace"] .done { background: linear-gradient(180deg, #F27A22, #E05F14); color: #1A1006; box-shadow: 0 10px 20px -12px rgba(236, 106, 30, .95); }
+
 /* ---------- toast ---------- */
 html[data-theme="ace"] #toast { background: rgba(10, 18, 34, .95); border-color: rgba(236, 106, 30, .5); box-shadow: 0 16px 30px -18px rgba(0, 0, 0, .9), inset 0 0 0 1px rgba(244, 231, 207, .12); }
 html[data-theme="ace"] .small,
@@ -128,20 +137,20 @@ html[data-theme="ace"] .empty { color: rgba(244, 231, 207, .7); }
    ============================================================ */
 html[data-theme="ace"] .card { isolation: isolate; }
 
-html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head {
+html[data-theme="ace"] :is([data-w="restock"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head {
   position: relative; isolation: isolate; align-items: center; flex-wrap: wrap; row-gap: 8px;
   min-height: 104px; padding: 12px; margin: -8px -10px 10px; border-radius: 14px;
   outline: 2px solid rgba(244, 231, 207, .32); outline-offset: 3px;
   box-shadow: inset 0 0 0 1px rgba(9, 22, 46, .5), inset 0 0 44px rgba(9, 22, 46, .38);
   background: var(--ace-cobalt);
 }
-html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head::before {
+html[data-theme="ace"] :is([data-w="restock"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head::before {
   content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit;
   background: var(--band) right center / cover no-repeat;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 34%);
   mask-image: linear-gradient(90deg, transparent 0, #000 34%);
 }
-html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head::after {
+html[data-theme="ace"] :is([data-w="restock"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head::after {
   content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
   background:
     linear-gradient(90deg, rgba(9, 22, 46, .34) 0%, rgba(9, 22, 46, 0) 42%, rgba(12, 42, 92, .34) 100%),
@@ -151,17 +160,17 @@ html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [d
 }
 /* the plate must not steal width from the title: on a ~200px card the shelf's
    Category/When-due control would otherwise spill past the card edge */
-html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head > .ttl {
+html[data-theme="ace"] :is([data-w="restock"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head > .ttl {
   flex: 1 1 auto; min-width: 0;
 }
-html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head > .seg {
+html[data-theme="ace"] :is([data-w="restock"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head > .seg {
   flex: 0 1 auto; min-width: 0;
 }
 /* whatever sits on the still keeps a shadow so bright sky cannot swallow it */
-html[data-theme="ace"] :is([data-w="due"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head :is(h2, .eyebrow, .muted, .seg, .mini) {
+html[data-theme="ace"] :is([data-w="restock"], [data-w="shelf"], [data-w="cost"], [data-w="add"]) > .head :is(h2, .eyebrow, .muted, .seg, .mini) {
   text-shadow: 0 1px 10px rgba(9, 22, 46, .85);
 }
-html[data-theme="ace"] [data-w="due"] > .head   { --band: url(/stock/ace/band-due.webp?v=2); }
+html[data-theme="ace"] [data-w="restock"] > .head   { --band: url(/stock/ace/band-due.webp?v=2); }
 html[data-theme="ace"] [data-w="shelf"] > .head { --band: url(/stock/ace/band-shelf.webp?v=2); }
 html[data-theme="ace"] [data-w="cost"] > .head  { --band: url(/stock/ace/band-cost.webp?v=2); }
 html[data-theme="ace"] [data-w="add"] > .head   { --band: url(/stock/ace/band-add.webp?v=2); }
@@ -170,7 +179,7 @@ html[data-theme="ace"] [data-w="add"] > .head   { --band: url(/stock/ace/band-ad
    full-bleed on a 200px-wide card it became a giant face behind every row. It is
    veiled into the navy here, so the head still holds the sharp still and the body
    keeps its contrast. */
-html[data-theme="ace"] .card[data-w="due"]::after,
+html[data-theme="ace"] .card[data-w="restock"]::after,
 html[data-theme="ace"] .card[data-w="shelf"]::after,
 html[data-theme="ace"] .card[data-w="cost"]::after {
   content: ''; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: 172px;
@@ -183,7 +192,7 @@ html[data-theme="ace"] .card[data-w="cost"]::after {
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 58%);
   mask-image: linear-gradient(180deg, transparent 0, #000 58%);
 }
-html[data-theme="ace"] .card[data-w="due"]   { --art: url(/stock/ace/hero-due.webp?v=1); }
+html[data-theme="ace"] .card[data-w="restock"]   { --art: url(/stock/ace/hero-due.webp?v=1); }
 html[data-theme="ace"] .card[data-w="shelf"] { --art: url(/stock/ace/hero-shelf.webp?v=1); }
 html[data-theme="ace"] .card[data-w="cost"]  { --art: url(/stock/ace/hero-cost.webp?v=1); }
 

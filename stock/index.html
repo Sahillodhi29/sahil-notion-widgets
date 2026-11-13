@@ -39,23 +39,20 @@
       <ul id="recent" class="recent" aria-label="Latest restocks"></ul>
     </article>
 
-    <article class="card hero" data-w="due" hidden>
-      <div class="head">
-        <div class="ttl"><h2 id="dueTitle">Restock soon</h2><p id="dueDate" class="eyebrow"></p></div>
-        <span id="dueCount" class="muted"></span>
-      </div>
-      <div id="dueList" class="duelist"></div>
-    </article>
-
     <article class="card" data-w="shelf" hidden>
       <div class="head">
         <div class="ttl"><h2>The shelf</h2><p id="shelfNote" class="eyebrow"></p></div>
-        <div class="seg" data-for="group" role="group" aria-label="Group by">
-          <button type="button" data-v="cat" aria-pressed="true">Category</button>
-          <button type="button" data-v="when" aria-pressed="false">When due</button>
-        </div>
       </div>
-      <div id="shelf" class="shelf"></div>
+      <div id="shelfCats" class="chips" role="group" aria-label="Category"></div>
+      <div id="shelfList" class="stocklist"></div>
+    </article>
+
+    <article class="card" data-w="restock" hidden>
+      <div class="head">
+        <div class="ttl"><h2>Restocking area</h2><p id="restockNote" class="eyebrow"></p></div>
+      </div>
+      <div id="restockCats" class="chips" role="group" aria-label="Category"></div>
+      <div id="restockList" class="stocklist"></div>
     </article>
 
     <article class="card" data-w="cost" hidden>
