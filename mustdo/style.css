@@ -4,7 +4,7 @@
    the whole page without touching a single layout rule.
    ============================================================ */
 :root {
-  --bg: #121013;
+  --bg: #191919;       /* Notion's dark page colour */
   --card-bg: #1C191C;
   --cream: #F3E9DC;
   --ink: #1A1006;

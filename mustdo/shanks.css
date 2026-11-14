@@ -16,7 +16,7 @@ html[data-theme="shanks"] {
   --sh-paper:  #F8E9DC;
   --sh-gold:   #DFAE55;
 
-  --bg:      #0C0506;
+  --bg:      #191919;
   --card-bg: #1A0A0D;
   --cream:   #F8E9DC;
   --ink:     #1A0708;
@@ -28,7 +28,7 @@ html[data-theme="shanks"] {
   --good:    #DFAE55;
   --track:   rgba(12, 5, 6, .55);
 }
-html[data-theme="shanks"], html[data-theme="shanks"] body { background: #0C0506; }
+html[data-theme="shanks"], html[data-theme="shanks"] body { background: #191919; }
 
 /* ---------- the card: black coat, red horizon ---------- */
 html[data-theme="shanks"] .card {

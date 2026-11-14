@@ -1,6 +1,8 @@
 'use strict';
 /* Theme switch: Classic <-> Shanks.
-   &theme=shanks forces one, &toggle=1 shows the switch.
+   &theme=shanks forces one. The switch only appears when several widgets are on the page
+   (w=all, or two or more like w=check,week); a single widget never shows it.
+   &toggle=1 forces it on, &toggle=0 forces it off.
    The choice is remembered in localStorage and shared between embeds. */
 (() => {
   const THEMES = ['classic', 'shanks'];
@@ -25,7 +27,11 @@
   apply(theme);
   if (forced) save(forced);
 
-  const wantSwitch = params.get('toggle') !== '0';
+  const WIDGETS = ['check', 'week', 'month', 'manage'];
+  const asked = (params.get('w') || 'all').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+  const many = asked.includes('all') || asked.filter(w => WIDGETS.includes(w)).length > 1;
+  const t = params.get('toggle');
+  const wantSwitch = t === '0' ? false : t === '1' ? true : many;
   if (!wantSwitch) return;
 
   const build = () => {
