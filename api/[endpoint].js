@@ -20,6 +20,7 @@ const ROUTES = {
   'learning':         () => require('../lib/handlers/learning'),
   'learning-health':  () => require('../lib/handlers/learning-health'),
   'meal':             () => require('../lib/handlers/meal'),
+  'mustdo':           () => require('../lib/handlers/mustdo'),
   'sail':             () => require('../lib/handlers/sail'),
   'sbi':              () => require('../lib/handlers/sbi'),
   'stock':            () => require('../lib/handlers/stock'),

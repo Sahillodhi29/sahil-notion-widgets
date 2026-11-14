@@ -1,0 +1,138 @@
+/* ============================================================
+   Must Do's — "SHANKS"
+   The same page repainted: vermilion and blood on black, with the
+   parchment of his shirt for text and the gold of Gryphon for accents.
+   Only colour and light live here; every layout rule is in style.css.
+
+   Palette taken from the reference art:
+     vermilion #C8202A · deep red #8E0E16 · blood #5C0810
+     black     #120708 · parchment #F8E9DC · gold #DFAE55
+   ============================================================ */
+html[data-theme="shanks"] {
+  --sh-red:    #C8202A;
+  --sh-deep:   #8E0E16;
+  --sh-blood:  #5C0810;
+  --sh-black:  #120708;
+  --sh-paper:  #F8E9DC;
+  --sh-gold:   #DFAE55;
+
+  --bg:      #0C0506;
+  --card-bg: #1A0A0D;
+  --cream:   #F8E9DC;
+  --ink:     #1A0708;
+  --muted:   rgba(248, 233, 220, .84);
+  --faint:   rgba(248, 233, 220, .62);
+  --line:    rgba(248, 233, 220, .15);
+  --line2:   rgba(248, 233, 220, .34);
+  --accent:  #C8202A;
+  --good:    #DFAE55;
+  --track:   rgba(12, 5, 6, .55);
+}
+html[data-theme="shanks"], html[data-theme="shanks"] body { background: #0C0506; }
+
+/* ---------- the card: black coat, red horizon ---------- */
+html[data-theme="shanks"] .card {
+  background:
+    radial-gradient(320px 190px at 100% -12%, rgba(200, 32, 42, .5), transparent 70%),
+    radial-gradient(280px 170px at 0% 0%, rgba(248, 233, 220, .1), transparent 72%),
+    radial-gradient(260px 200px at 50% 118%, rgba(92, 8, 16, .55), transparent 74%),
+    linear-gradient(180deg, transparent 54%, rgba(6, 3, 4, .5)),
+    repeating-linear-gradient(90deg, transparent 0 57px, rgba(6, 3, 4, .22) 57px 58px, rgba(248, 233, 220, .03) 58px 59px),
+    linear-gradient(176deg, #2A0C10 0%, #1A0A0D 52%, #0E0507 100%);
+  box-shadow: inset 0 0 0 1px var(--line), inset 0 0 70px rgba(6, 3, 4, .55), 0 18px 30px -22px rgba(0, 0, 0, .95);
+}
+html[data-theme="shanks"] .card::before {
+  background: linear-gradient(90deg, transparent, rgba(200, 32, 42, .55), rgba(223, 174, 85, .45), rgba(200, 32, 42, .55), transparent);
+}
+
+/* ---------- type ---------- */
+html[data-theme="shanks"] .head h2,
+html[data-theme="shanks"] #bad h2 { color: #FFF6EE; text-shadow: 0 1px 14px rgba(8, 3, 4, .6); }
+html[data-theme="shanks"] .num { color: #FFF6EE; }
+html[data-theme="shanks"] .count { color: var(--sh-gold); }
+html[data-theme="shanks"] .eyebrow { color: rgba(248, 233, 220, .58); }
+
+/* ---------- the meter: a cut that fills with gold ---------- */
+html[data-theme="shanks"] .meter { background: rgba(12, 5, 6, .7); box-shadow: inset 0 0 0 1px rgba(248, 233, 220, .14); }
+html[data-theme="shanks"] .meter i { background: linear-gradient(90deg, var(--sh-red), #E24B3A 62%, var(--sh-gold)); box-shadow: 0 0 12px -2px rgba(200, 32, 42, .8); }
+
+/* ---------- the tick list ---------- */
+html[data-theme="shanks"] .item { border-bottom-color: rgba(248, 233, 220, .13); }
+html[data-theme="shanks"] .item:hover { background: rgba(200, 32, 42, .12); }
+html[data-theme="shanks"] .tick { border-color: rgba(248, 233, 220, .4); }
+html[data-theme="shanks"] .tick:hover { border-color: var(--sh-red); background: rgba(200, 32, 42, .22); }
+html[data-theme="shanks"] .item.done .tick { background: var(--sh-gold); box-shadow: 0 4px 14px -6px rgba(223, 174, 85, .9); }
+html[data-theme="shanks"] .item.done .name { color: rgba(248, 233, 220, .55); text-decoration-color: rgba(200, 32, 42, .65); }
+
+/* ---------- the week bars ---------- */
+html[data-theme="shanks"] .bbar { background: rgba(12, 5, 6, .32); }
+html[data-theme="shanks"] .bbar i { background: linear-gradient(180deg, #E2402F, rgba(142, 14, 22, .75)); }
+html[data-theme="shanks"] .bcol.full .bbar i { background: linear-gradient(180deg, var(--sh-gold), rgba(223, 174, 85, .5)); }
+html[data-theme="shanks"] .bcol.today .bbar { background: rgba(200, 32, 42, .18); box-shadow: 0 0 0 1px rgba(226, 75, 58, .65); }
+html[data-theme="shanks"] .bcol.today .blab { color: #FFF6EE; }
+
+/* ---------- the month heatmap ---------- */
+html[data-theme="shanks"] .heat i { background: rgba(12, 5, 6, .55); box-shadow: inset 0 0 0 1px rgba(248, 233, 220, .1); }
+html[data-theme="shanks"] .heat i.l1 { background: rgba(200, 32, 42, .3); }
+html[data-theme="shanks"] .heat i.l2 { background: rgba(200, 32, 42, .55); }
+html[data-theme="shanks"] .heat i.l3 { background: rgba(226, 75, 58, .8); }
+html[data-theme="shanks"] .heat i.l4 { background: var(--sh-gold); }
+html[data-theme="shanks"] .heat i.blank { background: transparent; box-shadow: none; }
+html[data-theme="shanks"] .heat i.today { outline-color: #FFF6EE; }
+html[data-theme="shanks"] .legend i.l1 { background: rgba(200, 32, 42, .3); }
+html[data-theme="shanks"] .legend i.l2 { background: rgba(200, 32, 42, .55); }
+html[data-theme="shanks"] .legend i.l3 { background: rgba(226, 75, 58, .8); }
+html[data-theme="shanks"] .legend i.l4 { background: var(--sh-gold); }
+
+/* ---------- manage ---------- */
+html[data-theme="shanks"] .adder input { background: rgba(12, 5, 6, .5); border-color: rgba(248, 233, 220, .18); }
+html[data-theme="shanks"] .adder input:focus { border-color: rgba(200, 32, 42, .7); background: rgba(12, 5, 6, .72); }
+html[data-theme="shanks"] .btn { background: linear-gradient(180deg, #D22A32, #A8131C); color: #FFF3EA; box-shadow: 0 10px 22px -14px rgba(200, 32, 42, .95); }
+html[data-theme="shanks"] .btn:disabled { background: rgba(248, 233, 220, .1); color: rgba(248, 233, 220, .35); }
+html[data-theme="shanks"] .del { border-color: rgba(248, 233, 220, .18); }
+html[data-theme="shanks"] .del:hover { color: #FFF3EA; border-color: rgba(200, 32, 42, .8); background: rgba(200, 32, 42, .3); }
+
+/* ============================================================
+   The art: every heading is a wide still from the reference set, baked
+   at the strip's own aspect so the crop is composed once. The mask melts
+   it into the card, and the vignette keeps the edges from looking cut.
+   ============================================================ */
+html[data-theme="shanks"] :is([data-w="check"], [data-w="week"], [data-w="month"], [data-w="manage"]) > .head {
+  position: relative; isolation: isolate; align-items: center; flex-wrap: wrap; row-gap: 8px;
+  min-height: 100px; padding: 12px; margin: -8px -10px 10px; border-radius: 14px;
+  outline: 1px solid rgba(248, 233, 220, .18); outline-offset: 3px;
+  background: rgba(12, 5, 6, .55);
+  box-shadow: inset 0 0 0 1px rgba(6, 3, 4, .5), inset 0 0 44px rgba(6, 3, 4, .45);
+}
+html[data-theme="shanks"] :is([data-w="check"], [data-w="week"], [data-w="month"], [data-w="manage"]) > .head > .ttl {
+  flex: 1 1 auto; min-width: 0;
+}
+html[data-theme="shanks"] :is([data-w="check"], [data-w="week"], [data-w="month"], [data-w="manage"]) > .head::before {
+  content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit;
+  background: var(--band) right center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 36%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 36%);
+}
+html[data-theme="shanks"] :is([data-w="check"], [data-w="week"], [data-w="month"], [data-w="manage"]) > .head::after {
+  content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(10, 4, 5, .42) 0%, rgba(10, 4, 5, 0) 44%, rgba(92, 8, 16, .3) 100%),
+    linear-gradient(180deg, rgba(12, 5, 6, .22) 0%, rgba(12, 5, 6, .02) 20%, rgba(92, 8, 16, .26) 66%, rgba(10, 4, 5, .82) 100%);
+}
+html[data-theme="shanks"] :is([data-w="check"], [data-w="week"], [data-w="month"], [data-w="manage"]) > .head :is(h2, .eyebrow, .count, .num) {
+  text-shadow: 0 1px 12px rgba(6, 3, 4, .92);
+}
+/* the count sits over bright sky in two of the stills, so it gets its own pad */
+html[data-theme="shanks"] :is([data-w="check"], [data-w="week"], [data-w="month"], [data-w="manage"]) > .head > .count {
+  background: rgba(10, 4, 5, .5); padding: 3px 10px; border-radius: 999px;
+}
+html[data-theme="shanks"] [data-w="check"]  > .head { --band: url(/mustdo/shanks/band-check.webp); }
+html[data-theme="shanks"] [data-w="week"]   > .head { --band: url(/mustdo/shanks/band-week.webp); }
+html[data-theme="shanks"] [data-w="month"]  > .head { --band: url(/mustdo/shanks/band-month.webp); }
+html[data-theme="shanks"] [data-w="manage"] > .head { --band: url(/mustdo/shanks/band-manage.webp); }
+
+/* ---------- toast & switch ---------- */
+html[data-theme="shanks"] #toast { background: rgba(16, 6, 8, .96); border-color: rgba(200, 32, 42, .55); }
+html[data-theme="shanks"] .theme-toggle { border-color: rgba(248, 233, 220, .26); }
+html[data-theme="shanks"] .theme-toggle button[aria-pressed="true"] { background: var(--sh-paper); color: #1A0708; }
+html[data-theme="shanks"] .theme-toggle i { background: linear-gradient(135deg, #E2402F, #8E0E16); }
