@@ -21,6 +21,8 @@
 }
 
 * { box-sizing: border-box; }
+/* .card sets display:flex, which would beat the browser's own [hidden] rule */
+[hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
 html, body { background: var(--bg); color: var(--cream); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 body { padding: 4px; }
