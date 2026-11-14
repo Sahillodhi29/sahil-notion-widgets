@@ -220,29 +220,34 @@
     const input = $('newName');
     const label = (input.value || '').trim();
     if (!label) return;
-    $('addBtn').disabled = true;
+    $('addBtn').disabled = true; state.pending++;
     try {
-      await post({ action: 'habit-add', label });
+      const res = await post({ action: 'habit-add', label });
       input.value = '';
-      await load(); renderAll();
+      if (Array.isArray(res.habits)) state.habits = res.habits;     // show it at once, from the server's own answer
+      renderAll();
+      try { await load(); renderAll(); } catch (e) { /* what we already show is right */ }
       if (bc) bc.postMessage('changed');
       toast(`“${label}” added.`, 2600);
     } catch (e) {
       console.error('Add failed:', e);
       toast(`Couldn't add: ${errText(e)}`, 7000);
-    } finally { $('addBtn').disabled = !(input.value || '').trim(); }
+    } finally { state.pending--; $('addBtn').disabled = !(input.value || '').trim(); }
   }
   async function removeHabit(key, label) {
-    if (!confirm(`Remove “${label}” from your must do's?\n\nIt disappears from every day, including the ones already ticked.`)) return;
+    state.pending++;
     try {
-      await post({ action: 'habit-remove', key });
-      await load(); renderAll();
+      const res = await post({ action: 'habit-remove', key });
+      state.habits = Array.isArray(res.habits) ? res.habits : state.habits.filter(h => h.key !== key);
+      delete state.checks[key];
+      renderAll();
+      try { await load(); renderAll(); } catch (e) { /* what we already show is right */ }
       if (bc) bc.postMessage('changed');
       toast(`“${label}” removed.`, 2600);
     } catch (e) {
       console.error('Remove failed:', e);
       toast(`Couldn't remove: ${errText(e)}`, 7000);
-    }
+    } finally { state.pending--; renderAll(); }
   }
 
   /* ---------- render ---------- */
@@ -272,6 +277,13 @@
     if (tick) { const li = tick.closest('.item'); if (li) return toggleHabit(li.dataset.k); }
     const del = e.target.closest('.del');
     if (del) {
+      // browsers block confirm() inside Notion embeds, so confirm on the button itself: tap once to arm, tap again to remove
+      if (!del.classList.contains('armed')) {
+        document.querySelectorAll('.del.armed').forEach(x => { x.classList.remove('armed'); x.textContent = '×'; });
+        del.classList.add('armed'); del.textContent = 'Remove?';
+        clearTimeout(del._t); del._t = setTimeout(() => { del.classList.remove('armed'); del.textContent = '×'; }, 4000);
+        return;
+      }
       const h = state.habits.find(x => x.key === del.dataset.k);
       return removeHabit(del.dataset.k, h ? h.label : del.dataset.k);
     }
@@ -284,6 +296,8 @@
 
   renderAll();
   refresh();
-  setInterval(refresh, 60000);
+  setInterval(refresh, 30000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  addEventListener('focus', refresh);
+  document.documentElement.addEventListener('pointerenter', refresh);   // coming back to a widget after changing another one
 })();
