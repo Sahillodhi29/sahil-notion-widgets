@@ -179,6 +179,3 @@ body[data-mode="multi"] .card[data-w="manage"] { grid-column: 1 / -1; }
 @container (max-width: 240px) {
   .bval { display: none; }
 }
-
-/* two-step remove: the × turns into "Remove?" for a few seconds */
-.del.armed { width: auto; padding: 0 9px; font-size: 12px; font-weight: 700; color: var(--cream); border-color: rgba(200, 70, 60, .8); background: rgba(200, 70, 60, .3); }
