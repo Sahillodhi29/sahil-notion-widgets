@@ -39,7 +39,7 @@ Combine with commas, for example `w=check,week`. Add `&theme=shanks` to open in 
 - **check**: today's must-do's with a tick each. The header shows `3 / 11` and the bar fills as you go. Tapping writes straight to today's Notion row.
 - **week**: the last seven days as bars, in the percentage of that day's must-do's you completed, with the week's average. A perfect day turns gold.
 - **month**: thirty-five days as a heatmap (five weeks, Monday first), plus the average and any run of perfect days ending today.
-- **manage**: add a must-do (Enter or Add) and remove one with ×. Removal asks first, because it deletes the property and its past ticks.
+- **manage**: add a must-do (Enter or Add) and remove one with ×. A click removes it straight away — the property and its past ticks go with it.
 
 ## Theme
 

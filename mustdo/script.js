@@ -233,7 +233,6 @@
     } finally { $('addBtn').disabled = !(input.value || '').trim(); }
   }
   async function removeHabit(key, label) {
-    if (!confirm(`Remove “${label}” from your must do's?\n\nIt disappears from every day, including the ones already ticked.`)) return;
     try {
       await post({ action: 'habit-remove', key });
       await load(); renderAll();
