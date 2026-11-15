@@ -18,7 +18,7 @@
    <div class="deck" id="deck">
 
     <!-- the open deck: sky, sea, railing, cream wall with doors, lawn, mast -->
-    <div class="scene" aria-hidden="true">
+    <div class="scene">
       <div class="sky" id="sky"></div>
       <div class="objs">
         <svg class="petals" viewBox="0 0 170 130"><defs><linearGradient id="pg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d9672c"/><stop offset="1" stop-color="#f4a35a"/></linearGradient></defs>
@@ -30,7 +30,7 @@
         <div class="farrail"></div>
         <div class="wall">
           <i class="cornice"></i>
-          <i class="door l"><b></b></i><i class="door r"><b></b></i>
+          <i class="door l" role="button" tabindex="0" data-door="todo" aria-label="Open Today's To-Do page"><span class="hole"></span><span class="spill"></span><b></b></i><i class="door r" role="button" tabindex="0" data-door="must" aria-label="Open Must Do's page"><span class="hole"></span><span class="spill"></span><b></b></i>
           <i class="port a"></i><i class="port b"></i>
           <i class="skirt"></i>
         </div>

@@ -88,6 +88,49 @@ ul { list-style: none; }
 .door b::before { content: ''; position: absolute; left: 50%; top: 11px; width: 17px; height: 17px; margin-left: -8.5px; border-radius: 50%;
   border: 3px solid #fff4dc; background: linear-gradient(rgb(255 214 120 / calc(var(--stars) * .85)), rgb(255 214 120 / calc(var(--stars) * .85))), rgb(var(--sky-mid)); box-shadow: 0 1px 2px rgb(0 0 0 / .4); }
 .door b::after { content: ''; position: absolute; right: 7px; top: 42px; width: 4px; height: 4px; border-radius: 50%; background: #f3dc9a; box-shadow: 0 1px 1px rgb(0 0 0 / .5); }
+
+/* ---------- the doors open: hover nudges them, a click walks you through ---------- */
+.door { cursor: pointer; pointer-events: auto; perspective: 340px; -webkit-tap-highlight-color: transparent; }
+.door b {
+  transform-origin: left center; backface-visibility: hidden;
+  transition: transform .55s cubic-bezier(.2, .72, .2, 1), box-shadow .3s ease;
+}
+.door.r b { transform-origin: right center; }
+/* what is behind the leaf: a warm room, only seen once the door swings */
+.door .hole {
+  position: absolute; inset: 5px 5px 0; border-radius: 24px 24px 0 0; pointer-events: none; display: block;
+  background:
+    radial-gradient(66% 52% at 50% 102%, rgb(255 242 196 / .95), rgb(255 198 100 / .5) 48%, rgb(255 196 90 / 0) 76%),
+    linear-gradient(180deg, #3a1c0e, #6b3a18 58%, #8a5222);
+  box-shadow: inset 0 8px 16px rgb(70 34 8 / .6);
+}
+/* the light waiting on the other side */
+.door .spill {
+  position: absolute; inset: 4px 5px 8px; border-radius: 26px 26px 0 0; pointer-events: none; display: block;
+  background: radial-gradient(110% 85% at 50% 100%, #fffbe2, #ffd884 42%, rgb(255 196 90 / 0) 78%);
+  opacity: 0; transition: opacity .3s ease;
+}
+/* a warm halo on the wall around the open door */
+.door::after {
+  content: ''; position: absolute; inset: -12px -14px -4px; border-radius: 44px 44px 10px 10px;
+  pointer-events: none; opacity: 0; transition: opacity .35s ease;
+  background: radial-gradient(62% 58% at 50% 96%, rgb(255 216 130 / .6), rgb(255 190 80 / .12) 55%, transparent 76%);
+}
+.door:hover b, .door:focus-visible b { transform: rotateY(-24deg); }
+.door.r:hover b, .door.r:focus-visible b { transform: rotateY(24deg); }
+.door:hover .spill, .door:focus-visible .spill { opacity: .9; }
+.door:hover::after, .door:focus-visible::after { opacity: .9; }
+.door:focus-visible { outline: 2px solid #ffe08a; outline-offset: 4px; border-radius: 30px 30px 6px 6px; }
+.door.open { z-index: 6; }
+.door.open b { transform: rotateY(-72deg); box-shadow: -9px 0 16px rgb(0 0 0 / .4); }
+.door.r.open b { transform: rotateY(72deg); box-shadow: 9px 0 16px rgb(0 0 0 / .4); }
+.door.open .spill { opacity: 1; }
+.door.open::after { opacity: 1; }
+.door.opening::after { animation: doorGlow .9s ease-out 1; }
+/* the whole deck lifts for a heartbeat as you step through */
+.deck.entering { animation: deckEnter .95s cubic-bezier(.3, .8, .3, 1); }
+@keyframes doorGlow { 0% { transform: scale(.85); opacity: .2; } 35% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); opacity: .95; } }
+@keyframes deckEnter { 0% { transform: none; } 18% { transform: translateY(-3px) scale(1.005); } 100% { transform: none; } }
 .port { top: 28px; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #fff7e4;
   background: linear-gradient(rgb(255 214 120 / calc(var(--stars) * .85)), rgb(255 214 120 / calc(var(--stars) * .85))), rgb(var(--sky-mid));
   box-shadow: 0 2px 3px rgb(100 60 20 / .4), inset 0 2px 4px rgb(0 0 0 / .25); }

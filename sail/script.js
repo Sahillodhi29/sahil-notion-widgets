@@ -35,6 +35,41 @@
   $('todoLink').href = LINKS.todo;
   $('mustLink').href = LINKS.must;
 
+  /* ============================================================
+     The doors: left one sails to Today's To-Do, right one to Must Do's.
+     A click swings the door open, the deck lifts, and the page opens.
+     ============================================================ */
+  const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let doorBusy = false;
+
+  function walkThrough(kind) {
+    const door = document.querySelector(`.door[data-door="${kind}"]`);
+    const url = LINKS[kind];
+    if (!door || !url || doorBusy) return;
+
+    if (reduced()) { window.open(url, '_blank', 'noopener'); return; }
+
+    doorBusy = true;
+    const deck = $('deck');
+    door.classList.add('open', 'opening');
+    deck.classList.remove('entering'); void deck.offsetWidth; deck.classList.add('entering');
+
+    setTimeout(() => window.open(url, '_blank', 'noopener'), 380);
+    setTimeout(() => {
+      door.classList.remove('open', 'opening');
+      deck.classList.remove('entering');
+      doorBusy = false;
+    }, 1500);
+  }
+
+  document.querySelectorAll('.door[data-door]').forEach(door => {
+    const kind = door.dataset.door;
+    door.addEventListener('click', () => walkThrough(kind));
+    door.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); walkThrough(kind); }
+    });
+  });
+
   const CARDS = {
     todo: { card: $('todoCard'), list: $('todoList'), empty: $('todoEmpty'), et: $('todoEt'), es: $('todoEs'),
             count: $('todoCount'), fill: $('todoFill'), bar: $('todoBar'), more: $('todoMore'), cheer: $('todoCheer'), prev: null },
