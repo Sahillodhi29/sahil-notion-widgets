@@ -72,6 +72,58 @@
       <p id="fuelToday" class="fuel-today"></p>
     </article>
 
+    <article class="card prog" data-w="program" hidden>
+      <div class="prog-head">
+        <div class="prog-title">
+          <h2>Your program</h2>
+          <p id="progSub" class="muted"></p>
+        </div>
+        <div class="prog-tabs" role="tablist" aria-label="Program sections">
+          <button type="button" role="tab" id="tabEx" aria-selected="true" aria-controls="progEx" data-tab="ex">Exercises</button>
+          <button type="button" role="tab" id="tabDays" aria-selected="false" aria-controls="progDays" data-tab="days">Days</button>
+        </div>
+      </div>
+
+      <div id="progEx" class="prog-pane" role="tabpanel" aria-labelledby="tabEx">
+        <div id="progGroups" class="prog-groups"></div>
+        <div id="progRestoreWrap" class="prog-tray" hidden>
+          <span id="progRestoreLabel" class="muted"></span>
+          <span id="progRestore" class="chips"></span>
+        </div>
+        <form id="progAdd" class="prog-add" autocomplete="off">
+          <div class="prog-add-row">
+            <input id="progNewName" class="prog-new" type="text" maxlength="60" placeholder="Add an exercise, e.g. Bulgarian split squat" aria-label="New exercise name" required>
+            <select id="progNewGroup" class="ex-group" aria-label="Group for the new exercise">
+              <option value="push">Push</option><option value="pull">Pull</option><option value="legs">Legs</option><option value="other">Other</option><option value="fuel">Fuel</option>
+            </select>
+            <button class="prog-add-btn" type="submit">Add</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="progDays" class="prog-pane" role="tabpanel" aria-labelledby="tabDays" hidden>
+        <div id="progWeek" class="prog-week"></div>
+        <p id="progDaysNote" class="muted"></p>
+        <div class="prog-rule">
+          <span class="prog-rule-label">Session counts as done at</span>
+          <span class="prog-need">
+            <button id="progNeedMinus" type="button" aria-label="Fewer exercises needed for a done session">−</button>
+            <b id="progNeedNum">– of –</b>
+            <button id="progNeedPlus" type="button" aria-label="More exercises needed for a done session">+</button>
+          </span>
+        </div>
+        <p class="muted prog-hint">Every widget follows this week: the week strip, the streak, the mosaic and the fuel check. Rest days never break a streak.</p>
+      </div>
+
+      <div class="prog-foot">
+        <span id="progNote" class="muted" role="status" aria-live="polite"></span>
+        <span class="prog-actions">
+          <button id="progReset" class="ghost" type="button" disabled>Discard</button>
+          <button id="progSave" class="start prog-save" type="button" disabled>Save program</button>
+        </span>
+      </div>
+    </article>
+
     <article class="card" id="bad" hidden></article>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>

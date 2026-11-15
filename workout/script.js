@@ -1,7 +1,9 @@
 'use strict';
 /* Workout widgets: one page, many pieces.
    /workout/index.html?key=KEY&w=ripple     -> just that widget
-   w = ripple | session | week | streak | mosaic | balance | fuel | all  (comma-separate to combine)
+   w = ripple | session | week | streak | mosaic | balance | fuel | program | all  (comma-separate to combine)
+   program is the editor for your own exercises, days and target. It is never part of "all",
+   and &demo runs it entirely in this browser (nothing is written to Notion).
 
    Day types come from the schedule in /api/workout (Mon/Wed/Fri = workout, Sun = bonus, Tue/Thu/Sat = rest):
    - workout / bonus day: counts as done when 85% of the exercises are ticked (6 of 7). Snacks don't count.
@@ -12,7 +14,8 @@
   const KEY = params.get('key') || '';
   const DONE_SHARE = 0.85;     // share of exercises that makes a training day "done"
   const WINDOW = 28;           // days used by the balance and fuel widgets
-  const NEEDS = { ripple: 7, session: 7, week: 14, streak: 56, mosaic: 35, balance: 28, fuel: 28 };   // days of history each widget needs
+  const NEEDS = { ripple: 7, session: 7, week: 14, streak: 56, mosaic: 35, balance: 28, fuel: 28, program: 0 };   // days of history each widget needs
+  const EDITOR = ['program'];   // an editor is only shown when it is asked for by name
   const keyQ = sep => (KEY ? `${sep}key=${encodeURIComponent(KEY)}` : '');
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -27,18 +30,19 @@
   /* ---------- which widgets? ---------- */
   const asked = (params.get('w') || 'all').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
   const wantAll = asked.includes('all');
-  const shown = wantAll ? Object.keys(NEEDS) : asked.filter(w => NEEDS[w]);
-  const unknown = asked.filter(w => w !== 'all' && !NEEDS[w]);
+  const shown = wantAll ? Object.keys(NEEDS).filter(w => !EDITOR.includes(w)) : asked.filter(w => w in NEEDS);
+  const unknown = asked.filter(w => w !== 'all' && !(w in NEEDS));
   document.querySelectorAll('.card[data-w]').forEach(c => { c.hidden = !shown.includes(c.dataset.w); });
   document.body.dataset.mode = shown.length === 1 ? 'single' : 'multi';
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
-    b.innerHTML = '<h2>Unknown widget</h2><p class="muted">Use w=ripple, session, week, streak, mosaic, balance, fuel or all.</p>';
+    b.innerHTML = '<h2>Unknown widget</h2><p class="muted">Use w=ripple, session, week, streak, mosaic, balance, fuel, program or all.</p>';
   }
   const has = w => shown.includes(w);
   const DAYS = Math.max(14, ...shown.map(w => NEEDS[w]));
 
-  const state = { today: null, rows: [], schedule: {}, time: '5:00 PM', todayRow: null, pending: 0, first: true, loadedAt: 0, starting: false, pulse: null };
+  const state = { today: null, rows: [], schedule: {}, time: '5:00 PM', todayRow: null, pending: 0, first: true, loadedAt: 0, starting: false, pulse: null,
+    program: null, draft: null, dirty: false, saving: false, progRendered: false, progSavedNote: '' };
 
   /* ---------- dates ---------- */
   const addDays = (d, n) => { const t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
@@ -57,7 +61,9 @@
     const rest = kindOn(r.date) === 'rest';
     const it = rest ? r.items.filter(isFuel) : r.items.filter(i => !isFuel(i));
     const total = it.length, done = it.filter(i => i.done).length;
-    return { rest, done, total, pct: total ? done / total : 0, hit: total > 0 && (rest ? done === total : done >= need(total)) };
+    // The program widget can change "done" from 85% to whatever number the user picks.
+    const goal = rest ? total : Math.min(total, (state.program && state.program.need) || need(total));
+    return { rest, done, total, pct: total ? done / total : 0, hit: total > 0 && done >= goal };
   }
   const byDate = () => new Map(state.rows.map(r => [r.date, r]));
   const firstDate = () => (state.rows.length ? state.rows[0].date : null);
@@ -95,8 +101,8 @@
   const setsOf = it => { const m = /x(\d+)$/i.exec(it.label); return m ? `${m[1]} sets` : ''; };
   function tileText(it, rest) {
     const k = nameKey(it);
-    if (rest) return { nm: REST_NAME[k] || it.name, hn: REST_HINT[k] || '' };
-    return { nm: it.name, hn: HINT[k] || setsOf(it) };
+    if (rest) return { nm: REST_NAME[k] || it.name, hn: REST_HINT[k] || it.hint || '' };
+    return { nm: it.name, hn: it.hint || HINT[k] || setsOf(it) };   // your own sets/reps win
   }
 
   /* ---------- ripple: concentric rain rings, one segment per exercise ---------- */
@@ -185,7 +191,7 @@
         const list = items.filter(i => i.group === g);
         if (!list.length) return '';
         const done = list.filter(i => i.done).length;
-        const note = rest ? '' : GROUP_NOTE[g] || '';
+        const note = rest || (state.program && state.program.exists) ? '' : GROUP_NOTE[g] || '';
         const head = rest ? '' : `<div class="thead"><span>${GROUP_NAME[g]}</span><span class="muted">${esc(note ? note + ', ' : '')}${done} of ${list.length}</span></div>`;
         return `<div class="tgroup" data-g="${g}">${head}<div class="trow" style="--n:${Math.min(list.length, 3)}">${list.map(i => tileHtml(i, rest)).join('')}</div></div>`;
       }).join('');
@@ -293,7 +299,316 @@
     if (has('mosaic')) renderMosaic();
     if (has('balance')) renderBalance();
     if (has('fuel')) renderFuel();
+    if (has('program') && (!state.dirty || !state.progRendered)) renderProgram();
     state.first = false;
+  }
+
+  /* ============================================================
+     PROGRAM (w=program): your own exercises, order, groups, sets,
+     training days and how many ticks make a session count.
+     Saved to Notion through /api/workout (action 'program-save').
+     ============================================================ */
+  const DEMO = params.has('demo');
+  const DEMO_KEY = 'workout-program-demo';
+  const DEFAULT_SCHEDULE = { 0: 'bonus', 1: 'workout', 2: 'rest', 3: 'workout', 4: 'rest', 5: 'workout', 6: 'rest' };
+  const GLABEL = { push: 'Push', pull: 'Pull', legs: 'Legs', other: 'Other', fuel: 'Fuel' };
+  const GORDER = ['push', 'pull', 'legs', 'other', 'fuel'];
+  const KLABEL = { workout: 'Train', rest: 'Rest', bonus: 'Bonus' };
+  const KNEXT = { workout: 'rest', rest: 'bonus', bonus: 'workout' };
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MON_FIRST = [1, 2, 3, 4, 5, 6, 0];
+  const ICO = {
+    up: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.6V2.9M3.3 5.6L6 2.8l2.7 2.8"/></svg>',
+    down: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.4v6.7M3.3 6.4L6 9.2l2.7-2.8"/></svg>',
+    hide: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3.2 3.2l5.6 5.6M8.8 3.2l-5.6 5.6"/></svg>',
+  };
+
+  const DEMO_ITEMS = [
+    { prop: 'Wide Pushups x2', name: 'Wide pushups', group: 'push', hint: '3 sets' },
+    { prop: 'Incline Pushups x2', name: 'Incline pushups', group: 'push', hint: '3 sets' },
+    { prop: 'Diamond Pushups x2', name: 'Diamond pushups', group: 'push', hint: '2 sets' },
+    { prop: 'Wide Pullups x2', name: 'Wide pullups', group: 'pull', hint: '3 sets' },
+    { prop: 'Close Pullups x2', name: 'Close pullups', group: 'pull', hint: '2 sets' },
+    { prop: 'Chin ups x2', name: 'Chin ups', group: 'pull', hint: '2 sets' },
+    { prop: 'Goated Leg x2', name: 'Goated leg', group: 'legs', hint: '69 reps' },
+    { prop: 'Pre-Workout Snack', name: 'Pre-workout snack', group: 'fuel', hint: 'Channa or fruit' },
+    { prop: 'Post-Workout Snack', name: 'Post-workout snack', group: 'fuel', hint: 'Eggs, oats or dal' },
+  ];
+
+  // One shape everywhere: what the server sends, what we edit, what we save.
+  function shapeProgram(src) {
+    const p = src || {};
+    const items = (Array.isArray(p.items) ? p.items : []).map(i => ({
+      prop: i && i.prop ? String(i.prop) : null,
+      name: String((i && i.name) || '').trim(),
+      group: GORDER.includes(i && i.group) ? i.group : 'other',
+      hint: String((i && i.hint) || ''),
+      hidden: !!(i && i.hidden),
+    })).filter(i => i.name);
+    const schedule = {};
+    for (let d = 0; d < 7; d++) {
+      const k = p.schedule && p.schedule[String(d)];
+      schedule[String(d)] = k === 'workout' || k === 'rest' || k === 'bonus' ? k : DEFAULT_SCHEDULE[d];
+    }
+    const visible = items.filter(i => !i.hidden).length;
+    let nd = parseInt(p.need, 10);
+    if (!Number.isFinite(nd) || nd < 1) nd = Math.ceil(visible * 0.85);
+    return { exists: !!p.exists, schedule, need: Math.min(Math.max(1, nd), Math.max(1, visible)), items };
+  }
+  function demoProgram() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(DEMO_KEY) || 'null'); } catch (e) { saved = null; }
+    return shapeProgram(saved || { exists: true, schedule: DEFAULT_SCHEDULE, need: 6, items: DEMO_ITEMS });
+  }
+  const progVisible = () => (state.draft ? state.draft.items.filter(i => !i.hidden) : []);
+
+  function progDirty(on) {
+    if (on !== undefined) state.dirty = on;
+    const note = $('progNote'), btn = $('progSave');
+    if (note) {
+      note.classList.toggle('dirty', state.dirty);
+      note.textContent = state.dirty ? 'Unsaved changes' : (state.progSavedNote || '');
+    }
+    if (btn) { btn.textContent = state.saving ? 'Saving…' : 'Save program'; btn.disabled = !state.dirty || state.saving; }
+    $('progReset').disabled = !state.dirty || state.saving;
+  }
+
+  function exRow(it, i, k, n) {
+    return `<div class="ex${it.prop ? '' : ' is-new'}" data-i="${i}" data-g="${it.group}">
+      <div class="ex-fields">
+        <input class="ex-name" type="text" maxlength="60" value="${esc(it.name)}" aria-label="Exercise name" placeholder="Exercise name">
+        <div class="ex-sub">
+          <input class="ex-hint" type="text" maxlength="24" value="${esc(it.hint)}" aria-label="Sets or reps for ${esc(it.name)}" placeholder="sets or reps">
+          <select class="ex-group" aria-label="Group for ${esc(it.name)}">${GORDER.map(g => `<option value="${g}"${g === it.group ? ' selected' : ''}>${GLABEL[g]}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="ex-acts">
+        <button type="button" data-act="up" aria-label="Move ${esc(it.name)} up"${k === 0 ? ' disabled' : ''}>${ICO.up}</button>
+        <button type="button" data-act="down" aria-label="Move ${esc(it.name)} down"${k === n - 1 ? ' disabled' : ''}>${ICO.down}</button>
+        <button type="button" data-act="hide" aria-label="Take ${esc(it.name)} out of the program" title="Take out of the program (its history stays in Notion)">${ICO.hide}</button>
+      </div>
+    </div>`;
+  }
+
+  function renderProgram() {
+    if (!state.draft) state.draft = shapeProgram(state.program || { items: [] });
+    const p = state.draft, vis = progVisible(), hid = p.items.filter(i => i.hidden);
+    const groups = GORDER.filter(g => vis.some(i => i.group === g));
+    $('progSub').textContent = vis.length
+      ? `${vis.length} ${vis.length === 1 ? 'exercise' : 'exercises'}${groups.length ? ' · ' + groups.map(g => GLABEL[g]).join(', ') : ''}`
+      : 'No exercises yet — add your first one below.';
+
+    let html = '';
+    GORDER.forEach(g => {
+      const rows = p.items.map((it, i) => ({ it, i })).filter(x => !x.it.hidden && x.it.group === g);
+      if (!rows.length) return;
+      html += `<div class="pg" data-g="${g}"><div class="pg-head"><i aria-hidden="true"></i><b>${GLABEL[g]}</b><span class="muted">${rows.length}</span></div>`
+        + rows.map((x, k) => exRow(x.it, x.i, k, rows.length)).join('') + '</div>';
+    });
+    $('progGroups').innerHTML = html || '<p class="empty">Start with one exercise — push, pull, legs, anything.</p>';
+
+    $('progRestoreWrap').hidden = !hid.length;
+    if (hid.length) {
+      $('progRestoreLabel').textContent = `Not in your program (${hid.length})`;
+      $('progRestore').innerHTML = hid.map(it => `<button type="button" class="chip" data-restore="${p.items.indexOf(it)}" title="Put ${esc(it.name)} back">${esc(it.name)}</button>`).join('');
+    }
+    renderDays();
+    renderNeed();
+    progDirty();
+    state.progRendered = true;
+  }
+
+  function renderDays() {
+    const p = state.draft;
+    if (!p || !$('progWeek')) return;
+    const todayDow = state.today ? dow(state.today) : -1;
+    $('progWeek').innerHTML = MON_FIRST.map(d => {
+      const k = p.schedule[String(d)];
+      return `<button type="button" class="day k-${k}${d === todayDow ? ' today' : ''}" data-dow="${d}" aria-label="${DOW[d]} is ${KLABEL[k]}. Click to make it ${KLABEL[KNEXT[k]]}."><span class="day-n">${DOW[d]}</span><span class="day-k">${KLABEL[k]}</span><i class="day-bar" aria-hidden="true"></i></button>`;
+    }).join('');
+    const train = MON_FIRST.filter(d => p.schedule[String(d)] === 'workout').length;
+    const bonus = MON_FIRST.filter(d => p.schedule[String(d)] === 'bonus').length;
+    $('progDaysNote').textContent = `${train} training ${train === 1 ? 'day' : 'days'} a week${bonus ? `, plus ${bonus === 1 ? 'a bonus day' : bonus + ' bonus days'}` : ''}. Click a day to change it.`;
+  }
+
+  function renderNeed() {
+    const p = state.draft;
+    if (!p) return;
+    const total = progVisible().length;
+    const n = Math.min(Math.max(1, p.need), Math.max(1, total));
+    $('progNeedNum').textContent = total ? `${n} of ${total}` : '0 of 0';
+    $('progNeedMinus').disabled = n <= 1;
+    $('progNeedPlus').disabled = n >= total;
+  }
+
+  function setTab(t) {
+    const ex = t !== 'days';
+    $('progEx').hidden = !ex;
+    $('progDays').hidden = ex;
+    document.querySelectorAll('.prog-tabs button[data-tab]').forEach(b => b.setAttribute('aria-selected', String((b.dataset.tab === 'ex') === ex)));
+  }
+
+  function finishSave(msg) {
+    state.draft = shapeProgram(state.program || { items: [] });
+    state.dirty = false;
+    state.progSavedNote = msg;
+    renderProgram();
+  }
+
+  function resetDraft() {
+    if (!state.dirty) return;
+    state.draft = shapeProgram(state.program || { items: [] });
+    state.dirty = false;
+    state.progSavedNote = '';
+    renderProgram();
+  }
+
+  async function saveProgram() {
+    if (state.saving || !state.draft) return;
+    const p = state.draft;
+    if (!progVisible().length) return toast('Keep at least one exercise in your program.');
+    const seen = new Set();
+    for (const it of p.items) {
+      const n = String(it.name || '').trim();
+      if (!n) return toast('Every exercise needs a name.');
+      if (n.length > 60) return toast(`"${n.slice(0, 24)}…" is too long — 60 characters is the limit.`);
+      const k = n.toLowerCase();
+      if (seen.has(k)) return toast(`"${n}" is in the list twice.`);
+      seen.add(k);
+    }
+    if (!MON_FIRST.some(d => p.schedule[String(d)] === 'workout')) return toast('Keep at least one training day in the week.');
+
+    const payload = {
+      schedule: p.schedule,
+      need: Math.min(Math.max(1, p.need), progVisible().length),
+      items: p.items.map(i => ({ prop: i.prop, name: i.name.trim(), group: i.group, hint: i.hint.trim(), hidden: !!i.hidden })),
+    };
+    state.saving = true; progDirty(true);
+    try {
+      if (DEMO) {
+        try { localStorage.setItem(DEMO_KEY, JSON.stringify({ exists: true, ...payload })); } catch (e) { /* storage blocked */ }
+        state.program = shapeProgram({ exists: true, ...payload });
+        finishSave('Saved in this browser (demo).');
+        toast('Saved in this browser (demo).', 2600);
+        return;
+      }
+      const j = await post({ action: 'program-save', program: payload });
+      state.program = shapeProgram({ exists: true, ...(j.program || payload) });
+      state.schedule = state.program.schedule;
+      if (bc) bc.postMessage('changed');
+      finishSave('Saved to Notion.');
+      toast('Program saved.', 2600);
+    } catch (e) {
+      console.error('Program save failed:', e);
+      toast(`Couldn't save: ${e.message}${e.hint ? ' ' + e.hint : ''}`, 7000);
+    } finally {
+      state.saving = false;
+      progDirty(state.dirty);
+    }
+  }
+
+  function wireProgram() {
+    document.querySelector('.prog-tabs').addEventListener('click', e => {
+      const b = e.target.closest('button[data-tab]');
+      if (b) setTab(b.dataset.tab);
+    });
+
+    // typing keeps the caret where it is: only the draft changes, no re-render
+    $('progGroups').addEventListener('input', e => {
+      const t = e.target;
+      if (!t.classList.contains('ex-name') && !t.classList.contains('ex-hint')) return;
+      const it = state.draft && state.draft.items[parseInt(t.closest('.ex').dataset.i, 10)];
+      if (!it) return;
+      if (t.classList.contains('ex-name')) it.name = t.value; else it.hint = t.value;
+      progDirty(true);
+    });
+
+    $('progGroups').addEventListener('change', e => {
+      const t = e.target;
+      if (!t.classList.contains('ex-group')) return;
+      const it = state.draft && state.draft.items[parseInt(t.closest('.ex').dataset.i, 10)];
+      if (!it) return;
+      it.group = GORDER.includes(t.value) ? t.value : 'other';
+      progDirty(true);
+      renderProgram();
+    });
+
+    $('progGroups').addEventListener('click', e => {
+      const btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      const i = parseInt(btn.closest('.ex').dataset.i, 10);
+      const p = state.draft;
+      const it = p && p.items[i];
+      if (!it) return;
+      if (btn.dataset.act === 'hide') {
+        it.hidden = true;
+        state.progSavedNote = '';
+        progDirty(true);
+        renderProgram();
+        return;
+      }
+      const peers = p.items.map((x, idx) => ({ x, idx })).filter(o => !o.x.hidden && o.x.group === it.group);
+      const at = peers.findIndex(o => o.idx === i);
+      const to = btn.dataset.act === 'up' ? at - 1 : at + 1;
+      if (to < 0 || to >= peers.length) return;
+      const a = peers[at].idx, b = peers[to].idx;
+      const keep = p.items[a]; p.items[a] = p.items[b]; p.items[b] = keep;
+      progDirty(true);
+      renderProgram();
+    });
+
+    $('progRestore').addEventListener('click', e => {
+      const b = e.target.closest('[data-restore]');
+      if (!b) return;
+      const it = state.draft && state.draft.items[parseInt(b.dataset.restore, 10)];
+      if (!it) return;
+      it.hidden = false;
+      progDirty(true);
+      renderProgram();
+    });
+
+    $('progAdd').addEventListener('submit', e => {
+      e.preventDefault();
+      const nameEl = $('progNewName'), name = nameEl.value.trim();
+      if (!name) { nameEl.focus(); return; }
+      if (name.length > 60) return toast('Keep the name under 60 characters.');
+      if (state.draft.items.some(i => i.name.trim().toLowerCase() === name.toLowerCase())) return toast(`"${name}" is already in your program.`);
+      if (state.draft.items.length >= 40) return toast('That is 40 exercises — plenty for one program.');
+      state.draft.items.push({ prop: null, name, group: $('progNewGroup').value, hint: '', hidden: false });
+      const idx = state.draft.items.length - 1;
+      nameEl.value = '';
+      progDirty(true);
+      renderProgram();
+      const row = document.querySelector('.ex[data-i="' + idx + '"]');
+      if (row) row.scrollIntoView({ block: 'nearest' });
+      nameEl.focus();
+    });
+
+    $('progWeek').addEventListener('click', e => {
+      const b = e.target.closest('.day');
+      if (!b) return;
+      const d = String(b.dataset.dow);
+      const cur = state.draft.schedule[d];
+      const next = KNEXT[cur];
+      const others = MON_FIRST.filter(x => String(x) !== d && state.draft.schedule[String(x)] === 'workout').length;
+      if (cur === 'workout' && others === 0) return toast('Keep at least one training day in the week.');
+      state.draft.schedule[d] = next;
+      progDirty(true);
+      renderDays();
+    });
+
+    const bumpNeed = n => {
+      const total = progVisible().length;
+      const next = Math.min(Math.max(1, state.draft.need + n), Math.max(1, total));
+      if (next === state.draft.need) return;
+      state.draft.need = next;
+      progDirty(true);
+      renderNeed();
+    };
+    $('progNeedMinus').addEventListener('click', () => bumpNeed(-1));
+    $('progNeedPlus').addEventListener('click', () => bumpNeed(1));
+    $('progSave').addEventListener('click', saveProgram);
+    $('progReset').addEventListener('click', resetDraft);
   }
 
   /* ---------- data ---------- */
@@ -311,13 +626,23 @@
     const data = await r.json().catch(() => ({}));
     if (!r.ok || data.error) { const e = new Error(data.error || `Could not load the Workout Log (HTTP ${r.status}).`); e.hint = data.hint; throw e; }
     state.today = data.today; state.rows = data.rows || []; state.schedule = data.schedule || {}; state.time = data.time || state.time;
+    state.program = data.program || null;
     state.todayRow = state.rows.find(x => x.date === state.today) || null;
     state.loadedAt = Date.now();
   }
 
   async function refresh() {
     if (state.pending || !shown.length) return;
-    try { await load(); renderAll(); }
+    if (DEMO) {                                     // &demo: the editor runs on this browser alone
+      state.today = state.today || new Date().toISOString().slice(0, 10);
+      state.schedule = Object.keys(state.schedule || {}).length ? state.schedule : { ...DEFAULT_SCHEDULE };
+      state.program = state.program || demoProgram();
+      if (!state.dirty) state.draft = shapeProgram(state.program);
+      state.loadedAt = Date.now();
+      renderAll();
+      return;
+    }
+    try { await load(); if (!state.dirty) state.draft = shapeProgram(state.program || { items: [] }); renderAll(); }
     catch (e) {
       if (state.today) return;          // keep what's on screen if a background refresh fails
       const b = $('bad'); b.hidden = false;
@@ -365,6 +690,7 @@
     const b = e.target.closest('.tile'); if (b) toggle(b.dataset.key);
   });
   const stk = $('sticker'); if (stk.complete && stk.naturalWidth) stk.hidden = false; else stk.addEventListener('load', e => { e.target.hidden = false; });
+  if (has('program')) wireProgram();
 
   refresh();
   setInterval(refresh, 60000);

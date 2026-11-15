@@ -59,6 +59,20 @@ html[data-theme="zoro"] .card[data-w="mosaic"]   { --plate-art: url(zoro/plate-c
 html[data-theme="zoro"] .card[data-w="balance"]  { --plate-art: url(zoro/plate-water.webp);   --plate-pos: 50% 34%; --plate-w: 64%; }
 html[data-theme="zoro"] .card[data-w="fuel"]     { --plate-art: url(zoro/plate-cherry.webp);  --plate-pos: 50% 44%; --plate-w: 50%; }
 
+/* the program editor's header, hung like the other cards' pictures */
+html[data-theme="zoro"] .card[data-w="program"] { --plate-art: url(zoro/plate-swords2.webp); --plate-pos: 50% 40%; }
+html[data-theme="zoro"] .prog-head {
+  position: relative; isolation: isolate; align-items: center; min-height: 104px; padding: 16px 20px; margin: 2px 2px 2px; border-radius: 14px;
+  outline: 2px solid rgba(252, 169, 170, .45); outline-offset: 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 50px rgba(5, 12, 3, .55), 0 16px 26px -20px rgba(0, 0, 0, .9);
+  background: repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .18) 53px 54px, rgba(255, 236, 230, .028) 54px 55px), linear-gradient(100deg, #142608, #1E3309 62%, #16280A);
+  text-shadow: 0 2px 16px rgba(5, 12, 3, .85);
+}
+html[data-theme="zoro"] .prog-head::before {
+  content: ''; position: absolute; z-index: -1; inset: 0 0 0 auto; width: 58%; border-radius: 0 14px 14px 0;
+  background: var(--plate-art) var(--plate-pos) / cover no-repeat;
+}
+
 @media (max-width: 640px) {
   html[data-theme="zoro"] .card[data-w="ripple"] { background: var(--pins), linear-gradient(90deg, rgba(16, 32, 9, .95) 0%, rgba(16, 32, 9, .75) 60%, rgba(16, 32, 9, .35) 100%), url(zoro/hero-zoro.webp) 90% top / cover no-repeat, var(--wall); }
   html[data-theme="zoro"] :is(.card[data-w="week"], .card[data-w="streak"], .card[data-w="mosaic"], .card[data-w="balance"], .card[data-w="fuel"]) > h2:first-of-type,
