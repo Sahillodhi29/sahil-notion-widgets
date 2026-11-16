@@ -1,120 +1,73 @@
 /* ============================================================
-   Must Do's — SHANKS: "Crimson river"
-   The same room, warmed through: the crimson of the Alone painting takes
-   the walls, the painting behind each heading is left unhidden, and the
-   teals become the water that carries progress. Bone still marks a
-   finished day. Only colour and light live here; every structure rule is
-   in style.css.
+   Must Do's — SHANKS: "Red Hair"
+   The same wall, warmed through: deeper crimson walls, brighter red, the painting
+   behind each heading left unhidden, and the gold turned up to bright brass.
+   Only colour and light live here; every structure rule is in style.css.
    ============================================================ */
 html[data-theme="shanks"] {
-  --ink:     #12060A;
-  --card:    #170A0C;
-  --frame:   #3E1113;
-  --deep:    #12484C;
-  --teal:    #2B7574;
-  --crest:   #F2DDD7;
-  --bone:    #F5EFEC;
-  --crimson: #861211;
-  --muted:   #D3B4AF;
-  --faint:   #AE8A87;
-  --line:    rgba(245, 239, 236, .11);
-  --line2:   rgba(245, 239, 236, .26);
-
-  --pins:
-    radial-gradient(circle at center, #F2DDD7 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) 11px 11px / 8px 8px no-repeat,
-    radial-gradient(circle at center, #F2DDD7 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) calc(100% - 11px) 11px / 8px 8px no-repeat,
-    radial-gradient(circle at center, #F2DDD7 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) 11px calc(100% - 11px) / 8px 8px no-repeat,
-    radial-gradient(circle at center, #F2DDD7 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) calc(100% - 11px) calc(100% - 11px) / 8px 8px no-repeat;
+  --ink:      #12060A;
+  --card:     #1C0809;
+  --aub:      #2E0C0F;
+  --plum:     #521519;
+  --frame:    #5A1A1C;
+  --crimson:  #8E1213;
+  --red:      #D12E28;
+  --red-hi:   #F0472F;
+  --gold:     #C4953F;
+  --gold-hi:  #E6C079;
+  --gold-lo:  #946C24;
+  --text:     #FBEFE0;
+  --rose:     #FFEACB;
+  --muted:    #D8B995;
+  --faint:    #AB8D6B;
+  --edge:     rgba(230, 192, 121, .44);
+  --edge-soft: rgba(230, 192, 121, .18);
 
   --wall:
-    radial-gradient(300px 200px at 100% -8%, rgba(134, 18, 17, .40), transparent 72%),
-    radial-gradient(260px 180px at 0% 0%, rgba(43, 117, 116, .22), transparent 74%),
-    linear-gradient(180deg, transparent 56%, rgba(134, 18, 17, .10)),
-    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .22) 53px 54px, rgba(245, 239, 236, .022) 54px 55px),
-    linear-gradient(180deg, #3A0E11, #12060A);
-}
-html[data-theme="shanks"], html[data-theme="shanks"] body { background: #12060A; }
-html[data-theme="shanks"] #stage { background: var(--wall); }
-html[data-theme="shanks"] ::selection { background: rgba(134, 18, 17, .85); color: #FBF4F2; }
+    radial-gradient(300px 200px at 100% -8%, rgba(209, 46, 40, .34), transparent 72%),
+    radial-gradient(260px 160px at 0% 0%, rgba(230, 192, 121, .12), transparent 74%),
+    linear-gradient(180deg, transparent 56%, rgba(142, 18, 19, .18)),
+    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .22) 53px 54px, rgba(255, 236, 210, .024) 54px 55px),
+    linear-gradient(180deg, #3A0E11, #1C0809);
 
-html[data-theme="shanks"] .card { background: var(--card); border-color: var(--frame); }
+  --gilt:      linear-gradient(180deg, #FBE6B0, #E6C079 62%, #D2A455);
+  --gilt-line: #F2D494;
+  --gilt-glow: 0 10px 20px -12px rgba(240, 71, 47, 1);
+}
+html[data-theme="shanks"] ::selection { background: rgba(142, 18, 19, .9); color: #FFF4E0; }
 
 /* ---------- the painting, seen properly ---------- */
 html[data-theme="shanks"] .card > .head {
-  outline-color: rgba(245, 239, 236, .40);
+  outline-color: rgba(230, 192, 121, .55);
   background:
-    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .18) 53px 54px, rgba(245, 239, 236, .022) 54px 55px),
-    linear-gradient(100deg, #2A0C0E, #3E1113 62%, #2E0D10);
+    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .18) 53px 54px, rgba(255, 236, 210, .022) 54px 55px),
+    linear-gradient(100deg, #2A0C0E, #44130F 62%, #2E0D10);
 }
 html[data-theme="shanks"] .card > .head::before { width: var(--plate-w, 66%); }
 html[data-theme="shanks"] .card > .head::after {
-  background: linear-gradient(90deg, rgba(23, 10, 12, .97) 0%, rgba(23, 10, 12, .82) 32%, rgba(23, 10, 12, .04) 66%, rgba(23, 10, 12, .34) 100%);
+  background: linear-gradient(90deg, rgba(28, 8, 9, .97) 0%, rgba(28, 8, 9, .8) 32%, rgba(28, 8, 9, .04) 66%, rgba(28, 8, 9, .34) 100%);
 }
 
-/* ---------- type ---------- */
-html[data-theme="shanks"] h2, html[data-theme="shanks"] #bad h2 { color: #FBEFEC; }
-html[data-theme="shanks"] .eyebrow { color: var(--muted); }
-html[data-theme="shanks"] .num { color: #FBF5F2; }
-html[data-theme="shanks"] .count { background: rgba(18, 6, 10, .6); box-shadow: inset 0 0 0 1px rgba(245, 239, 236, .2); }
-
-html[data-theme="shanks"] .card[data-w="week"] > .head > .num {
-  background: rgba(18, 6, 10, .58); box-shadow: inset 0 0 0 1px rgba(245, 239, 236, .18);
+/* ---------- tiles, bars, cells: warmer reds ---------- */
+html[data-theme="shanks"] .item:not(.done) {
+  background: linear-gradient(150deg, rgba(230, 192, 121, .09), transparent 42%), linear-gradient(150deg, var(--aub), var(--card) 88%);
+  border-color: rgba(230, 192, 121, .28);
 }
+html[data-theme="shanks"] .item:not(.done):hover { border-color: rgba(230, 192, 121, .65); }
+html[data-theme="shanks"] .meter i { background: linear-gradient(90deg, var(--crimson), var(--red-hi) 50%, var(--gold-hi)); }
+html[data-theme="shanks"] .bbar i { background: linear-gradient(180deg, var(--red-hi), var(--crimson)); }
+html[data-theme="shanks"] .heat i.l1 { background: #7A1B1C; }
+html[data-theme="shanks"] .heat i.l2 { background: var(--red); }
+html[data-theme="shanks"] .legend i.l1 { background: #7A1B1C; border-color: #7A1B1C; }
+html[data-theme="shanks"] .legend i.l2 { background: var(--red); border-color: var(--red); }
 
-/* ---------- the meter ---------- */
-html[data-theme="shanks"] .meter { background: rgba(18, 6, 10, .8); box-shadow: inset 0 0 0 1px var(--frame); }
-html[data-theme="shanks"] .meter i { background: linear-gradient(90deg, var(--deep), #3E9490 55%, var(--bone)); }
-
-/* ---------- the check list ---------- */
-html[data-theme="shanks"] .item { background: linear-gradient(150deg, #240C0F, #170A0C 85%); border-color: #3E1113; }
-html[data-theme="shanks"] .item:hover { border-color: #5A1A1C; }
-html[data-theme="shanks"] .tick { border-color: #6B2427; }
-html[data-theme="shanks"] .tick:hover { background: rgba(43, 117, 116, .55); border-color: var(--bone); }
-html[data-theme="shanks"] .item.done { background: linear-gradient(150deg, #FFFFFF, var(--bone) 68%, #D3D8D6); border-color: var(--bone); }
-html[data-theme="shanks"] .item.done .name { color: #2A0C0E; text-decoration-color: rgba(42, 12, 14, .35); }
-html[data-theme="shanks"] .item.done .tick { background: #2A0C0E; border-color: #2A0C0E; }
-
-/* ---------- the week bars ---------- */
-html[data-theme="shanks"] .bbar { background: #230B0E; border-color: #3E1113; }
-html[data-theme="shanks"] .bbar i { background: linear-gradient(180deg, #3E9490, var(--deep)); }
-html[data-theme="shanks"] .bcol.full .bbar { border-color: rgba(245, 239, 236, .6); }
-html[data-theme="shanks"] .bcol.full .bbar i { background: linear-gradient(180deg, #FFFFFF, var(--bone) 70%, #C4CBC9); }
-html[data-theme="shanks"] .bcol.today .bbar { background: rgba(245, 239, 236, .12); border-color: rgba(245, 239, 236, .8); }
-html[data-theme="shanks"] .bcol.today .blab { color: #FBF5F2; }
-
-/* ---------- the month heatmap ---------- */
-html[data-theme="shanks"] .heat i { background: #230B0E; box-shadow: inset 0 0 0 1px #3E1113; }
-html[data-theme="shanks"] .heat i.l1 { background: rgba(18, 72, 76, .8); box-shadow: inset 0 0 0 1px rgba(43, 117, 116, .6); }
-html[data-theme="shanks"] .heat i.l2 { background: rgba(43, 117, 116, .9); box-shadow: inset 0 0 0 1px rgba(159, 211, 203, .16); }
-html[data-theme="shanks"] .heat i.l3 { background: #3E9490; box-shadow: inset 0 0 0 1px rgba(245, 239, 236, .22); }
-html[data-theme="shanks"] .heat i.l4 { background: var(--bone); box-shadow: 0 0 14px -6px rgba(245, 239, 236, .85); }
-html[data-theme="shanks"] .heat i.today { outline-color: var(--bone); }
-html[data-theme="shanks"] .legend i { background: #230B0E; box-shadow: inset 0 0 0 1px #3E1113; }
-html[data-theme="shanks"] .legend i.l1 { background: rgba(18, 72, 76, .8); }
-html[data-theme="shanks"] .legend i.l2 { background: rgba(43, 117, 116, .9); }
-html[data-theme="shanks"] .legend i.l3 { background: #3E9490; }
-
-/* ---------- manage ---------- */
-html[data-theme="shanks"] .adder input { background: rgba(18, 6, 10, .72); border-color: var(--frame); }
-html[data-theme="shanks"] .adder input::placeholder { color: rgba(174, 138, 135, .8); }
-html[data-theme="shanks"] .adder input:hover { border-color: #5A1A1C; }
-html[data-theme="shanks"] .adder input:focus { border-color: rgba(245, 239, 236, .65); box-shadow: 0 0 0 3px rgba(245, 239, 236, .12); }
-html[data-theme="shanks"] .btn {
-  background: linear-gradient(180deg, #FBF6F3, var(--bone) 62%, #D3D8D6); color: #2A0C0E;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), inset 0 -3px 0 rgba(134, 18, 17, .35);
-}
-html[data-theme="shanks"] .btn:disabled { background: rgba(245, 239, 236, .07); color: rgba(245, 239, 236, .30); box-shadow: inset 0 0 0 1px var(--line); }
-html[data-theme="shanks"] .del { border-color: var(--frame); color: var(--faint); }
-html[data-theme="shanks"] .del:hover { color: #FFF3F0; border-color: rgba(245, 239, 236, .7); background: rgba(18, 72, 76, .6); }
-
-/* ---------- the streak: bone on crimson ---------- */
+/* ---------- the streak: gold on crimson ---------- */
 html[data-theme="shanks"] [data-w="month"] > .head > .count {
-  background: linear-gradient(180deg, #FDF8F6, var(--bone) 70%, #D8DEDC); color: #6D0E0E;
-  box-shadow: 0 10px 20px -14px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .85);
+  background: var(--gilt); color: #6D0E0E;
+  box-shadow: 0 10px 20px -14px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .7);
 }
 
 /* ---------- toast & switch ---------- */
-html[data-theme="shanks"] #toast { background: rgba(24, 8, 12, .97); border-color: rgba(245, 239, 236, .34); }
-html[data-theme="shanks"] .theme-toggle { background: rgba(18, 6, 10, .94); border-color: rgba(245, 239, 236, .34); }
-html[data-theme="shanks"] .theme-toggle button[aria-pressed="true"] { background: linear-gradient(180deg, #FBF6F3, var(--bone) 70%, #D6DCD9); color: #2A0C0E; }
-html[data-theme="shanks"] .theme-toggle i { background: linear-gradient(135deg, #E2402F, #861211); }
+html[data-theme="shanks"] #toast { background: rgba(32, 10, 12, .97); border-color: rgba(230, 192, 121, .55); }
+html[data-theme="shanks"] .theme-toggle { background: rgba(20, 6, 8, .94); border-color: rgba(230, 192, 121, .55); }
+html[data-theme="shanks"] .theme-toggle i { background: linear-gradient(135deg, #F0472F, #8E1213); }
