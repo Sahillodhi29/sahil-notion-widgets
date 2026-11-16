@@ -391,3 +391,81 @@ body[data-mode="multi"] .card[data-w="ripple"], body[data-mode="multi"] .card[da
   .prog-rule { align-items: flex-start; }
 }
 body[data-mode="multi"] .card[data-w="program"] { grid-column: 1 / -1; }
+/* ============================================================
+   SPLITS: a colour per day type, the split chooser, day types
+   and the day picker. Appended after the base rules on purpose.
+   ============================================================ */
+:root {
+  --tone-0: #FCA9AA; --tone-1: #A9C23A; --tone-2: #F2678E;
+  --tone-3: #B4C47E; --tone-4: #849A28; --tone-5: #FFC9C6;
+  --tone-6: #8C2A4C; --tone-7: #D9B26A;
+}
+[data-tone="0"] { --tone: var(--tone-0); } [data-tone="1"] { --tone: var(--tone-1); }
+[data-tone="2"] { --tone: var(--tone-2); } [data-tone="3"] { --tone: var(--tone-3); }
+[data-tone="4"] { --tone: var(--tone-4); } [data-tone="5"] { --tone: var(--tone-5); }
+[data-tone="6"] { --tone: var(--tone-6); } [data-tone="7"] { --tone: var(--tone-7); }
+#ring .step.tone-0 { --on: var(--tone-0); } #ring .step.tone-1 { --on: var(--tone-1); }
+#ring .step.tone-2 { --on: var(--tone-2); } #ring .step.tone-3 { --on: var(--tone-3); }
+#ring .step.tone-4 { --on: var(--tone-4); } #ring .step.tone-5 { --on: var(--tone-5); }
+#ring .step.tone-6 { --on: var(--tone-6); } #ring .step.tone-7 { --on: var(--tone-7); }
+.bar-row.tone-0 .track i { background: var(--tone-0); } .bar-row.tone-1 .track i { background: var(--tone-1); }
+.bar-row.tone-2 .track i { background: var(--tone-2); } .bar-row.tone-3 .track i { background: var(--tone-3); }
+.bar-row.tone-4 .track i { background: var(--tone-4); } .bar-row.tone-5 .track i { background: var(--tone-5); }
+.bar-row.tone-6 .track i { background: var(--tone-6); } .bar-row.tone-7 .track i { background: var(--tone-7); }
+
+/* split chooser */
+.prog-lead { font-size: 12.5px; line-height: 1.5; max-width: 54ch; }
+.splits { display: grid; gap: 8px; }
+.split { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; text-align: left;
+  padding: 12px 14px 12px 12px; border-radius: 14px; border: 1px solid rgba(252, 169, 170, .2);
+  background: linear-gradient(150deg, rgba(252, 169, 170, .06), rgba(0, 0, 0, .22) 70%);
+  color: var(--text); font: inherit; cursor: pointer; transition: border-color .2s, background .2s, transform .12s; }
+.split:hover { border-color: rgba(252, 169, 170, .45); transform: translateY(-1px); }
+.split.on { border-color: var(--lilac); background: linear-gradient(150deg, rgba(252, 169, 170, .16), rgba(0, 0, 0, .2) 72%);
+  box-shadow: inset 0 1px 0 rgba(255, 233, 229, .15), 0 10px 24px -18px rgba(226, 50, 96, .9); }
+.split-tick { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(252, 169, 170, .38);
+  display: grid; place-items: center; font-size: 12px; line-height: 1; color: #12220A; }
+.split.on .split-tick { background: linear-gradient(180deg, #FFD6D3, #FCA9AA); border-color: #FFC9C6; }
+.split-body { display: grid; gap: 3px; min-width: 0; }
+.split-body b { font-family: var(--serif); font-size: 16px; color: var(--rose); }
+.split-body small { font-size: 12.5px; color: var(--sage); line-height: 1.4; }
+.split-body em { font-style: normal; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: rgba(180, 196, 126, .82); }
+
+/* split name + day types (custom) */
+.prog-name { display: grid; gap: 6px; }
+.prog-name span { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--citron-hi); }
+.prog-name input { font: inherit; font-size: 15px; color: var(--text); background: rgba(0, 0, 0, .28);
+  border: 1px solid rgba(252, 169, 170, .26); border-radius: 11px; padding: 10px 12px; }
+.prog-name input:focus { outline: none; border-color: rgba(252, 169, 170, .7); }
+.prog-cats { display: grid; gap: 8px; }
+.prog-cats-head { display: flex; align-items: baseline; justify-content: space-between; font-family: var(--serif); font-size: 15px; font-weight: 700; color: var(--rose); }
+.prog-cats-head .muted { font-family: var(--sans); font-weight: 500; font-size: 11.5px; }
+.cat-list { display: grid; gap: 6px; }
+.cat-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) 26px; gap: 9px; align-items: center;
+  padding: 7px 8px 7px 12px; border-radius: 11px; border: 1px solid rgba(252, 169, 170, .16); background: rgba(0, 0, 0, .22); }
+.cat-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tone, var(--lilac)); }
+.cat-name { font: inherit; font-size: 14px; color: var(--text); background: none; border: 0; border-bottom: 1px solid transparent; padding: 2px 0; }
+.cat-name:focus { outline: none; border-bottom-color: rgba(252, 169, 170, .6); }
+.cat-del { width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--sage); cursor: pointer; }
+.cat-del svg { width: 12px; height: 12px; }
+.cat-del:hover { background: rgba(226, 50, 96, .22); color: #FFD7D4; }
+.cat-add { display: flex; gap: 8px; }
+.cat-add input { flex: 1; min-width: 0; font: inherit; font-size: 13.5px; color: var(--text); background: rgba(0, 0, 0, .26);
+  border: 1px dashed rgba(252, 169, 170, .3); border-radius: 11px; padding: 9px 12px; }
+.cat-add input::placeholder { color: rgba(180, 196, 126, .72); }
+.cat-add input:focus { outline: none; border-style: solid; border-color: rgba(252, 169, 170, .65); }
+.cat-add button { font: inherit; font-size: 12.5px; font-weight: 700; color: #12220A; background: linear-gradient(180deg, #FFD6D3, #FCA9AA);
+  border: 0; border-radius: 11px; padding: 0 15px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
+.cat-add button:hover { filter: brightness(1.04); }
+
+/* the day picker + day tiles */
+.day-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px;
+  border: 1px dashed rgba(180, 196, 126, .3); background: rgba(0, 0, 0, .2); }
+.day-pick .muted { font-size: 12px; }
+.day-pick .chip::before { content: none; }
+.chip.on { color: #12220A; background: linear-gradient(180deg, #FFD6D3, #FCA9AA); border-color: #FFC9C6; }
+.chip.on::before { content: ""; }
+.day.picking { outline: 2px solid rgba(252, 169, 170, .55); outline-offset: 2px; }
+.day.k-cat { --k: var(--tone-0); background: linear-gradient(180deg, rgba(252, 169, 170, .09), rgba(0, 0, 0, .26)); }
+.day-k { font-size: 12.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card[data-w="week"] .wk { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

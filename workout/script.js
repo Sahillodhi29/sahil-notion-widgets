@@ -42,7 +42,7 @@
   const DAYS = Math.max(14, ...shown.map(w => NEEDS[w]));
 
   const state = { today: null, rows: [], schedule: {}, time: '5:00 PM', todayRow: null, pending: 0, first: true, loadedAt: 0, starting: false, pulse: null,
-    program: null, draft: null, dirty: false, saving: false, progRendered: false, progSavedNote: '' };
+    program: null, draft: null, dirty: false, saving: false, progRendered: false, progSavedNote: '', dayPick: null, tab: '' };
 
   /* ---------- dates ---------- */
   const addDays = (d, n) => { const t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
@@ -51,19 +51,36 @@
   const fmtDate = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
   const wkShort = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' });
   const wkLong = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
-  const kindOn = d => state.schedule[dow(d)] || 'workout';   // 'workout' | 'bonus' | 'rest'
+  // A day type (push, chest, upper…) counts as a training day; only rest and bonus are special.
+  const kindOn = d => {
+    const v = state.schedule[dow(d)] || 'workout';
+    return v === 'rest' ? 'rest' : v === 'bonus' ? 'bonus' : 'workout';
+  };
 
   /* ---------- maths ---------- */
-  const isFuel = i => i.group === 'fuel';
+  const isFuel = i => !!i.fuel;
+  const catsOf = () => (state.program && state.program.categories) || [];
+  const catById = id => catsOf().find(c => c.id === id) || null;
+  const catNameOf = id => (catById(id) || {}).name || '';
+  const dayValueOn = d => state.schedule[dow(d)] || 'workout';
+  // A day either names one of your day types, or it is a rest / bonus / workout day.
+  const dayCatOn = d => { const v = dayValueOn(d); return catById(v) ? v : null; };
+  const toneOf = id => { const i = catsOf().findIndex(c => c.id === id); return i < 0 ? 0 : i; };
   const need = n => Math.max(1, Math.ceil(n * DONE_SHARE - 1e-9));
   // What counts on a given day: the snacks on a rest day, the exercises otherwise.
+  // What counts on a day: that day type's exercises, or the snacks on a rest day.
   function stats(r) {
-    const rest = kindOn(r.date) === 'rest';
-    const it = rest ? r.items.filter(isFuel) : r.items.filter(i => !isFuel(i));
+    const kind = kindOn(r.date);
+    const rest = kind === 'rest';
+    const cat = rest ? null : dayCatOn(r.date);
+    const it = rest ? r.items.filter(isFuel)
+      : cat ? r.items.filter(i => i.cat === cat)
+      : r.items.filter(i => !isFuel(i));
     const total = it.length, done = it.filter(i => i.done).length;
     // The program widget can change "done" from 85% to whatever number the user picks.
-    const goal = rest ? total : Math.min(total, (state.program && state.program.need) || need(total));
-    return { rest, done, total, pct: total ? done / total : 0, hit: total > 0 && done >= goal };
+    const goal = Math.min(total, (state.program && state.program.need) || need(total));
+    const hit = rest ? (total === 0 || done === total) : total > 0 && done >= goal;
+    return { rest, cat, done, total, pct: total ? done / total : 0, hit };
   }
   const byDate = () => new Map(state.rows.map(r => [r.date, r]));
   const firstDate = () => (state.rows.length ? state.rows[0].date : null);
@@ -108,7 +125,7 @@
   /* ---------- ripple: concentric rain rings, one segment per exercise ---------- */
   const FALLBACK = [['Wide Pushups', 'push'], ['Incline Pushups', 'push'], ['Diamond Pushups', 'push'], ['Wide Pullups', 'pull'], ['Close Pullups', 'pull'],
     ['Chin ups', 'pull'], ['Goated Leg', 'legs'], ['Pre-Workout Snack', 'fuel'], ['Post-Workout Snack', 'fuel']]
-    .map(([n, g]) => ({ key: n, label: n, name: n, group: g, done: false }));
+    .map(([n, g]) => ({ key: n, label: n, name: n, cat: g, fuel: g === 'fuel', done: false }));
   function ripplesItems() {
     if (state.todayRow) return state.todayRow.items;
     const last = [...state.rows].reverse().find(r => r.date <= state.today);
@@ -123,15 +140,21 @@
     return `M${x0} ${y0}A${r1} ${r1} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${big} 0 ${x3} ${y3}Z`;
   }
   const annulus = (r0, r1) => `M100 ${100 - r1}A${r1} ${r1} 0 1 1 100 ${100 + r1}A${r1} ${r1} 0 1 1 100 ${100 - r1}ZM100 ${100 - r0}A${r0} ${r0} 0 1 0 100 ${100 + r0}A${r0} ${r0} 0 1 0 100 ${100 - r0}Z`;
-  function ringsOf(kind, items) {
-    if (kind === 'rest') return items.filter(isFuel).map((it, i) => ({ cls: 'fuel' + Math.min(i, 1), items: [it] }));
-    return ['push', 'pull', 'legs', 'other'].map(g => ({ cls: g, items: items.filter(i => i.group === g) })).filter(r => r.items.length);
+  function ringsOf(date, kind, items) {
+    if (kind === 'rest') return items.filter(isFuel).map(it => ({ cls: 'fuel', tone: it.cat ? toneOf(it.cat) : 0, items: [it] }));
+    const cat = dayCatOn(date);
+    if (cat) return [{ cls: cat, tone: toneOf(cat), items: items.filter(i => i.cat === cat) }].filter(r => r.items.length);
+    return catsOf().filter(c => !isFuelCat(c)).map(c => ({ cls: c.id, tone: toneOf(c.id), items: items.filter(i => i.cat === c.id && !isFuel(i)) })).filter(r => r.items.length);
   }
 
-  function dayTitle(kind) { return kind === 'rest' ? 'Rest day' : kind === 'bonus' ? 'Bonus session' : "Today's session"; }
+  function dayTitle(kind, catName) {
+    if (kind === 'rest') return 'Rest day';
+    if (kind === 'bonus') return 'Bonus session';
+    return catName ? `${catName} day` : "Today's session";
+  }
 
   function renderRing() {
-    const kind = kindOn(state.today), items = ripplesItems(), rings = ringsOf(kind, items), first = state.first;
+    const kind = kindOn(state.today), items = ripplesItems(), rings = ringsOf(state.today, kind, items), first = state.first;
     const N = Math.max(1, rings.length), inner = N >= 3 ? 34 : 44, gap = 5, th = (94 - inner - gap * (N - 1)) / N;
     let svg = '<circle class="rail" cx="100" cy="100" r="98"/>' + `<circle class="rail" cx="100" cy="100" r="${inner - 4}"/>`;
     let idx = 0, pulseR = null;
@@ -139,7 +162,7 @@
       const r1 = 94 - ri * (th + gap), r0 = r1 - th, n = ring.items.length;
       ring.items.forEach((it, i) => {
         const d = n === 1 ? annulus(r0, r1) : wedge(i, n, r0, r1, 0.1);
-        svg += `<path class="step ${ring.cls}${it.done ? ' done' : ''}" fill-rule="evenodd" d="${d}"${first ? ` style="transition-delay:${idx * 55}ms"` : ''}><title>${esc(it.name)}</title></path>`;
+        svg += `<path class="step tone-${ring.tone}${it.done ? ' done' : ''}" fill-rule="evenodd" d="${d}"${first ? ` style="transition-delay:${idx * 55}ms"` : ''}><title>${esc(it.name)}</title></path>`;
         idx++;
         if (state.pulse === it.key) pulseR = (r0 + r1) / 2;
       });
@@ -153,7 +176,7 @@
     const total = s ? s.total : rings.reduce((a, r) => a + r.items.length, 0);
     $('ringDone').textContent = row ? s.done : '–';
     $('ringOf').textContent = row ? `of ${total}` : 'no log yet';
-    $('rTitle').textContent = dayTitle(kind);
+    $('rTitle').textContent = dayTitle(kind, catNameOf(dayCatOn(state.today)));
     $('dateLine').textContent = fmtDate(state.today);
     let line;
     if (!row) line = kind === 'rest' ? 'Rest day. Start it to log your snacks.' : kind === 'bonus' ? 'Bonus day. Optional, start one if you feel like it.' : 'No log for today yet. Start today\'s session.';
@@ -166,15 +189,18 @@
   const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.3l2.4 2.4 4.6-5"/></svg>';
   function tileHtml(it, rest) {
     const t = tileText(it, rest);
-    return `<button class="tile${rest ? ' rest' : ''}" type="button" data-key="${esc(it.key)}" data-g="${esc(it.group)}" aria-pressed="${it.done}"><span class="box">${CHECK}</span><span class="tx"><span class="nm">${esc(t.nm)}</span>${t.hn ? `<span class="hn">${esc(t.hn)}</span>` : ''}</span></button>`;
+    return `<button class="tile${rest ? ' rest' : ''}" type="button" data-key="${esc(it.key)}" data-tone="${toneOf(it.cat)}" aria-pressed="${it.done}"><span class="box">${CHECK}</span><span class="tx"><span class="nm">${esc(t.nm)}</span>${t.hn ? `<span class="hn">${esc(t.hn)}</span>` : ''}</span></button>`;
   }
   function nextWorkout() {
-    for (let i = 1; i <= 7; i++) { const d = addDays(state.today, i); if (kindOn(d) === 'workout') return { d, i }; }
+    for (let i = 1; i <= 7; i++) {
+      const d = addDays(state.today, i);
+      if (kindOn(d) === 'workout') return { d, i, cat: catNameOf(dayCatOn(d)) };
+    }
     return null;
   }
   function renderSession() {
     const kind = kindOn(state.today), rest = kind === 'rest', row = state.todayRow, el = $('tiles');
-    $('sTitle').textContent = dayTitle(kind);
+    $('sTitle').textContent = dayTitle(kind, catNameOf(dayCatOn(state.today)));
     $('sFoot').textContent = '';
     if (!row) {
       $('sCount').textContent = '';
@@ -186,14 +212,21 @@
       const s = stats(row);
       $('sCount').textContent = `${s.done} of ${s.total}`;
       const items = rest ? row.items.filter(isFuel) : row.items;
-      const order = rest ? ['fuel'] : ['push', 'pull', 'legs', 'other', 'fuel'];
+      const cats = catsOf();
+      const fuelCat = cats.find(isFuelCat);
+      const dayCat = dayCatOn(state.today);
+      // a Push day shows Push; a full-body day shows everything; every day shows the fuel group
+      const order = rest ? (fuelCat ? [fuelCat.id] : [])
+        : dayCat ? [dayCat].concat(fuelCat && fuelCat.id !== dayCat ? [fuelCat.id] : [])
+        : cats.filter(c => !isFuelCat(c)).map(c => c.id).concat(fuelCat ? [fuelCat.id] : []);
       el.innerHTML = order.map(g => {
-        const list = items.filter(i => i.group === g);
+        const list = items.filter(i => i.cat === g);
         if (!list.length) return '';
         const done = list.filter(i => i.done).length;
+        const name = catNameOf(g) || 'Other';
         const note = rest || (state.program && state.program.exists) ? '' : GROUP_NOTE[g] || '';
-        const head = rest ? '' : `<div class="thead"><span>${GROUP_NAME[g]}</span><span class="muted">${esc(note ? note + ', ' : '')}${done} of ${list.length}</span></div>`;
-        return `<div class="tgroup" data-g="${g}">${head}<div class="trow" style="--n:${Math.min(list.length, 3)}">${list.map(i => tileHtml(i, rest)).join('')}</div></div>`;
+        const head = rest ? '' : `<div class="thead"><span>${esc(name)}</span><span class="muted">${esc(note ? note + ', ' : '')}${done} of ${list.length}</span></div>`;
+        return `<div class="tgroup" data-g="${g}" data-tone="${toneOf(g)}">${head}<div class="trow" style="--n:${Math.min(list.length, 3)}">${list.map(i => tileHtml(i, rest)).join('')}</div></div>`;
       }).join('');
     }
     if (rest) {
@@ -215,10 +248,11 @@
       if (s && s.hit) { if (k === 'workout') hits++; else if (k === 'bonus') bonus++; }
       const missed = !s && !future && !isToday && k === 'workout' && first && d >= first;
       const cls = [k, s && s.hit ? 'hit' : '', future ? 'future' : '', missed ? 'miss' : '', isToday ? 'today' : ''].filter(Boolean).join(' ');
-      const label = k === 'workout' ? 'Train' : k === 'bonus' ? 'Bonus' : 'Rest';
+      const dv = dayValueOn(d);
+      const label = dv === 'rest' ? 'Rest' : dv === 'bonus' ? 'Bonus' : dv === 'workout' ? 'Train' : (catNameOf(dv) || 'Train');
       const fill = s && !future ? Math.round(s.pct * 100) : 0;
       const status = s ? (s.hit ? 'done' : `${s.done} of ${s.total}`) : missed ? 'missed' : future ? 'upcoming' : 'no log';
-      return `<div class="wd ${cls}"><span class="wk">${label}</span><div class="wtile" title="${esc(wkLong(d))}: ${status}"><i style="height:${fill}%"></i>${s && s.hit ? TICK : missed ? X : ''}</div><span class="dlabel">${wkShort(d)}</span></div>`;
+      return `<div class="wd ${cls}"><span class="wk" title="${esc(label)}">${esc(label)}</span><div class="wtile" title="${esc(wkLong(d))}: ${status}"><i style="height:${fill}%"></i>${s && s.hit ? TICK : missed ? X : ''}</div><span class="dlabel">${wkShort(d)}</span></div>`;
     }).join('');
     $('weekNote').textContent = `${hits} of ${planned} training days done${bonus ? ', plus a bonus session' : ''}.`;
   }
@@ -228,7 +262,9 @@
     const st = streak(), recent = st.list.slice(-7);
     $('stNum').textContent = st.current;
     $('stUnit').textContent = st.current === 1 ? 'session' : 'sessions';
-    const per = ripplesItems().filter(i => !isFuel(i)).length || 7;
+    const todayItems = ripplesItems();
+    const todayCat = dayCatOn(state.today);
+    const per = (todayCat ? todayItems.filter(i => i.cat === todayCat) : todayItems.filter(i => !isFuel(i))).length || 7;
     $('stLine').textContent = st.current ? 'in a row. Rest days never break it.' : `No run going right now. Finish ${need(per)} of ${per} exercises to start one.`;
     $('stBest').textContent = `Best run in the last eight weeks: ${st.best} ${st.best === 1 ? 'session' : 'sessions'}.`;
     $('stDots').innerHTML = recent.length ? recent.map(x => {
@@ -259,16 +295,27 @@
   function renderBalance() {
     const rows = rowsInWindow().filter(r => kindOn(r.date) !== 'rest');
     $('balNote').textContent = rows.length ? `From ${rows.length} logged ${rows.length === 1 ? 'session' : 'sessions'} in the last four weeks.` : '';
-    const g = { push: [0, 0], pull: [0, 0], legs: [0, 0] }, ex = new Map();
+    const cats = catsOf().filter(c => !isFuelCat(c));
+    const g = new Map(cats.map(c => [c.id, [0, 0]]));
+    const ex = new Map();
     rows.forEach(r => r.items.forEach(it => {
       if (isFuel(it)) return;
-      if (g[it.group]) { g[it.group][1]++; if (it.done) g[it.group][0]++; }
-      const e = ex.get(it.name) || { done: 0, days: 0, group: it.group }; e.days++; if (it.done) e.done++; ex.set(it.name, e);
+      if (r.cat && it.cat !== r.cat) return;   // count a day against its own day type
+      const slot = g.get(it.cat);
+      if (slot) { slot[1]++; if (it.done) slot[0]++; }
+      const e = ex.get(it.name) || { done: 0, days: 0, cat: it.cat };
+      e.days++; if (it.done) e.done++;
+      ex.set(it.name, e);
     }));
-    $('groups').innerHTML = rows.length ? ['push', 'pull', 'legs'].map(k => bar(k, GROUP_NAME[k], g[k][0], g[k][1])).join('') : '<p class="empty">Finish a session and your balance shows up here.</p>';
+    const shown = cats.filter(c => g.get(c.id)[1]);
+    $('groups').innerHTML = rows.length && shown.length
+      ? shown.map(c => bar('tone-' + toneOf(c.id), c.name, g.get(c.id)[0], g.get(c.id)[1])).join('')
+      : '<p class="empty">Finish a session and your balance shows up here.</p>';
+    const head = document.querySelector('.card[data-w="balance"] h2');
+    if (head && state.program && state.program.exists && shown.length) head.textContent = shown.map(c => c.name).join(', ');
     const list = [...ex].map(([name, e]) => ({ name, ...e })).sort((a, b) => a.done / a.days - b.done / b.days || a.name.localeCompare(b.name)).slice(0, 5);
     $('skipHead').hidden = !list.length;
-    $('skipped').innerHTML = list.map(x => bar(x.group, x.name, x.done, x.days)).join('');
+    $('skipped').innerHTML = list.map(x => bar('tone-' + toneOf(x.cat), x.name, x.done, x.days)).join('');
   }
 
   /* ---------- fuel check ---------- */
@@ -304,17 +351,30 @@
   }
 
   /* ============================================================
-     PROGRAM (w=program): your own exercises, order, groups, sets,
-     training days and how many ticks make a session count.
-     Saved to Notion through /api/workout (action 'program-save').
+     PROGRAM (w=program): choose a split, then build it.
+       full      one session covers everything   days: Train / Rest / Bonus
+       ppl       Push / Pull / Legs              days: Push / Pull / Legs / Rest
+       bodypart  Chest / Back / Legs / Shoulders / Arms
+       custom    your own split name and your own day types
+     Every split is the same machine underneath: day types, exercises
+     inside them, and a day type on each weekday. Saved to Notion
+     through /api/workout ('program-save').
      ============================================================ */
   const DEMO = params.has('demo');
   const DEMO_KEY = 'workout-program-demo';
+  const MAX_CATS = 8;
+  const SPLITS = [
+    { id: 'full', name: 'Full Body', note: 'Every session covers everything, in one go.', days: 'Train · Rest · Bonus days' },
+    { id: 'ppl', name: 'Push · Pull · Legs', note: 'Push one day, pull the next, legs after that.', days: 'Push · Pull · Legs · Rest days' },
+    { id: 'bodypart', name: 'Body Part', note: 'One part a day: chest, back, legs, shoulders, arms.', days: 'Chest · Back · Legs · Shoulders · Arms · Other · Rest' },
+    { id: 'custom', name: 'Other — build your own', note: 'Name your split and invent the day types yourself.', days: 'Whatever you make, plus Rest' },
+  ];
+  const CAT_PRESETS = {
+    full: [['push', 'Push'], ['pull', 'Pull'], ['legs', 'Legs'], ['other', 'Other'], ['fuel', 'Fuel']],
+    ppl: [['push', 'Push'], ['pull', 'Pull'], ['legs', 'Legs'], ['fuel', 'Fuel']],
+    bodypart: [['chest', 'Chest'], ['back', 'Back'], ['legs', 'Legs'], ['shoulders', 'Shoulders'], ['arms', 'Arms'], ['other', 'Other'], ['fuel', 'Fuel']],
+  };
   const DEFAULT_SCHEDULE = { 0: 'bonus', 1: 'workout', 2: 'rest', 3: 'workout', 4: 'rest', 5: 'workout', 6: 'rest' };
-  const GLABEL = { push: 'Push', pull: 'Pull', legs: 'Legs', other: 'Other', fuel: 'Fuel' };
-  const GORDER = ['push', 'pull', 'legs', 'other', 'fuel'];
-  const KLABEL = { workout: 'Train', rest: 'Rest', bonus: 'Bonus' };
-  const KNEXT = { workout: 'rest', rest: 'bonus', bonus: 'workout' };
   const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const MON_FIRST = [1, 2, 3, 4, 5, 6, 0];
   const ICO = {
@@ -322,45 +382,127 @@
     down: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.4v6.7M3.3 6.4L6 9.2l2.7-2.8"/></svg>',
     hide: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3.2 3.2l5.6 5.6M8.8 3.2l-5.6 5.6"/></svg>',
   };
+  const slugify = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24) || 'day';
+  const presetCats = split => (CAT_PRESETS[split] || CAT_PRESETS.full).map(([id, name]) => ({ id, name }));
+  const isFuelName = n => /fuel|snack|meal|food/i.test(String(n || ''));
+  const isFuelCat = c => !!c && (c.id === 'fuel' || isFuelName(c.name));
+  const groupOfName = n => {
+    const l = String(n || '').toLowerCase();
+    if (/snack|meal|fuel/.test(l)) return 'fuel';
+    if (/leg|squat|lunge/.test(l)) return 'legs';
+    if (/pull|chin/.test(l)) return 'pull';
+    if (/push|dip/.test(l)) return 'push';
+    return 'other';
+  };
 
   const DEMO_ITEMS = [
-    { prop: 'Wide Pushups x2', name: 'Wide pushups', group: 'push', hint: '3 sets' },
-    { prop: 'Incline Pushups x2', name: 'Incline pushups', group: 'push', hint: '3 sets' },
-    { prop: 'Diamond Pushups x2', name: 'Diamond pushups', group: 'push', hint: '2 sets' },
-    { prop: 'Wide Pullups x2', name: 'Wide pullups', group: 'pull', hint: '3 sets' },
-    { prop: 'Close Pullups x2', name: 'Close pullups', group: 'pull', hint: '2 sets' },
-    { prop: 'Chin ups x2', name: 'Chin ups', group: 'pull', hint: '2 sets' },
-    { prop: 'Goated Leg x2', name: 'Goated leg', group: 'legs', hint: '69 reps' },
-    { prop: 'Pre-Workout Snack', name: 'Pre-workout snack', group: 'fuel', hint: 'Channa or fruit' },
-    { prop: 'Post-Workout Snack', name: 'Post-workout snack', group: 'fuel', hint: 'Eggs, oats or dal' },
+    { prop: 'Wide Pushups x2', name: 'Wide pushups', cat: 'push', hint: '3 sets' },
+    { prop: 'Incline Pushups x2', name: 'Incline pushups', cat: 'push', hint: '3 sets' },
+    { prop: 'Diamond Pushups x2', name: 'Diamond pushups', cat: 'push', hint: '2 sets' },
+    { prop: 'Wide Pullups x2', name: 'Wide pullups', cat: 'pull', hint: '3 sets' },
+    { prop: 'Close Pullups x2', name: 'Close pullups', cat: 'pull', hint: '2 sets' },
+    { prop: 'Chin ups x2', name: 'Chin ups', cat: 'pull', hint: '2 sets' },
+    { prop: 'Goated Leg x2', name: 'Goated leg', cat: 'legs', hint: '69 reps' },
+    { prop: 'Pre-Workout Snack', name: 'Pre-workout snack', cat: 'fuel', hint: 'Channa or fruit' },
+    { prop: 'Post-Workout Snack', name: 'Post-workout snack', cat: 'fuel', hint: 'Eggs, oats or dal' },
   ];
+
+  function defaultDays(split, cats) {
+    if (split === 'full') return { ...DEFAULT_SCHEDULE };
+    const out = {};
+    for (let d = 0; d < 7; d++) out[String(d)] = 'rest';
+    const pool = cats.filter(c => !isFuelCat(c));
+    [1, 3, 5].forEach((d, i) => { if (pool.length) out[String(d)] = pool[i % pool.length].id; });
+    return out;
+  }
 
   // One shape everywhere: what the server sends, what we edit, what we save.
   function shapeProgram(src) {
     const p = src || {};
+    const split = SPLITS.some(s => s.id === p.split) ? p.split : 'full';
+    let cats = (Array.isArray(p.categories) && p.categories.length ? p.categories : presetCats(split))
+      .map(c => ({ id: String((c && c.id) || slugify(c && c.name)), name: String((c && c.name) || '').trim() }))
+      .filter(c => c.name)
+      .slice(0, MAX_CATS);
+    if (!cats.length) cats = presetCats('full');
+    const ids = new Set(cats.map(c => c.id));
     const items = (Array.isArray(p.items) ? p.items : []).map(i => ({
       prop: i && i.prop ? String(i.prop) : null,
       name: String((i && i.name) || '').trim(),
-      group: GORDER.includes(i && i.group) ? i.group : 'other',
+      cat: ids.has(i && i.cat) ? i.cat : cats[0].id,
       hint: String((i && i.hint) || ''),
       hidden: !!(i && i.hidden),
     })).filter(i => i.name);
-    const schedule = {};
-    for (let d = 0; d < 7; d++) {
-      const k = p.schedule && p.schedule[String(d)];
-      schedule[String(d)] = k === 'workout' || k === 'rest' || k === 'bonus' ? k : DEFAULT_SCHEDULE[d];
-    }
+    let days;
+    if (p.days && Object.keys(p.days).length) {
+      days = {};
+      for (let d = 0; d < 7; d++) {
+        const v = p.days[String(d)];
+        if (v === 'rest') days[String(d)] = 'rest';
+        else if (split === 'full') days[String(d)] = v === 'bonus' ? 'bonus' : 'workout';
+        else days[String(d)] = ids.has(v) ? v : 'rest';
+      }
+    } else days = defaultDays(split, cats);
     const visible = items.filter(i => !i.hidden).length;
     let nd = parseInt(p.need, 10);
     if (!Number.isFinite(nd) || nd < 1) nd = Math.ceil(visible * 0.85);
-    return { exists: !!p.exists, schedule, need: Math.min(Math.max(1, nd), Math.max(1, visible)), items };
+    return {
+      exists: !!p.exists,
+      split,
+      name: split === 'custom' ? String(p.name || '') : '',
+      categories: cats,
+      days,
+      need: Math.min(Math.max(1, nd), Math.max(1, visible)),
+      items,
+    };
   }
+
   function demoProgram() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(DEMO_KEY) || 'null'); } catch (e) { saved = null; }
-    return shapeProgram(saved || { exists: true, schedule: DEFAULT_SCHEDULE, need: 6, items: DEMO_ITEMS });
+    return shapeProgram(saved || {
+      exists: true, split: 'full', categories: presetCats('full'),
+      days: DEFAULT_SCHEDULE, need: 6, items: DEMO_ITEMS,
+    });
   }
+
+  // &demo: three weeks of plausible days so the other widgets have something to draw.
+  function demoRows(program) {
+    const today = new Date().toISOString().slice(0, 10);
+    const out = [];
+    for (let back = 20; back >= 0; back--) {
+      const date = addDays(today, -back);
+      const v = program.days[String(dow(date))];
+      const cat = program.categories.some(c => c.id === v) ? v : null;
+      const kind = v === 'rest' ? 'rest' : v === 'bonus' ? 'bonus' : 'workout';
+      const items = program.items.filter(it => !it.hidden).map((it, idx) => {
+        const fuel = isFuelCat(program.categories.find(c => c.id === it.cat));
+        let done = false;
+        if (kind === 'rest') done = fuel && idx % 4 !== 3;
+        else if (cat) done = it.cat === cat || (fuel && idx % 3 !== 2);
+        else done = fuel ? idx % 3 !== 1 : idx % 6 !== 5;
+        return { key: it.prop || it.name, label: it.name, name: it.name, cat: it.cat, fuel, hint: it.hint, done };
+      });
+      out.push({ id: 'demo-' + date, date, kind, cat, catName: cat ? (program.categories.find(c => c.id === cat) || {}).name : null, items });
+    }
+    return out;
+  }
+
   const progVisible = () => (state.draft ? state.draft.items.filter(i => !i.hidden) : []);
+  const catIndexIn = (cats, id) => { const i = cats.findIndex(c => c.id === id); return i < 0 ? 0 : i; };
+
+  function dayOptions(p) {
+    if (p.split === 'full') return [{ v: 'workout', label: 'Train' }, { v: 'rest', label: 'Rest' }, { v: 'bonus', label: 'Bonus' }];
+    return p.categories.map(c => ({ v: c.id, label: c.name })).concat([{ v: 'rest', label: 'Rest' }]);
+  }
+  function dayLabel(v, p) {
+    if (v === 'rest') return 'Rest';
+    if (v === 'bonus') return 'Bonus';
+    if (v === 'workout') return 'Train';
+    const c = p.categories.find(x => x.id === v);
+    return c ? c.name : 'Rest';
+  }
+  const dayIsRest = v => v === 'rest';
 
   function progDirty(on) {
     if (on !== undefined) state.dirty = on;
@@ -370,16 +512,16 @@
       note.textContent = state.dirty ? 'Unsaved changes' : (state.progSavedNote || '');
     }
     if (btn) { btn.textContent = state.saving ? 'Saving…' : 'Save program'; btn.disabled = !state.dirty || state.saving; }
-    $('progReset').disabled = !state.dirty || state.saving;
+    if ($('progReset')) $('progReset').disabled = !state.dirty || state.saving;
   }
 
-  function exRow(it, i, k, n) {
-    return `<div class="ex${it.prop ? '' : ' is-new'}" data-i="${i}" data-g="${it.group}">
+  function exRow(it, i, k, n, tone) {
+    return `<div class="ex${it.prop ? '' : ' is-new'}" data-i="${i}" data-tone="${tone}">
       <div class="ex-fields">
         <input class="ex-name" type="text" maxlength="60" value="${esc(it.name)}" aria-label="Exercise name" placeholder="Exercise name">
         <div class="ex-sub">
           <input class="ex-hint" type="text" maxlength="24" value="${esc(it.hint)}" aria-label="Sets or reps for ${esc(it.name)}" placeholder="sets or reps">
-          <select class="ex-group" aria-label="Group for ${esc(it.name)}">${GORDER.map(g => `<option value="${g}"${g === it.group ? ' selected' : ''}>${GLABEL[g]}</option>`).join('')}</select>
+          <select class="ex-group" aria-label="Day type for ${esc(it.name)}">${state.draft.categories.map(c => `<option value="${esc(c.id)}"${c.id === it.cat ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
         </div>
       </div>
       <div class="ex-acts">
@@ -392,30 +534,67 @@
 
   function renderProgram() {
     if (!state.draft) state.draft = shapeProgram(state.program || { items: [] });
-    const p = state.draft, vis = progVisible(), hid = p.items.filter(i => i.hidden);
-    const groups = GORDER.filter(g => vis.some(i => i.group === g));
+    const p = state.draft, vis = p.items.filter(i => !i.hidden), hid = p.items.filter(i => i.hidden);
+    const used = p.categories.filter(c => vis.some(i => i.cat === c.id));
     $('progSub').textContent = vis.length
-      ? `${vis.length} ${vis.length === 1 ? 'exercise' : 'exercises'}${groups.length ? ' · ' + groups.map(g => GLABEL[g]).join(', ') : ''}`
+      ? `${vis.length} ${vis.length === 1 ? 'exercise' : 'exercises'}${used.length ? ' · ' + used.map(c => c.name).join(', ') : ''}`
       : 'No exercises yet — add your first one below.';
 
     let html = '';
-    GORDER.forEach(g => {
-      const rows = p.items.map((it, i) => ({ it, i })).filter(x => !x.it.hidden && x.it.group === g);
+    p.categories.forEach((c, ci) => {
+      const rows = p.items.map((it, i) => ({ it, i })).filter(x => !x.it.hidden && x.it.cat === c.id);
       if (!rows.length) return;
-      html += `<div class="pg" data-g="${g}"><div class="pg-head"><i aria-hidden="true"></i><b>${GLABEL[g]}</b><span class="muted">${rows.length}</span></div>`
-        + rows.map((x, k) => exRow(x.it, x.i, k, rows.length)).join('') + '</div>';
+      html += `<div class="pg" data-tone="${ci}"><div class="pg-head"><i aria-hidden="true"></i><b>${esc(c.name)}</b><span class="muted">${rows.length}</span></div>`
+        + rows.map((x, k) => exRow(x.it, x.i, k, rows.length, ci)).join('') + '</div>';
     });
-    $('progGroups').innerHTML = html || '<p class="empty">Start with one exercise — push, pull, legs, anything.</p>';
+    $('progGroups').innerHTML = html || '<p class="empty">Start with one exercise — anything from your day types.</p>';
+
+    const sel = $('progNewGroup');
+    const keep = sel.value;
+    sel.innerHTML = p.categories.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+    if (p.categories.some(c => c.id === keep)) sel.value = keep;
 
     $('progRestoreWrap').hidden = !hid.length;
     if (hid.length) {
       $('progRestoreLabel').textContent = `Not in your program (${hid.length})`;
       $('progRestore').innerHTML = hid.map(it => `<button type="button" class="chip" data-restore="${p.items.indexOf(it)}" title="Put ${esc(it.name)} back">${esc(it.name)}</button>`).join('');
     }
+    renderSplitTab();
     renderDays();
     renderNeed();
+    setTab(state.tab || (p.exists ? 'ex' : 'split'));
     progDirty();
     state.progRendered = true;
+  }
+
+  function renderSplitTab() {
+    const p = state.draft;
+    if (!p || !$('progSplits')) return;
+    $('progSplits').innerHTML = SPLITS.map(s => {
+      const on = p.split === s.id;
+      return `<button type="button" class="split${on ? ' on' : ''}" role="radio" aria-checked="${on}" data-split="${s.id}">
+        <span class="split-tick" aria-hidden="true">${on ? '&#10003;' : ''}</span>
+        <span class="split-body">
+          <b>${s.name}</b>
+          <small>${s.note}</small>
+          <em>${s.days}</em>
+        </span>
+      </button>`;
+    }).join('');
+    const custom = p.split === 'custom';
+    $('progNameWrap').hidden = !custom;
+    $('progSplitName').value = p.name || '';
+    $('progCatsWrap').hidden = !custom;
+    if (custom) {
+      $('progCats').innerHTML = p.categories.map((c, i) => `<div class="cat-row" data-i="${i}">
+        <span class="cat-dot" style="--tone: var(--tone-${i})" aria-hidden="true"></span>
+        <input class="cat-name" type="text" maxlength="20" value="${esc(c.name)}" aria-label="Day type name">
+        <button type="button" class="cat-del" data-del="${i}" aria-label="Remove ${esc(c.name)}">${ICO.hide}</button>
+      </div>`).join('');
+    }
+    $('progSplitNote').textContent = custom
+      ? 'Add the days you actually train. Call them Upper, Lower, Conditioning — anything you like.'
+      : 'The day types come with the split. Your exercises and days follow them.';
   }
 
   function renderDays() {
@@ -423,31 +602,115 @@
     if (!p || !$('progWeek')) return;
     const todayDow = state.today ? dow(state.today) : -1;
     $('progWeek').innerHTML = MON_FIRST.map(d => {
-      const k = p.schedule[String(d)];
-      return `<button type="button" class="day k-${k}${d === todayDow ? ' today' : ''}" data-dow="${d}" aria-label="${DOW[d]} is ${KLABEL[k]}. Click to make it ${KLABEL[KNEXT[k]]}."><span class="day-n">${DOW[d]}</span><span class="day-k">${KLABEL[k]}</span><i class="day-bar" aria-hidden="true"></i></button>`;
+      const v = p.days[String(d)];
+      const label = dayLabel(v, p);
+      const cls = v === 'rest' ? 'k-rest' : v === 'bonus' ? 'k-bonus' : v === 'workout' ? 'k-workout' : 'k-cat';
+      const style = cls === 'k-cat' ? ` style="--k: var(--tone-${catIndexIn(p.categories, v)})"` : '';
+      return `<button type="button" class="day ${cls}${d === todayDow ? ' today' : ''}${state.dayPick === d ? ' picking' : ''}" data-dow="${d}"
+        aria-pressed="${state.dayPick === d}" aria-label="${DOW[d]} is ${esc(label)}. Choose what this day is."${style}>
+        <span class="day-n">${DOW[d]}</span><span class="day-k">${esc(label)}</span><i class="day-bar" aria-hidden="true"></i></button>`;
     }).join('');
-    const train = MON_FIRST.filter(d => p.schedule[String(d)] === 'workout').length;
-    const bonus = MON_FIRST.filter(d => p.schedule[String(d)] === 'bonus').length;
-    $('progDaysNote').textContent = `${train} training ${train === 1 ? 'day' : 'days'} a week${bonus ? `, plus ${bonus === 1 ? 'a bonus day' : bonus + ' bonus days'}` : ''}. Click a day to change it.`;
+
+    const opts = dayOptions(p);
+    const pick = state.dayPick;
+    $('progDayPick').hidden = pick == null;
+    if (pick != null) {
+      $('progDayPickLabel').textContent = `${DOW[pick]} is`;
+      $('progDayPickOpts').innerHTML = opts.map(o =>
+        `<button type="button" class="chip${p.days[String(pick)] === o.v ? ' on' : ''}" data-day="${pick}" data-val="${esc(o.v)}">${esc(o.label)}</button>`).join('');
+    }
+    const train = MON_FIRST.filter(d => !dayIsRest(p.days[String(d)])).length;
+    $('progDaysNote').textContent = `${train} session ${train === 1 ? 'day' : 'days'} a week. Tap a day, then pick what it is.`;
   }
 
   function renderNeed() {
     const p = state.draft;
-    if (!p) return;
+    if (!p || !$('progNeedNum')) return;
     const total = progVisible().length;
     const n = Math.min(Math.max(1, p.need), Math.max(1, total));
-    $('progNeedNum').textContent = total ? `${n} of ${total}` : '0 of 0';
+    $('progNeedNum').textContent = `${n} ${n === 1 ? 'exercise' : 'exercises'}`;
     $('progNeedMinus').disabled = n <= 1;
     $('progNeedPlus').disabled = n >= total;
   }
 
   function setTab(t) {
-    const ex = t !== 'days';
-    $('progEx').hidden = !ex;
-    $('progDays').hidden = ex;
-    document.querySelectorAll('.prog-tabs button[data-tab]').forEach(b => b.setAttribute('aria-selected', String((b.dataset.tab === 'ex') === ex)));
+    state.tab = t;
+    const panes = { split: $('progSplit'), ex: $('progEx'), days: $('progDays') };
+    Object.keys(panes).forEach(k => { if (panes[k]) panes[k].hidden = k !== t; });
+    document.querySelectorAll('.prog-tabs button[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   }
 
+  /* ---------- split editing ---------- */
+  function mapCat(oldCat, name, cats) {
+    const ids = new Set(cats.map(c => c.id));
+    if (ids.has(oldCat)) return oldCat;
+    const g = groupOfName(name);
+    if (ids.has(g)) return g;
+    const alias = { push: 'chest', pull: 'back', legs: 'legs', other: 'other', fuel: 'fuel' };
+    if (ids.has(alias[g])) return alias[g];
+    const first = cats.find(c => !isFuelCat(c)) || cats[0];
+    return first.id;
+  }
+
+  function applySplit(id) {
+    const p = state.draft;
+    if (!p || p.split === id) return;
+    const next = id === 'custom' ? p.categories.map(c => ({ ...c })) : presetCats(id);
+    const ids = new Set(next.map(c => c.id));
+    // keep every exercise, moved to the closest day type
+    p.items.forEach(it => { it.cat = mapCat(it.cat, it.name, next); });
+    // keep the shape of the week: the days you train stay days you train
+    const pool = next.filter(c => !isFuelCat(c));
+    let k = 0;
+    // a bonus day is optional, so it becomes rest rather than a fixed session
+    const training = MON_FIRST.filter(d => { const v = p.days[String(d)]; return v !== 'rest' && v !== 'bonus'; });
+    MON_FIRST.forEach(d => {
+      if (!training.includes(d)) { p.days[String(d)] = 'rest'; return; }
+      if (id === 'full') p.days[String(d)] = 'workout';
+      else p.days[String(d)] = (pool[k++ % Math.max(1, pool.length)] || next[0]).id;
+    });
+    if (!MON_FIRST.some(d => !dayIsRest(p.days[String(d)]))) p.days['1'] = (pool[0] || next[0]).id;
+    p.split = id;
+    p.categories = next;
+    p.name = id === 'custom' ? (p.name || 'My split') : '';
+    p.need = Math.min(Math.max(1, p.need), Math.max(1, progVisible().length));
+    if (!ids.size) return;
+    state.dayPick = null;
+    progDirty(true);
+    renderProgram();
+  }
+
+  function addCategory(name) {
+    const p = state.draft;
+    const clean = String(name || '').replace(/\s+/g, ' ').trim();
+    if (!clean) return;
+    if (clean.length > 20) return toast('Keep a day type under 20 characters.');
+    if (p.categories.length >= MAX_CATS) return toast(`That is ${MAX_CATS} day types — plenty for one split.`);
+    if (p.categories.some(c => c.name.toLowerCase() === clean.toLowerCase())) return toast(`"${clean}" is already a day type.`);
+    let id = slugify(clean);
+    while (p.categories.some(c => c.id === id)) id += '-2';
+    p.categories.push({ id, name: clean });
+    progDirty(true);
+    renderProgram();
+    setTab('split');
+  }
+
+  function removeCategory(i) {
+    const p = state.draft;
+    const c = p.categories[i];
+    if (!c) return;
+    if (p.categories.length <= 1) return toast('Keep at least one day type.');
+    const fallback = p.categories.find(x => x !== c);
+    p.items.forEach(it => { if (it.cat === c.id) it.cat = fallback.id; });
+    MON_FIRST.forEach(d => { if (p.days[String(d)] === c.id) p.days[String(d)] = 'rest'; });
+    p.categories.splice(i, 1);
+    if (!MON_FIRST.some(d => !dayIsRest(p.days[String(d)]))) p.days['1'] = fallback.id;
+    if (state.dayPick === undefined) state.dayPick = null;
+    progDirty(true);
+    renderProgram();
+  }
+
+  /* ---------- save / reset ---------- */
   function finishSave(msg) {
     state.draft = shapeProgram(state.program || { items: [] });
     state.dirty = false;
@@ -460,6 +723,7 @@
     state.draft = shapeProgram(state.program || { items: [] });
     state.dirty = false;
     state.progSavedNote = '';
+    state.dayPick = null;
     renderProgram();
   }
 
@@ -467,6 +731,16 @@
     if (state.saving || !state.draft) return;
     const p = state.draft;
     if (!progVisible().length) return toast('Keep at least one exercise in your program.');
+    if (!p.categories.length) return toast('Give your split at least one day type.');
+    const catNames = new Set();
+    for (const c of p.categories) {
+      if (!c.name.trim()) return toast('Every day type needs a name.');
+      const low = c.name.trim().toLowerCase();
+      if (catNames.has(low)) return toast(`Two day types are called "${c.name.trim()}".`);
+      catNames.add(low);
+    }
+    const ids = new Set(p.categories.map(c => c.id));
+    if (p.items.some(i => !ids.has(i.cat))) return toast('One of your exercises lost its day type — move it to another.');
     const seen = new Set();
     for (const it of p.items) {
       const n = String(it.name || '').trim();
@@ -476,25 +750,29 @@
       if (seen.has(k)) return toast(`"${n}" is in the list twice.`);
       seen.add(k);
     }
-    if (!MON_FIRST.some(d => p.schedule[String(d)] === 'workout')) return toast('Keep at least one training day in the week.');
+    if (!MON_FIRST.some(d => !dayIsRest(p.days[String(d)]))) return toast('Mark at least one day as a session.');
 
     const payload = {
-      schedule: p.schedule,
+      split: p.split,
+      name: p.name,
+      categories: p.categories.map(c => ({ id: c.id, name: c.name.trim() })),
+      days: p.days,
       need: Math.min(Math.max(1, p.need), progVisible().length),
-      items: p.items.map(i => ({ prop: i.prop, name: i.name.trim(), group: i.group, hint: i.hint.trim(), hidden: !!i.hidden })),
+      items: p.items.map(i => ({ prop: i.prop, name: i.name.trim(), cat: i.cat, hint: i.hint.trim(), hidden: !!i.hidden })),
     };
     state.saving = true; progDirty(true);
     try {
       if (DEMO) {
         try { localStorage.setItem(DEMO_KEY, JSON.stringify({ exists: true, ...payload })); } catch (e) { /* storage blocked */ }
         state.program = shapeProgram({ exists: true, ...payload });
+        state.schedule = state.program.days;
         finishSave('Saved in this browser (demo).');
         toast('Saved in this browser (demo).', 2600);
         return;
       }
       const j = await post({ action: 'program-save', program: payload });
       state.program = shapeProgram({ exists: true, ...(j.program || payload) });
-      state.schedule = state.program.schedule;
+      state.schedule = state.program.days;
       if (bc) bc.postMessage('changed');
       finishSave('Saved to Notion.');
       toast('Program saved.', 2600);
@@ -513,6 +791,45 @@
       if (b) setTab(b.dataset.tab);
     });
 
+    /* split */
+    $('progSplits').addEventListener('click', e => {
+      const b = e.target.closest('[data-split]');
+      if (b) applySplit(b.dataset.split);
+    });
+    $('progSplitName').addEventListener('input', e => {
+      state.draft.name = e.target.value;
+      progDirty(true);
+    });
+    $('progCats').addEventListener('change', e => {
+      if (!e.target.classList.contains('cat-name')) return;
+      const i = parseInt(e.target.closest('.cat-row').dataset.i, 10);
+      const c = state.draft.categories[i];
+      if (!c) return;
+      const name = e.target.value.replace(/\s+/g, ' ').trim();
+      if (!name) { e.target.value = c.name; return; }
+      if (state.draft.categories.some((x, xi) => xi !== i && x.name.toLowerCase() === name.toLowerCase())) {
+        e.target.value = c.name;
+        return toast(`"${name}" is already a day type.`);
+      }
+      c.name = name;
+      progDirty(true);
+      renderProgram();
+      setTab('split');
+    });
+    $('progCats').addEventListener('click', e => {
+      const b = e.target.closest('[data-del]');
+      if (b) removeCategory(parseInt(b.dataset.del, 10));
+    });
+    $('progCatAdd').addEventListener('submit', e => {
+      e.preventDefault();
+      const input = $('progCatName'), name = input.value;
+      if (!name.trim()) { input.focus(); return; }
+      addCategory(name);
+      input.value = '';
+      input.focus();
+    });
+
+    /* exercises */
     // typing keeps the caret where it is: only the draft changes, no re-render
     $('progGroups').addEventListener('input', e => {
       const t = e.target;
@@ -528,7 +845,7 @@
       if (!t.classList.contains('ex-group')) return;
       const it = state.draft && state.draft.items[parseInt(t.closest('.ex').dataset.i, 10)];
       if (!it) return;
-      it.group = GORDER.includes(t.value) ? t.value : 'other';
+      it.cat = state.draft.categories.some(c => c.id === t.value) ? t.value : state.draft.categories[0].id;
       progDirty(true);
       renderProgram();
     });
@@ -547,7 +864,7 @@
         renderProgram();
         return;
       }
-      const peers = p.items.map((x, idx) => ({ x, idx })).filter(o => !o.x.hidden && o.x.group === it.group);
+      const peers = p.items.map((x, idx) => ({ x, idx })).filter(o => !o.x.hidden && o.x.cat === it.cat);
       const at = peers.findIndex(o => o.idx === i);
       const to = btn.dataset.act === 'up' ? at - 1 : at + 1;
       if (to < 0 || to >= peers.length) return;
@@ -574,7 +891,8 @@
       if (name.length > 60) return toast('Keep the name under 60 characters.');
       if (state.draft.items.some(i => i.name.trim().toLowerCase() === name.toLowerCase())) return toast(`"${name}" is already in your program.`);
       if (state.draft.items.length >= 40) return toast('That is 40 exercises — plenty for one program.');
-      state.draft.items.push({ prop: null, name, group: $('progNewGroup').value, hint: '', hidden: false });
+      const cat = $('progNewGroup').value || state.draft.categories[0].id;
+      state.draft.items.push({ prop: null, name, cat, hint: '', hidden: false });
       const idx = state.draft.items.length - 1;
       nameEl.value = '';
       progDirty(true);
@@ -584,29 +902,36 @@
       nameEl.focus();
     });
 
+    /* days */
     $('progWeek').addEventListener('click', e => {
       const b = e.target.closest('.day');
       if (!b) return;
-      const d = String(b.dataset.dow);
-      const cur = state.draft.schedule[d];
-      const next = KNEXT[cur];
-      const others = MON_FIRST.filter(x => String(x) !== d && state.draft.schedule[String(x)] === 'workout').length;
-      if (cur === 'workout' && others === 0) return toast('Keep at least one training day in the week.');
-      state.draft.schedule[d] = next;
+      const d = parseInt(b.dataset.dow, 10);
+      state.dayPick = state.dayPick === d ? null : d;
+      renderDays();
+    });
+    $('progDayPickOpts').addEventListener('click', e => {
+      const b = e.target.closest('[data-day]');
+      if (!b) return;
+      const p = state.draft;
+      const d = parseInt(b.dataset.day, 10), v = b.dataset.val;
+      const others = MON_FIRST.filter(x => x !== d && !dayIsRest(p.days[String(x)])).length;
+      if (dayIsRest(v) && others === 0) return toast('Keep at least one session day in the week.');
+      p.days[String(d)] = v;
       progDirty(true);
       renderDays();
     });
 
-    const bumpNeed = n => {
-      const total = progVisible().length;
-      const next = Math.min(Math.max(1, state.draft.need + n), Math.max(1, total));
-      if (next === state.draft.need) return;
-      state.draft.need = next;
+    $('progNeedMinus').addEventListener('click', () => {
+      state.draft.need = Math.max(1, state.draft.need - 1);
       progDirty(true);
       renderNeed();
-    };
-    $('progNeedMinus').addEventListener('click', () => bumpNeed(-1));
-    $('progNeedPlus').addEventListener('click', () => bumpNeed(1));
+    });
+    $('progNeedPlus').addEventListener('click', () => {
+      state.draft.need = Math.min(progVisible().length, state.draft.need + 1);
+      progDirty(true);
+      renderNeed();
+    });
     $('progSave').addEventListener('click', saveProgram);
     $('progReset').addEventListener('click', resetDraft);
   }
@@ -637,7 +962,10 @@
       state.today = state.today || new Date().toISOString().slice(0, 10);
       state.schedule = Object.keys(state.schedule || {}).length ? state.schedule : { ...DEFAULT_SCHEDULE };
       state.program = state.program || demoProgram();
+      state.schedule = state.program.days;
       if (!state.dirty) state.draft = shapeProgram(state.program);
+      if (!state.rows.length) state.rows = demoRows(state.program);
+      state.todayRow = state.rows.find(r => r.date === state.today) || null;
       state.loadedAt = Date.now();
       renderAll();
       return;

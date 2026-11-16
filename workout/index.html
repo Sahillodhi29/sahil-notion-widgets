@@ -79,9 +79,28 @@
           <p id="progSub" class="muted"></p>
         </div>
         <div class="prog-tabs" role="tablist" aria-label="Program sections">
+          <button type="button" role="tab" id="tabSplit" aria-selected="false" aria-controls="progSplit" data-tab="split">Split</button>
           <button type="button" role="tab" id="tabEx" aria-selected="true" aria-controls="progEx" data-tab="ex">Exercises</button>
           <button type="button" role="tab" id="tabDays" aria-selected="false" aria-controls="progDays" data-tab="days">Days</button>
         </div>
+      </div>
+
+      <div id="progSplit" class="prog-pane" role="tabpanel" aria-labelledby="tabSplit" hidden>
+        <p class="muted prog-lead">Pick the shape of your training. Day types, exercises and days all follow it.</p>
+        <div id="progSplits" class="splits" role="radiogroup" aria-label="Your split"></div>
+        <label id="progNameWrap" class="prog-name" hidden>
+          <span>Name your split</span>
+          <input id="progSplitName" type="text" maxlength="32" placeholder="e.g. Arnold split" autocomplete="off">
+        </label>
+        <div id="progCatsWrap" class="prog-cats" hidden>
+          <div class="prog-cats-head"><span>Day types</span><span class="muted">what a day can be</span></div>
+          <div id="progCats" class="cat-list"></div>
+          <form id="progCatAdd" class="cat-add" autocomplete="off">
+            <input id="progCatName" type="text" maxlength="20" placeholder="Add a day type, e.g. Conditioning" aria-label="New day type">
+            <button type="submit">Add</button>
+          </form>
+        </div>
+        <p id="progSplitNote" class="muted prog-hint"></p>
       </div>
 
       <div id="progEx" class="prog-pane" role="tabpanel" aria-labelledby="tabEx">
@@ -93,9 +112,7 @@
         <form id="progAdd" class="prog-add" autocomplete="off">
           <div class="prog-add-row">
             <input id="progNewName" class="prog-new" type="text" maxlength="60" placeholder="Add an exercise, e.g. Bulgarian split squat" aria-label="New exercise name" required>
-            <select id="progNewGroup" class="ex-group" aria-label="Group for the new exercise">
-              <option value="push">Push</option><option value="pull">Pull</option><option value="legs">Legs</option><option value="other">Other</option><option value="fuel">Fuel</option>
-            </select>
+            <select id="progNewGroup" class="ex-group" aria-label="Day type for the new exercise"></select>
             <button class="prog-add-btn" type="submit">Add</button>
           </div>
         </form>
@@ -103,6 +120,10 @@
 
       <div id="progDays" class="prog-pane" role="tabpanel" aria-labelledby="tabDays" hidden>
         <div id="progWeek" class="prog-week"></div>
+        <div id="progDayPick" class="day-pick" hidden>
+          <span id="progDayPickLabel" class="muted"></span>
+          <span id="progDayPickOpts" class="chips"></span>
+        </div>
         <p id="progDaysNote" class="muted"></p>
         <div class="prog-rule">
           <span class="prog-rule-label">Session counts as done at</span>
