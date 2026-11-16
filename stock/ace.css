@@ -1,9 +1,9 @@
 /* ============================================================
    Stock & Resources — ACE: "Midnight Swim"
-   The same room, after dark: Blue Surf taken almost to black, ice-blue
-   for anything you press, Sunkissed Orange kept for the things that are
-   actually due. The paintings hang differently here — full width across
-   the top of each card, with the title sitting on the water.
+   The same wall, after dark: the off-blue taken nearly to black, ice-blue for
+   anything you press, Sunkissed Orange kept for what is actually due. The
+   paintings hang full width across the top of each card, with the title on
+   the water.
 
    Only colour, light and the plate layout change; every structure rule
    is in style.css.
@@ -11,40 +11,43 @@
 html[data-theme="ace"] {
   --ink:   #03080F;
   --card:  #081422;
-  --navy:  #14304C;
+  --navy:  #112B45;
   --night: #1A3E60;
   --surf:  #3B5B8A;
+  --surf-hi: #7FA3D1;
   --sun:   #F28B30;
   --sand:  #CFE4F7;      /* ice, instead of sand */
   --bone:  #E9F2FB;
+  --text:  #E9F2FB;
+  --rose:  #EAF4FF;
   --muted: #8FA9C4;
   --faint: #6E8AA6;
   --line:  rgba(233, 242, 251, .10);
   --line2: rgba(233, 242, 251, .24);
+  --edge:  rgba(191, 216, 242, .40);
+  --edge-soft: rgba(191, 216, 242, .15);
+  --edge-blue: rgba(127, 163, 209, .28);
 
-  --pins:
-    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) 11px 11px / 8px 8px no-repeat,
-    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) calc(100% - 11px) 11px / 8px 8px no-repeat,
-    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) 11px calc(100% - 11px) / 8px 8px no-repeat,
-    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) calc(100% - 11px) calc(100% - 11px) / 8px 8px no-repeat;
+  --press:      linear-gradient(180deg, #E4F1FD, #BFD8F2 62%, #9FBEDC);
+  --press-line: #CFE4F7;
+  --press-ink:  #06131F;
+  --press-glow: 0 10px 20px -12px rgba(127, 163, 209, .95);
+
+  --pin: radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px);
 
   --wall:
     radial-gradient(320px 210px at 100% -8%, rgba(59, 91, 138, .34), transparent 72%),
-    radial-gradient(260px 180px at 0% 0%, rgba(242, 139, 48, .10), transparent 74%),
-    linear-gradient(180deg, transparent 58%, rgba(59, 91, 138, .10)),
+    radial-gradient(260px 180px at 0% 0%, rgba(242, 139, 48, .12), transparent 74%),
+    linear-gradient(180deg, transparent 58%, rgba(59, 91, 138, .12)),
     repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .22) 53px 54px, rgba(233, 242, 251, .022) 54px 55px),
-    linear-gradient(180deg, #0B1B2C, #03080F);
+    linear-gradient(180deg, #0F2338, #050D18);
 }
-html[data-theme="ace"], html[data-theme="ace"] body { background: #03080F; }
-html[data-theme="ace"] #stage { background: var(--wall); }
 html[data-theme="ace"] ::selection { background: rgba(59, 91, 138, .7); color: #F4F9FF; }
-
-html[data-theme="ace"] .card { background: var(--card); border-color: var(--navy); }
 
 /* ---------- the painting, hung full width ---------- */
 html[data-theme="ace"] .card > .head {
-  align-items: flex-end; min-height: 122px; padding: 14px 16px;
-  outline-color: rgba(191, 216, 242, .45);
+  align-items: flex-end; min-height: 124px; padding: 16px 20px;
+  outline-color: rgba(191, 216, 242, .5);
   background: linear-gradient(100deg, #0A1B2C, #12314F 62%, #0D253C);
 }
 html[data-theme="ace"] .card > .head::before { inset: 0; width: 100%; border-radius: 14px; }
@@ -63,74 +66,70 @@ html[data-theme="ace"] .ace-print {
   box-shadow: 0 14px 24px -14px rgba(0, 0, 0, .95), 0 0 0 1px rgba(191, 216, 242, .35);
 }
 
-/* ---------- type ---------- */
-html[data-theme="ace"] h2, html[data-theme="ace"] #bad h2 { color: #EAF4FF; }
-html[data-theme="ace"] .eyebrow { color: #B9D2E8; }
-html[data-theme="ace"] .num { color: #EAF4FF; }
+/* ---------- type: ice-blue labels, orange kept for what is due ---------- */
+html[data-theme="ace"] .eyebrow { color: #9CC0E6; }
+html[data-theme="ace"] .lbl { color: #9CC0E6; }
+html[data-theme="ace"] .grp h3::before { background: #BFD8F2; box-shadow: 0 0 0 3px rgba(191, 216, 242, .12); }
+html[data-theme="ace"] .grp h3::after { background: linear-gradient(90deg, rgba(191, 216, 242, .32), rgba(191, 216, 242, 0)); }
 
 /* ---------- controls ---------- */
-html[data-theme="ace"] .seg,
-html[data-theme="ace"] .mini { background: rgba(3, 9, 17, .78); box-shadow: inset 0 0 0 1px var(--navy); }
-html[data-theme="ace"] .seg button[aria-pressed="true"],
-html[data-theme="ace"] .mini button[aria-pressed="true"] {
-  background: linear-gradient(180deg, #E4F1FD, #BFD8F2); color: #06131F;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7);
+html[data-theme="ace"] .chip,
+html[data-theme="ace"] .row,
+html[data-theme="ace"] .stockrow {
+  background: linear-gradient(150deg, rgba(127, 163, 209, .10), transparent 42%), linear-gradient(150deg, var(--navy), var(--card) 88%);
+  border-color: rgba(127, 163, 209, .26);
 }
-html[data-theme="ace"] .chip {
-  background: linear-gradient(150deg, #0F2539, #081422 85%); border-color: var(--navy); color: var(--bone);
-}
-html[data-theme="ace"] .chip:hover { border-color: #24557F; }
+html[data-theme="ace"] .chip:hover { border-color: rgba(191, 216, 242, .6); box-shadow: inset 0 1px 0 rgba(233, 242, 251, .14), inset 0 -2px 0 var(--ink), 0 8px 18px -12px rgba(127, 163, 209, .9); }
 html[data-theme="ace"] .chip[aria-pressed="true"] {
-  background: linear-gradient(180deg, #E4F1FD, #BFD8F2); border-color: #BFD8F2; color: #06131F;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -2px 0 rgba(59, 91, 138, .4);
+  background: var(--press); border-color: var(--press-line); color: var(--press-ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -2px 0 rgba(59, 91, 138, .4), var(--press-glow);
 }
-html[data-theme="ace"] .field input,
-html[data-theme="ace"] .note { background: rgba(3, 9, 17, .72); border-color: var(--navy); color: var(--bone); }
 html[data-theme="ace"] .field input:focus,
-html[data-theme="ace"] .note:focus { border-color: rgba(191, 216, 242, .7); box-shadow: 0 0 0 3px rgba(59, 91, 138, .25); background: rgba(3, 9, 17, .9); }
-html[data-theme="ace"] .btn,
-html[data-theme="ace"] .done {
-  background: linear-gradient(180deg, #E4F1FD, #BFD8F2 62%, #9FBEDC); color: #06131F;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 -3px 0 rgba(59, 91, 138, .45), 0 14px 24px -16px rgba(59, 91, 138, .9);
+html[data-theme="ace"] .note:focus { border-color: rgba(191, 216, 242, .75); }
+html[data-theme="ace"] .btn {
+  background: var(--press); color: var(--press-ink);
+  box-shadow: 0 12px 26px -10px rgba(127, 163, 209, .8), 0 0 0 4px rgba(191, 216, 242, .1), inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 -3px 0 rgba(59, 91, 138, .45);
 }
 html[data-theme="ace"] .btn:disabled { background: rgba(233, 242, 251, .06); color: rgba(233, 242, 251, .28); box-shadow: inset 0 0 0 1px var(--line); }
-html[data-theme="ace"] .recent { border-top-color: var(--line); }
+html[data-theme="ace"] .done {
+  background: var(--press); color: var(--press-ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 -3px 0 rgba(59, 91, 138, .45), 0 10px 18px -12px rgba(127, 163, 209, .95);
+}
+html[data-theme="ace"] .recent { border-top-color: var(--edge-soft); }
 html[data-theme="ace"] .undo { color: #BFD8F2; }
+html[data-theme="ace"] .undo:hover { background: rgba(191, 216, 242, .14); }
 html[data-theme="ace"] .undo:disabled { color: rgba(233, 242, 251, .22); }
 
 /* ---------- rows & lists ---------- */
-html[data-theme="ace"] .row,
-html[data-theme="ace"] .stockrow { background: linear-gradient(150deg, #0F2539, #081422 85%); border-color: #123049; }
-html[data-theme="ace"] .stockrow:hover { border-color: #24557F; }
-html[data-theme="ace"] .tick { border-color: #2C557C; }
-html[data-theme="ace"] .tick::after { border-color: #06131F; }
-html[data-theme="ace"] .tick:hover { background: rgba(191, 216, 242, .3); border-color: #BFD8F2; }
-html[data-theme="ace"] .pill.late { background: var(--sun); color: #1B1004; }
-html[data-theme="ace"] .pill.today { background: #BFD8F2; color: #06131F; }
-html[data-theme="ace"] .pill.soon { background: rgba(242, 139, 48, .16); color: #F8BD88; box-shadow: inset 0 0 0 1px rgba(242, 139, 48, .32); }
+html[data-theme="ace"] .row:hover,
+html[data-theme="ace"] .stockrow:hover { border-color: rgba(191, 216, 242, .55); box-shadow: inset 0 1px 0 rgba(233, 242, 251, .14), inset 0 -2px 0 var(--ink), 0 8px 18px -12px rgba(127, 163, 209, .8); }
+html[data-theme="ace"] .card[data-w="restock"] .stockrow::before { background: var(--sun); }
+html[data-theme="ace"] .tick { border-color: #4D7BAB; }
+html[data-theme="ace"] .tick::after { border-color: #BFD8F2; }
+html[data-theme="ace"] .tick:hover { background: rgba(191, 216, 242, .22); border-color: #BFD8F2; }
+html[data-theme="ace"] .pill.late { background: linear-gradient(180deg, #F9A553, var(--sun) 62%, #DD7A1E); color: #1B1004; }
+html[data-theme="ace"] .pill.today { background: var(--press); color: #06131F; }
+html[data-theme="ace"] .pill.soon { background: rgba(242, 139, 48, .16); color: #F8BD88; box-shadow: inset 0 0 0 1px rgba(242, 139, 48, .34); }
 html[data-theme="ace"] .pill.ok { background: rgba(59, 91, 138, .45); color: #C6D6E8; }
+html[data-theme="ace"] .need:hover { border-color: rgba(191, 216, 242, .6); }
 html[data-theme="ace"] .need.on { background: rgba(191, 216, 242, .16); border-color: rgba(191, 216, 242, .5); color: #DCEBFB; }
-html[data-theme="ace"] .want[aria-pressed="true"] { background: #BFD8F2; border-color: #BFD8F2; color: #06131F; }
 html[data-theme="ace"] .want:hover { border-color: rgba(191, 216, 242, .6); color: #DCEBFB; }
 html[data-theme="ace"] .allgood { color: #CFE4F7; }
 
 /* ---------- shelf & run rate ---------- */
-html[data-theme="ace"] .grp h3 { color: #B9D2E8; border-bottom-color: var(--line); }
 html[data-theme="ace"] .track,
-html[data-theme="ace"] .ctrack { background: rgba(3, 9, 17, .9); box-shadow: inset 0 0 0 1px var(--navy); }
+html[data-theme="ace"] .ctrack { background: rgba(0, 0, 0, .42); box-shadow: inset 0 0 0 1px rgba(127, 163, 209, .28); }
 html[data-theme="ace"] .track i { background: rgba(233, 242, 251, .28); }
 html[data-theme="ace"] .srow.late .track i { background: linear-gradient(90deg, #E8801F, var(--sun)); }
 html[data-theme="ace"] .srow.today .track i,
 html[data-theme="ace"] .srow.soon .track i { background: linear-gradient(90deg, rgba(191, 216, 242, .5), #BFD8F2); }
-html[data-theme="ace"] .srow.ok .track i { background: linear-gradient(90deg, var(--surf), #7FA3D1); }
+html[data-theme="ace"] .srow.ok .track i { background: linear-gradient(90deg, var(--surf), var(--surf-hi)); }
 html[data-theme="ace"] .srow.late .when { color: #F7A468; }
 html[data-theme="ace"] .srow.today .when,
 html[data-theme="ace"] .srow.soon .when { color: #CFE4F7; }
-html[data-theme="ace"] .ctrack i { background: linear-gradient(90deg, rgba(59, 91, 138, .8), #7FA3D1 78%, #CFE4F7); }
-html[data-theme="ace"] .cval { color: #E9F2FB; }
+html[data-theme="ace"] .ctrack i { background: linear-gradient(90deg, rgba(59, 91, 138, .8), #7FA3D1 78%, #CFE4F7); box-shadow: 0 0 12px -3px rgba(127, 163, 209, .7); }
 
 /* ---------- toast & switch ---------- */
-html[data-theme="ace"] #toast { background: rgba(4, 11, 20, .97); border-color: rgba(191, 216, 242, .45); }
-html[data-theme="ace"] .theme-toggle { background: rgba(4, 11, 20, .93); border-color: rgba(191, 216, 242, .45); }
-html[data-theme="ace"] .theme-toggle button[aria-pressed="true"] { background: linear-gradient(180deg, #E4F1FD, #BFD8F2); color: #06131F; }
-html[data-theme="ace"] .theme-toggle i { background: linear-gradient(135deg, #BFD8F2, #7FA3D1); }
+html[data-theme="ace"] #toast { background: rgba(8, 20, 34, .97); border-color: rgba(191, 216, 242, .5); }
+html[data-theme="ace"] .theme-toggle { background: rgba(4, 11, 20, .93); border-color: rgba(191, 216, 242, .5); }
+html[data-theme="ace"] .theme-toggle i { background: linear-gradient(135deg, #BFD8F2, #7FA3D1); box-shadow: 0 0 0 1px rgba(191, 216, 242, .6); }
