@@ -44,24 +44,27 @@ html[data-theme="ace"] {
 }
 html[data-theme="ace"] ::selection { background: rgba(59, 91, 138, .7); color: #F4F9FF; }
 
-/* ---------- the painting, hung full width ---------- */
+/* ---------- the pictures: a second set for this theme, shown a little wider ---------- */
 html[data-theme="ace"] .card > .head {
-  align-items: flex-end; min-height: 124px; padding: 16px 20px;
-  outline-color: rgba(191, 216, 242, .5);
+  outline-color: rgba(191, 216, 242, .55);
   background: linear-gradient(100deg, #0A1B2C, #12314F 62%, #0D253C);
 }
-html[data-theme="ace"] .card > .head::before { inset: 0; width: 100%; border-radius: 14px; }
+html[data-theme="ace"] .card > .head::before { width: var(--plate-w, 84%); }
 html[data-theme="ace"] .card > .head::after {
   background:
-    linear-gradient(180deg, rgba(4, 12, 22, .18) 0%, rgba(4, 12, 22, .62) 56%, rgba(4, 12, 22, .96) 100%),
-    linear-gradient(90deg, rgba(4, 12, 22, .82) 0%, rgba(4, 12, 22, .12) 64%);
+    linear-gradient(90deg, rgba(4, 12, 22, .9) 0%, rgba(4, 12, 22, .5) 25%, rgba(4, 12, 22, 0) 52%),
+    linear-gradient(0deg, rgba(59, 91, 138, .34), rgba(59, 91, 138, 0) 42%),
+    linear-gradient(180deg, rgba(233, 242, 251, .12), rgba(233, 242, 251, 0) 34%),
+    radial-gradient(130% 150% at 100% 50%, rgba(3, 8, 15, 0) 55%, rgba(3, 8, 15, .5));
+  box-shadow: inset 0 0 0 1px rgba(233, 242, 251, .16), inset 0 -26px 36px -26px rgba(3, 8, 15, .75);
 }
-html[data-theme="ace"] .card[data-w="shelf"]   > .head { --plate-pos: 50% 46%; }
-html[data-theme="ace"] .card[data-w="restock"] > .head { --plate-pos: 46% 44%; }
-html[data-theme="ace"] .card[data-w="cost"]    > .head { --plate-pos: 52% 50%; }
-html[data-theme="ace"] .card[data-w="add"]     > .head { --plate-pos: 58% 42%; }
+html[data-theme="ace"] .card[data-w="add"]     > .head { --plate-art: url(/stock/art/2.webp?v=1); --plate-pos: 50% 44%; }
+html[data-theme="ace"] .card[data-w="shelf"]   > .head { --plate-art: url(/stock/art/3.webp?v=1); --plate-pos: 50% 34%; }
+html[data-theme="ace"] .card[data-w="restock"] > .head { --plate-art: url(/stock/art/1.webp?v=1); --plate-pos: 50% 30%; }
+html[data-theme="ace"] .card[data-w="cost"]    > .head { --plate-art: url(/stock/art/6.webp?v=1); --plate-pos: 50% 55%; }
 
 html[data-theme="ace"] .ace-print {
+  background-image: url(/stock/art/print-ace.webp?v=1);
   border-color: #CFE4F7;
   box-shadow: 0 14px 24px -14px rgba(0, 0, 0, .95), 0 0 0 1px rgba(191, 216, 242, .35);
 }
