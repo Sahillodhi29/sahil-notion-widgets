@@ -43,12 +43,16 @@ Combine with commas, for example `w=check,week`. Add `&theme=shanks` to open in 
 
 ## Theme
 
-Two themes, switched in the corner and remembered in the browser:
+Two themes, switched in the corner and remembered in the browser. Both are cut from one palette:
 
-- **classic** — ink and copper on dark paper.
-- **shanks** — vermilion and blood on black, parchment text, gold accents (from the reference art in `mustdo/shanks/`).
+| | | | | |
+|---|---|---|---|---|
+| `#0E2931` | `#12484C` | `#2B7574` | `#861211` | `#E2E2E0` |
 
-The four reference pictures in `mustdo/shanks/` are baked into heading plates, one per widget, at the strip's own aspect so the crop never drifts: `band-check.webp` (laughing on the sky), `band-week.webp` (sword raised), `band-month.webp` (the ship at sunset), `band-manage.webp` (the ink portrait, its white paper keyed out so it sits on the card instead of in a white box). Add more pictures as `5.png`, `6.png` … and they can be baked the same way.
+- **classic** — the palette as painted: layered teal water on the deepest ground, bone type, and crimson for the one thing that asks for attention (today, a streak, a delete).
+- **shanks** — the same palette warmed through: the crimson river takes the whole card, teal becomes the water moving under it, bone still marks a finished day.
+
+Progress fills run teal → bone; a perfect day is bone; the day's outline is crimson. Only colour and light differ between the themes — every layout rule lives in `style.css`, so nothing moves when you switch.
 
 ## Setup
 
