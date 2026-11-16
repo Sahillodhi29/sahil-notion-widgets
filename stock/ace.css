@@ -1,182 +1,136 @@
 /* ============================================================
-   Stock & Resources — ACE: "Sunkissed"
-   The same page turned into daylight. Where Classic walks Blue Surf
-   #3B5B8A down into the dark, Ace floods the card with Sunkissed Orange
-   #F28B30 and sets the type in the blue — exactly the two halves of the
-   swatch card: orange over blue, blue over orange.
+   Stock & Resources — ACE: "Midnight Swim"
+   The same room, after dark: Blue Surf taken almost to black, ice-blue
+   for anything you press, Sunkissed Orange kept for the things that are
+   actually due. The paintings hang differently here — full width across
+   the top of each card, with the title sitting on the water.
 
-   Only colour and light live here; every layout rule is in style.css.
+   Only colour, light and the plate layout change; every structure rule
+   is in style.css.
    ============================================================ */
 html[data-theme="ace"] {
-  --sun:  #F28B30;
-  --surf: #3B5B8A;
+  --ink:   #03080F;
+  --card:  #081422;
+  --navy:  #14304C;
+  --night: #1A3E60;
+  --surf:  #3B5B8A;
+  --sun:   #F28B30;
+  --sand:  #CFE4F7;      /* ice, instead of sand */
+  --bone:  #E9F2FB;
+  --muted: #8FA9C4;
+  --faint: #6E8AA6;
+  --line:  rgba(233, 242, 251, .10);
+  --line2: rgba(233, 242, 251, .24);
 
-  --bg:       #16283F;                 /* deep blue room, so the sun cards sit in it */
-  --card-hi:  #F9A14C;
-  --card-mid: #F28B30;
-  --card-lo:  #E67E1E;
+  --pins:
+    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) 11px 11px / 8px 8px no-repeat,
+    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) calc(100% - 11px) 11px / 8px 8px no-repeat,
+    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) 11px calc(100% - 11px) / 8px 8px no-repeat,
+    radial-gradient(circle at center, #BFD8F2 0 1.9px, rgba(0, 0, 0, .6) 2.2px 3px, transparent 3.3px) calc(100% - 11px) calc(100% - 11px) / 8px 8px no-repeat;
 
-  /* the two inks swap roles: type is Blue Surf, the light is the sun */
-  --paper: #1B2E47;                    /* blue-black ink for body copy */
-  --ink:   #FBEBDA;                    /* warm light, for text on blue fills */
-
-  --panel:   rgba(24, 42, 64, .11);
-  --panel-2: rgba(24, 42, 64, .15);
-  --line:    rgba(27, 46, 71, .22);
-  --line-2:  rgba(27, 46, 71, .42);
-  --muted:   rgba(31, 52, 79, .86);
-  --faint:   rgba(38, 62, 92, .72);
-  --ghost:   rgba(38, 62, 92, .48);
+  --wall:
+    radial-gradient(320px 210px at 100% -8%, rgba(59, 91, 138, .34), transparent 72%),
+    radial-gradient(260px 180px at 0% 0%, rgba(242, 139, 48, .10), transparent 74%),
+    linear-gradient(180deg, transparent 58%, rgba(59, 91, 138, .10)),
+    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .22) 53px 54px, rgba(233, 242, 251, .022) 54px 55px),
+    linear-gradient(180deg, #0B1B2C, #03080F);
 }
-html[data-theme="ace"], html[data-theme="ace"] body { background: var(--bg); }
-html[data-theme="ace"] ::selection { background: rgba(59, 91, 138, .85); color: #FBEBDA; }
+html[data-theme="ace"], html[data-theme="ace"] body { background: #03080F; }
+html[data-theme="ace"] #stage { background: var(--wall); }
+html[data-theme="ace"] ::selection { background: rgba(59, 91, 138, .7); color: #F4F9FF; }
 
-/* ---------- the card: the swatch card itself ---------- */
-html[data-theme="ace"] .card {
+html[data-theme="ace"] .card { background: var(--card); border-color: var(--navy); }
+
+/* ---------- the painting, hung full width ---------- */
+html[data-theme="ace"] .card > .head {
+  align-items: flex-end; min-height: 122px; padding: 14px 16px;
+  outline-color: rgba(191, 216, 242, .45);
+  background: linear-gradient(100deg, #0A1B2C, #12314F 62%, #0D253C);
+}
+html[data-theme="ace"] .card > .head::before { inset: 0; width: 100%; border-radius: 14px; }
+html[data-theme="ace"] .card > .head::after {
   background:
-    radial-gradient(190px 190px at 96% -18%, rgba(255, 241, 219, .65), rgba(255, 226, 190, .18) 48%, transparent 68%),
-    radial-gradient(340px 220px at -10% -12%, rgba(255, 210, 160, .35), transparent 74%),
-    repeating-radial-gradient(ellipse 128% 96% at 14% 118%, transparent 0 30px, rgba(27, 46, 71, .05) 30px 31px),
-    linear-gradient(180deg, rgba(255, 247, 233, .18), transparent 34%),
-    linear-gradient(176deg, #F59A45 0%, var(--card-mid) 58%, #ED8628 58.6%, var(--card-lo) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(27, 46, 71, .30),
-    inset 0 1px 0 rgba(255, 247, 233, .55),
-    inset 0 0 74px rgba(59, 91, 138, .22),
-    0 22px 36px -26px rgba(6, 14, 26, .95);
+    linear-gradient(180deg, rgba(4, 12, 22, .18) 0%, rgba(4, 12, 22, .62) 56%, rgba(4, 12, 22, .96) 100%),
+    linear-gradient(90deg, rgba(4, 12, 22, .82) 0%, rgba(4, 12, 22, .12) 64%);
 }
-html[data-theme="ace"] .card::before {     /* the horizon: a blue rule at the foot */
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(59, 91, 138, .55), rgba(27, 46, 71, .72), rgba(59, 91, 138, .55), transparent);
+html[data-theme="ace"] .card[data-w="shelf"]   > .head { --plate-pos: 50% 46%; }
+html[data-theme="ace"] .card[data-w="restock"] > .head { --plate-pos: 46% 44%; }
+html[data-theme="ace"] .card[data-w="cost"]    > .head { --plate-pos: 52% 50%; }
+html[data-theme="ace"] .card[data-w="add"]     > .head { --plate-pos: 58% 42%; }
+
+html[data-theme="ace"] .ace-print {
+  border-color: #CFE4F7;
+  box-shadow: 0 14px 24px -14px rgba(0, 0, 0, .95), 0 0 0 1px rgba(191, 216, 242, .35);
 }
 
 /* ---------- type ---------- */
-html[data-theme="ace"] .head h2,
-html[data-theme="ace"] #bad h2 { color: #14263C; text-shadow: 0 1px 0 rgba(255, 240, 220, .45); }
-html[data-theme="ace"] .eyebrow { color: rgba(28, 48, 74, .82); }
-html[data-theme="ace"] .muted { color: rgba(31, 52, 79, .92); }
-html[data-theme="ace"] .small, html[data-theme="ace"] .empty { color: rgba(28, 47, 72, .86); }
-html[data-theme="ace"] .num { color: #14263C; }
+html[data-theme="ace"] h2, html[data-theme="ace"] #bad h2 { color: #EAF4FF; }
+html[data-theme="ace"] .eyebrow { color: #B9D2E8; }
+html[data-theme="ace"] .num { color: #EAF4FF; }
 
 /* ---------- controls ---------- */
 html[data-theme="ace"] .seg,
-html[data-theme="ace"] .mini { background: rgba(24, 42, 64, .16); box-shadow: inset 0 0 0 1px rgba(27, 46, 71, .26); }
-html[data-theme="ace"] .seg button,
-html[data-theme="ace"] .mini button { color: rgba(27, 46, 71, .70); }
-html[data-theme="ace"] .seg button:hover,
-html[data-theme="ace"] .mini button:hover { color: #14263C; }
+html[data-theme="ace"] .mini { background: rgba(3, 9, 17, .78); box-shadow: inset 0 0 0 1px var(--navy); }
 html[data-theme="ace"] .seg button[aria-pressed="true"],
-html[data-theme="ace"] .mini button[aria-pressed="true"] { background: var(--surf); color: var(--ink); box-shadow: 0 6px 14px -10px rgba(27, 46, 71, .9); }
-
+html[data-theme="ace"] .mini button[aria-pressed="true"] {
+  background: linear-gradient(180deg, #E4F1FD, #BFD8F2); color: #06131F;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7);
+}
 html[data-theme="ace"] .chip {
-  border-color: rgba(27, 46, 71, .40); background: rgba(255, 247, 233, .22); color: #1B2E47;
+  background: linear-gradient(150deg, #0F2539, #081422 85%); border-color: var(--navy); color: var(--bone);
 }
-html[data-theme="ace"] .chip:hover { border-color: rgba(27, 46, 71, .70); background: rgba(255, 247, 233, .34); color: #14263C; }
+html[data-theme="ace"] .chip:hover { border-color: #24557F; }
 html[data-theme="ace"] .chip[aria-pressed="true"] {
-  background: var(--surf); border-color: transparent; color: var(--ink);
-  box-shadow: 0 10px 20px -14px rgba(27, 46, 71, .95), inset 0 1px 0 rgba(255, 255, 255, .18);
+  background: linear-gradient(180deg, #E4F1FD, #BFD8F2); border-color: #BFD8F2; color: #06131F;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -2px 0 rgba(59, 91, 138, .4);
 }
-
-html[data-theme="ace"] .lbl { color: rgba(28, 48, 74, .86); }
-html[data-theme="ace"] .lbl i { color: rgba(38, 62, 92, .60); }
 html[data-theme="ace"] .field input,
-html[data-theme="ace"] .note { background: rgba(255, 247, 233, .30); border-color: rgba(27, 46, 71, .28); color: #14263C; }
-html[data-theme="ace"] .field input:hover,
-html[data-theme="ace"] .note:hover { border-color: rgba(27, 46, 71, .45); }
+html[data-theme="ace"] .note { background: rgba(3, 9, 17, .72); border-color: var(--navy); color: var(--bone); }
 html[data-theme="ace"] .field input:focus,
-html[data-theme="ace"] .note:focus { border-color: rgba(59, 91, 138, .95); background: rgba(255, 249, 238, .62); box-shadow: 0 0 0 3px rgba(59, 91, 138, .18); }
-html[data-theme="ace"] .field input::placeholder,
-html[data-theme="ace"] .note::placeholder { color: rgba(38, 62, 92, .55); }
-
-html[data-theme="ace"] .btn {
-  background: linear-gradient(180deg, #4B6E9E, var(--surf) 58%, #2E486D);
-  color: var(--ink);
-  box-shadow: 0 12px 24px -16px rgba(20, 34, 52, .95), inset 0 1px 0 rgba(255, 247, 233, .28);
-}
-html[data-theme="ace"] .btn:disabled { background: rgba(255, 247, 233, .22); color: rgba(27, 46, 71, .50); box-shadow: inset 0 0 0 1px rgba(27, 46, 71, .16); }
-html[data-theme="ace"] .recent { border-top-color: rgba(27, 46, 71, .22); }
-html[data-theme="ace"] .undo { color: #2E486D; }
-html[data-theme="ace"] .undo:hover { background: rgba(59, 91, 138, .16); }
-html[data-theme="ace"] .undo:disabled { color: rgba(27, 46, 71, .28); }
-
-/* ---------- the shopping list ---------- */
-html[data-theme="ace"] .row { background: rgba(255, 249, 238, .42); box-shadow: inset 0 0 0 1px rgba(27, 46, 71, .22); }
-html[data-theme="ace"] .list.quiet .row { background: rgba(255, 249, 238, .22); box-shadow: inset 0 0 0 1px rgba(27, 46, 71, .12); opacity: 1; }
-html[data-theme="ace"] .tick { border-color: rgba(27, 46, 71, .48); }
-html[data-theme="ace"] .tick::after { border-color: var(--ink); }
-html[data-theme="ace"] .tick:hover { background: rgba(59, 91, 138, .85); border-color: transparent; }
-
-html[data-theme="ace"] .pill.late { background: var(--surf); color: var(--ink); box-shadow: 0 8px 16px -12px rgba(20, 34, 52, .95); }
-html[data-theme="ace"] .pill.today { background: rgba(27, 46, 71, .16); color: #14263C; box-shadow: inset 0 0 0 1px rgba(27, 46, 71, .45); }
-html[data-theme="ace"] .pill.soon { background: rgba(255, 247, 233, .40); color: #1F3450; }
-html[data-theme="ace"] .pill.ok { background: rgba(27, 46, 71, .10); color: rgba(27, 46, 71, .68); }
-html[data-theme="ace"] .pill.new { background: rgba(27, 46, 71, .07); color: rgba(27, 46, 71, .52); }
-
-html[data-theme="ace"] .need { border-color: rgba(27, 46, 71, .34); color: rgba(27, 46, 71, .78); }
-html[data-theme="ace"] .need:hover { border-color: rgba(27, 46, 71, .62); color: #14263C; background: rgba(255, 247, 233, .26); }
-html[data-theme="ace"] .need.on { background: rgba(255, 247, 233, .55); border-color: rgba(27, 46, 71, .45); color: #14263C; }
-html[data-theme="ace"] .allgood { color: #1E3450; font-weight: 600; }
-html[data-theme="ace"] .grp-note { color: rgba(38, 62, 92, .78); }
-
-/* ---------- the shelf ---------- */
-html[data-theme="ace"] .grp h3 { color: #14263C; border-bottom-color: rgba(27, 46, 71, .38); }
-html[data-theme="ace"] .grp h3 span { color: rgba(31, 52, 79, .74); }
-html[data-theme="ace"] .srow .rn i,
-html[data-theme="ace"] .srow .when,
-html[data-theme="ace"] .srow .per { color: rgba(31, 52, 79, .80); }
-html[data-theme="ace"] .srow.late .when { color: #6A0D0D; }
-html[data-theme="ace"] .srow.today .when,
-html[data-theme="ace"] .srow.soon .when { color: #1E3450; }
-html[data-theme="ace"] .track { background: rgba(27, 46, 71, .22); box-shadow: inset 0 0 0 1px rgba(27, 46, 71, .18); }
-html[data-theme="ace"] .track i { background: rgba(27, 46, 71, .45); }
-html[data-theme="ace"] .srow.late .track i { background: linear-gradient(90deg, #8E1A1A, #B02A22); }
-html[data-theme="ace"] .srow.today .track i,
-html[data-theme="ace"] .srow.soon .track i { background: linear-gradient(90deg, var(--surf), #2E486D); }
-html[data-theme="ace"] .srow.ok .track i { background: rgba(27, 46, 71, .55); }
-
-/* ---------- the run rate ---------- */
-html[data-theme="ace"] .ctrack { background: rgba(27, 46, 71, .22); box-shadow: inset 0 0 0 1px rgba(27, 46, 71, .18); }
-html[data-theme="ace"] .ctrack i { background: linear-gradient(90deg, #2E486D, var(--surf) 70%, #5A7EAE); }
-html[data-theme="ace"] .cname i { color: rgba(31, 52, 79, .80); }
-html[data-theme="ace"] .cval { color: #14263C; }
-
-/* ---------- shelf & restocking ---------- */
-html[data-theme="ace"] .stockrow { border-bottom-color: rgba(27, 46, 71, .24); }
-html[data-theme="ace"] .stockrow .rn i,
-html[data-theme="ace"] .stockrow .rn small { color: rgba(31, 52, 79, .78); }
-html[data-theme="ace"] .want { border-color: rgba(27, 46, 71, .38); background: rgba(255, 247, 233, .20); color: #1B2E47; }
-html[data-theme="ace"] .want:hover { border-color: rgba(27, 46, 71, .70); color: #14263C; background: rgba(255, 247, 233, .40); }
-html[data-theme="ace"] .want[aria-pressed="true"] { background: rgba(255, 247, 233, .62); border-color: rgba(27, 46, 71, .5); color: #14263C; }
+html[data-theme="ace"] .note:focus { border-color: rgba(191, 216, 242, .7); box-shadow: 0 0 0 3px rgba(59, 91, 138, .25); background: rgba(3, 9, 17, .9); }
+html[data-theme="ace"] .btn,
 html[data-theme="ace"] .done {
-  background: linear-gradient(180deg, #4B6E9E, var(--surf) 58%, #2E486D);
-  color: var(--ink);
-  box-shadow: 0 12px 24px -16px rgba(20, 34, 52, .95), inset 0 1px 0 rgba(255, 247, 233, .28);
+  background: linear-gradient(180deg, #E4F1FD, #BFD8F2 62%, #9FBEDC); color: #06131F;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 -3px 0 rgba(59, 91, 138, .45), 0 14px 24px -16px rgba(59, 91, 138, .9);
 }
+html[data-theme="ace"] .btn:disabled { background: rgba(233, 242, 251, .06); color: rgba(233, 242, 251, .28); box-shadow: inset 0 0 0 1px var(--line); }
+html[data-theme="ace"] .recent { border-top-color: var(--line); }
+html[data-theme="ace"] .undo { color: #BFD8F2; }
+html[data-theme="ace"] .undo:disabled { color: rgba(233, 242, 251, .22); }
+
+/* ---------- rows & lists ---------- */
+html[data-theme="ace"] .row,
+html[data-theme="ace"] .stockrow { background: linear-gradient(150deg, #0F2539, #081422 85%); border-color: #123049; }
+html[data-theme="ace"] .stockrow:hover { border-color: #24557F; }
+html[data-theme="ace"] .tick { border-color: #2C557C; }
+html[data-theme="ace"] .tick::after { border-color: #06131F; }
+html[data-theme="ace"] .tick:hover { background: rgba(191, 216, 242, .3); border-color: #BFD8F2; }
+html[data-theme="ace"] .pill.late { background: var(--sun); color: #1B1004; }
+html[data-theme="ace"] .pill.today { background: #BFD8F2; color: #06131F; }
+html[data-theme="ace"] .pill.soon { background: rgba(242, 139, 48, .16); color: #F8BD88; box-shadow: inset 0 0 0 1px rgba(242, 139, 48, .32); }
+html[data-theme="ace"] .pill.ok { background: rgba(59, 91, 138, .45); color: #C6D6E8; }
+html[data-theme="ace"] .need.on { background: rgba(191, 216, 242, .16); border-color: rgba(191, 216, 242, .5); color: #DCEBFB; }
+html[data-theme="ace"] .want[aria-pressed="true"] { background: #BFD8F2; border-color: #BFD8F2; color: #06131F; }
+html[data-theme="ace"] .want:hover { border-color: rgba(191, 216, 242, .6); color: #DCEBFB; }
+html[data-theme="ace"] .allgood { color: #CFE4F7; }
+
+/* ---------- shelf & run rate ---------- */
+html[data-theme="ace"] .grp h3 { color: #B9D2E8; border-bottom-color: var(--line); }
+html[data-theme="ace"] .track,
+html[data-theme="ace"] .ctrack { background: rgba(3, 9, 17, .9); box-shadow: inset 0 0 0 1px var(--navy); }
+html[data-theme="ace"] .track i { background: rgba(233, 242, 251, .28); }
+html[data-theme="ace"] .srow.late .track i { background: linear-gradient(90deg, #E8801F, var(--sun)); }
+html[data-theme="ace"] .srow.today .track i,
+html[data-theme="ace"] .srow.soon .track i { background: linear-gradient(90deg, rgba(191, 216, 242, .5), #BFD8F2); }
+html[data-theme="ace"] .srow.ok .track i { background: linear-gradient(90deg, var(--surf), #7FA3D1); }
+html[data-theme="ace"] .srow.late .when { color: #F7A468; }
+html[data-theme="ace"] .srow.today .when,
+html[data-theme="ace"] .srow.soon .when { color: #CFE4F7; }
+html[data-theme="ace"] .ctrack i { background: linear-gradient(90deg, rgba(59, 91, 138, .8), #7FA3D1 78%, #CFE4F7); }
+html[data-theme="ace"] .cval { color: #E9F2FB; }
 
 /* ---------- toast & switch ---------- */
-html[data-theme="ace"] #toast {
-  background: rgba(21, 37, 57, .97); color: #FBEBDA;
-  border-color: rgba(242, 139, 48, .55);
-  box-shadow: 0 16px 30px -18px rgba(0, 0, 0, .95), inset 0 1px 0 rgba(251, 235, 218, .12);
-}
-html[data-theme="ace"] .theme-toggle { background: rgba(21, 37, 57, .94); border-color: rgba(242, 139, 48, .4); }
-html[data-theme="ace"] .theme-toggle button { color: rgba(251, 235, 218, .70); }
-html[data-theme="ace"] .theme-toggle button[aria-pressed="true"] { background: #FBEBDA; color: #14263C; }
-html[data-theme="ace"] .theme-toggle i { background: linear-gradient(135deg, #2E486D, #4B6E9E); }
-
-/* ============================================================
-   The one ornament: a stamped sun, pinned on the new-item card.
-   (The span is in the markup as .ace-print; Classic leaves it invisible.)
-   ============================================================ */
-html[data-theme="ace"] .head .ace-print {
-  display: block; flex: none; width: 74px; height: 74px; border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 42%, #FFEBCE 0 32%, #FFCE96 62%, #F6A75F 100%);
-  box-shadow:
-    inset 0 0 0 2px rgba(27, 46, 71, .55),
-    inset 0 0 0 9px rgba(255, 244, 226, .42),
-    inset 0 -8px 20px rgba(242, 139, 48, .55),
-    0 0 0 7px rgba(251, 235, 218, .16),
-    0 12px 24px -14px rgba(20, 34, 52, .95);
-  transform: rotate(-6deg);
-}
+html[data-theme="ace"] #toast { background: rgba(4, 11, 20, .97); border-color: rgba(191, 216, 242, .45); }
+html[data-theme="ace"] .theme-toggle { background: rgba(4, 11, 20, .93); border-color: rgba(191, 216, 242, .45); }
+html[data-theme="ace"] .theme-toggle button[aria-pressed="true"] { background: linear-gradient(180deg, #E4F1FD, #BFD8F2); color: #06131F; }
+html[data-theme="ace"] .theme-toggle i { background: linear-gradient(135deg, #BFD8F2, #7FA3D1); }

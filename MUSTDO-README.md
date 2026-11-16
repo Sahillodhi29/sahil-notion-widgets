@@ -52,7 +52,7 @@ Two themes, switched in the corner and remembered in the browser. Both are cut f
 - **classic** — the palette as painted: layered teal water on the deepest ground, bone type, and crimson for the one thing that asks for attention (today, a streak, a delete).
 - **shanks** — the same palette warmed through: the crimson river takes the whole card, teal becomes the water moving under it, bone still marks a finished day.
 
-Progress fills run teal → bone; a perfect day is bone; the day's outline is crimson. Only colour and light differ between the themes — every layout rule lives in `style.css`, so nothing moves when you switch.
+Progress fills run teal → bone; a perfect day is bone; the day's outline is crimson. Every heading hangs one of the four paintings in `mustdo/shanks/` (`band-check.webp` … `band-manage.webp`) in a crimson mat, the titles are Playfair Display italic and everything you read or tap is DM Sans. Only colour and light differ between the themes — every layout rule lives in `style.css`, so nothing moves when you switch.
 
 ## Setup
 

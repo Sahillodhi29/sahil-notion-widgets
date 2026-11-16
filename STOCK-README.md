@@ -43,6 +43,15 @@ Base address:
 
 Combine with commas, for example `w=shelf,restock`. Add `&bg=transparent` or `&bg=HEX` to change the page background. Old `w=due` links still open the restocking area.
 
+## Themes
+
+Two themes, switched in the corner and remembered in the browser (force one with `&theme=classic` or `&theme=ace`):
+
+- **classic** — a night-blue room with Sunkissed Orange trim and a framed painting hung behind every heading.
+- **ace** — the same room after dark: Blue Surf taken almost to black, ice-blue for anything you press, orange kept for what is actually due.
+
+Both are cut from two inks only — `#F28B30` and `#3B5B8A`. Every other tone is a shade, a tint or a transparency of those two, so the page can never drift out of key.
+
 ## What each widget does
 
 - **shelf**: the categories you actually have items in, as chips. Pick one and only that category's items are listed, each with its cadence and when it is next due, plus a **Need restocking** button that ticks the Notion *Needed* box. Press it again to untick.
