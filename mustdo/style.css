@@ -93,31 +93,44 @@ body.has-theme-toggle #stage { padding-bottom: 58px; }
 }
 .card::-webkit-scrollbar { width: 0; }
 
-/* ---------- the framed painting behind every heading ---------- */
+/* ---------- the framed picture behind every heading ----------
+   The picture is not a box pasted on a dark band: it runs from the right edge and
+   dissolves into the card (mask), is graded warm with a gold sheen, keeps a clear
+   view of the subject, and drifts closer a touch when you hover the card.        */
 .card > .head {
-  position: relative; isolation: isolate; display: flex; align-items: center; justify-content: space-between;
+  position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; justify-content: space-between;
   gap: 10px; flex-wrap: wrap; row-gap: 8px;
-  min-height: 112px; padding: 18px 22px; margin: 2px 2px 8px; border-radius: 14px;
-  outline: 2px solid rgba(217, 178, 106, .45); outline-offset: 4px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 50px rgba(12, 3, 5, .6), 0 16px 26px -20px rgba(0, 0, 0, .9);
-  background:
-    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .18) 53px 54px, rgba(255, 236, 210, .028) 54px 55px),
-    linear-gradient(100deg, #1E080B, #2A0C10 62%, #200A0D);
-  text-shadow: 0 2px 16px rgba(12, 3, 5, .9);
+  min-height: 168px; padding: 22px 24px; margin: 2px 2px 8px; border-radius: 14px;
+  outline: 2px solid rgba(217, 178, 106, .5); outline-offset: 4px;
+  box-shadow: 0 18px 28px -20px rgba(0, 0, 0, .95);
+  background: linear-gradient(100deg, #1E080B, #2A0C10 62%, #200A0D);
+  text-shadow: 0 2px 14px rgba(12, 3, 5, .95), 0 1px 2px rgba(12, 3, 5, .8);
 }
-.card > .head::before {
-  content: ''; position: absolute; z-index: -1; inset: 0 0 0 auto; width: var(--plate-w, 62%);
-  border-radius: 0 14px 14px 0; background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
+.card > .head::before {                        /* the picture */
+  content: ''; position: absolute; z-index: -2; inset: 0 0 0 auto; width: var(--plate-w, 78%);
+  background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .5) 16%, #000 44%);
+          mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .5) 16%, #000 44%);
+  filter: saturate(1.12) contrast(1.05) brightness(var(--plate-bright, .94));
+  transform-origin: 80% 50%; transition: transform .9s cubic-bezier(.2, .7, .2, 1);
 }
-.card > .head::after {
+.card:hover > .head::before { transform: scale(1.045); }
+.card > .head::after {                         /* grade, sheen, vignette and a keyline */
   content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(90deg, rgba(26, 10, 13, .98) 0%, rgba(26, 10, 13, .86) 34%, rgba(42, 12, 16, .3) 68%, rgba(26, 10, 13, .7) 100%);
+  background:
+    linear-gradient(90deg, rgba(26, 10, 13, .9) 0%, rgba(26, 10, 13, .52) 26%, rgba(26, 10, 13, 0) 54%),
+    linear-gradient(0deg, rgba(134, 18, 17, .30), rgba(134, 18, 17, 0) 42%),
+    linear-gradient(180deg, rgba(255, 236, 200, .12), rgba(255, 236, 200, 0) 34%),
+    radial-gradient(130% 150% at 100% 50%, rgba(12, 3, 5, 0) 55%, rgba(12, 3, 5, .5));
+  box-shadow: inset 0 0 0 1px rgba(255, 233, 200, .16), inset 0 -26px 36px -26px rgba(12, 3, 5, .75);
 }
+.card > .head > * { position: relative; }
 .card > .head > .ttl { flex: 1 1 auto; min-width: 0; }
-.card[data-w="check"]  > .head { --plate-art: url(/mustdo/shanks/band-check.webp?v=2);  --plate-pos: 62% 44%; }
-.card[data-w="week"]   > .head { --plate-art: url(/mustdo/shanks/band-week.webp?v=2);   --plate-pos: 58% 46%; }
-.card[data-w="month"]  > .head { --plate-art: url(/mustdo/shanks/band-month.webp?v=2);  --plate-pos: 60% 50%; }
-.card[data-w="manage"] > .head { --plate-art: url(/mustdo/shanks/band-manage.webp?v=2); --plate-pos: 64% 42%; }
+/* each widget hangs one picture; --plate-pos lines the subject up in the band */
+.card[data-w="check"]  > .head { --plate-art: url(/mustdo/art/7.webp?v=1); --plate-pos: 50% 26%; }
+.card[data-w="week"]   > .head { --plate-art: url(/mustdo/art/3.webp?v=1); --plate-pos: 50% 24%; }
+.card[data-w="month"]  > .head { --plate-art: url(/mustdo/art/2.webp?v=1); --plate-pos: 50% 36%; --plate-w: 62%; }
+.card[data-w="manage"] > .head { --plate-art: url(/mustdo/art/1.webp?v=1); --plate-pos: 62% 28%; --plate-bright: .82; }
 
 /* ---------- head & type ---------- */
 .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -133,8 +146,8 @@ h2, #bad h2 {
 }
 .count {
   font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap;
-  padding: 4px 12px; border-radius: 999px; background: rgba(12, 3, 5, .58);
-  box-shadow: inset 0 0 0 1px rgba(217, 178, 106, .34);
+  padding: 4px 12px; border-radius: 999px; background: rgba(12, 3, 5, .6);
+  box-shadow: inset 0 0 0 1px rgba(217, 178, 106, .4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 .count:empty { display: none; }
 .num {
@@ -301,10 +314,11 @@ h2, #bad h2 {
 }
 
 @media (max-width: 640px) { body[data-mode="multi"] #stage { grid-template-columns: 1fr; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } .card:hover > .head::before { transform: none; } }
 
 @container (max-width: 420px) {
-  .card > .head { min-height: 96px; padding: 14px 16px; }
+  .card > .head { min-height: 132px; padding: 16px 16px; }
+  .card > .head::before { width: 92%; }
   h2 { font-size: 22px; }
   .item { padding: 9px 10px 9px 14px; }
 }

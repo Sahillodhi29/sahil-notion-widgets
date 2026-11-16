@@ -36,17 +36,23 @@ html[data-theme="shanks"] {
 }
 html[data-theme="shanks"] ::selection { background: rgba(142, 18, 19, .9); color: #FFF4E0; }
 
-/* ---------- the painting, seen properly ---------- */
+/* ---------- the pictures: a second set for this theme, shown a little wider ---------- */
 html[data-theme="shanks"] .card > .head {
-  outline-color: rgba(230, 192, 121, .55);
-  background:
-    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .18) 53px 54px, rgba(255, 236, 210, .022) 54px 55px),
-    linear-gradient(100deg, #2A0C0E, #44130F 62%, #2E0D10);
+  outline-color: rgba(230, 192, 121, .6);
+  background: linear-gradient(100deg, #2A0C0E, #44130F 62%, #2E0D10);
 }
-html[data-theme="shanks"] .card > .head::before { width: var(--plate-w, 66%); }
+html[data-theme="shanks"] .card > .head::before { width: var(--plate-w, 84%); }
 html[data-theme="shanks"] .card > .head::after {
-  background: linear-gradient(90deg, rgba(28, 8, 9, .97) 0%, rgba(28, 8, 9, .8) 32%, rgba(28, 8, 9, .04) 66%, rgba(28, 8, 9, .34) 100%);
+  background:
+    linear-gradient(90deg, rgba(28, 8, 9, .9) 0%, rgba(28, 8, 9, .5) 25%, rgba(28, 8, 9, 0) 52%),
+    linear-gradient(0deg, rgba(142, 18, 19, .34), rgba(142, 18, 19, 0) 42%),
+    linear-gradient(180deg, rgba(255, 236, 200, .12), rgba(255, 236, 200, 0) 34%),
+    radial-gradient(130% 150% at 100% 50%, rgba(12, 3, 5, 0) 55%, rgba(12, 3, 5, .5));
 }
+html[data-theme="shanks"] .card[data-w="check"]  > .head { --plate-art: url(/mustdo/art/5.webp?v=1); --plate-pos: 50% 0%; }
+html[data-theme="shanks"] .card[data-w="week"]   > .head { --plate-art: url(/mustdo/art/6.webp?v=1); --plate-pos: 58% 50%; }
+html[data-theme="shanks"] .card[data-w="month"]  > .head { --plate-art: url(/mustdo/art/4.webp?v=1); --plate-pos: 50% 40%; }
+html[data-theme="shanks"] .card[data-w="manage"] > .head { --plate-art: url(/mustdo/art/7.webp?v=1); --plate-pos: 82% 30%; }
 
 /* ---------- tiles, bars, cells: warmer reds ---------- */
 html[data-theme="shanks"] .item:not(.done) {
