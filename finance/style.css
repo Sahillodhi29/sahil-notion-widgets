@@ -175,8 +175,8 @@ h2.over { font-family: var(--sans); font-style: normal; font-weight: 700; font-s
 .sp-top span { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .sp-top span em { font-style: normal; color: var(--cream); font-weight: 700; }
 .sp-top span.zero em { color: var(--muted); font-weight: 500; }
-.spine { position: relative; height: 16px; margin-top: 3px; border-radius: 4px 7px 7px 4px; background: var(--cream); overflow: hidden; transition: width .5s ease; box-shadow: inset 0 0 0 1px rgba(25, 25, 25, .12), inset 0 -2px 4px rgba(25, 25, 25, .18); }
-.spine.over { background: var(--orange); }
+.spine { position: relative; height: 16px; margin-top: 3px; border-radius: 4px 7px 7px 4px; background: linear-gradient(90deg, var(--orange), var(--cream) 92%); overflow: hidden; transition: width .5s ease; box-shadow: inset 0 0 0 1px rgba(25, 25, 25, .1), inset 0 -2px 4px rgba(25, 25, 25, .16); }
+.spine.over { background: linear-gradient(90deg, var(--orange), var(--orange) 55%, var(--cream)); }
 .spine .gl-hi { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, 0) 55%); z-index: 1; pointer-events: none; }
 
 /* ---------- trend ---------- */
