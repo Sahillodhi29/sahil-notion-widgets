@@ -1,6 +1,6 @@
 # Finance & Investing widgets
 
-Nine small rounded cards, one page, picked with `w=`. Same pattern as `/meal`.
+Ten small rounded cards, one page, picked with `w=`. Same pattern as `/meal`.
 
 ## What is in this zip (unzip into the repo root)
 
@@ -34,7 +34,8 @@ Notion: type `/embed`, paste a link. Replace `YOUR-SITE` and `YOUR_WIDGET_KEY`.
 |---|---|---|---|---|
 | `add` | Quick add: amount, category, UPI/Cash/Card, note, last 5 with Undo | yes | 650 | 810 |
 | `left` | Left to spend + safe amount per day + month of glass tiles. Week/Month | no | 530 | 520 |
-| `ledger` | Book-spine shelf, one per category. Week/Month | no | 610 | 630 |
+| `map` | Where it went: one tile per category, sized by spend, cream/orange by budget state. Tap a tile for its last-month comparison | no | 470 | 500 |
+| `ledger` | One bar per category that has a spend. Week/Month | no | 610 | 630 |
 | `trend` | Last 8 weeks or 6 months as glass tiles, dashed budget line | no | 470 | 420 |
 | `term` | Term of the day flashcard, "I know this one" | yes | 310 | 380 |
 | `wall` | One tile per glossary term; butter = learned | yes | 400 | 580 |
@@ -44,7 +45,7 @@ Notion: type `/embed`, paste a link. Replace `YOUR-SITE` and `YOUR_WIDGET_KEY`.
 
 Notes on heights:
 - Notion embeds have a fixed height, so pick the column that matches where you place it. Each card scrolls inside itself if it is a little short.
-- `goals` grows by about 140px per extra goal. `ledger` grows by about 50px per extra budget category.
+- `goals` grows by about 140px per extra goal. `ledger` grows by about 50px per extra budget category. `map` keeps the same height however many categories you have.
 - `w=all` shows everything as separate cards. Combine pieces with commas: `w=left,ledger`.
 
 ## URL options

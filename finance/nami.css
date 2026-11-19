@@ -59,7 +59,7 @@ html[data-theme="nami"] #toast::before { content: ''; flex: none; width: 9px; he
 /* Each heading holds a wide still, baked at the strip's own aspect (see the band art), so the crop is
    composed once instead of drifting with background-position. It fills the frame edge to edge and the
    mask melts it into the wall behind the heading, which is what stops it reading as a pasted block. */
-html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head {
+html[data-theme="nami"] :is([data-w="map"], [data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head {
   position: relative; isolation: isolate; min-height: 112px; padding: 16px 22px; margin: 3px 4px 6px; border-radius: 14px;
   outline: 2px solid rgba(235, 228, 209, .5); outline-offset: 3px;
   box-shadow: inset 0 0 0 1px rgba(25, 25, 25, .5), inset 0 0 50px rgba(25, 25, 25, .42), 0 16px 24px -18px rgba(0, 0, 0, .9);
@@ -68,16 +68,17 @@ html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"]
     repeating-linear-gradient(90deg, transparent 0 53px, rgba(25, 25, 25, .2) 53px 54px, rgba(235, 228, 209, .035) 54px 55px),
     var(--blue);
 }
-html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::before {
+html[data-theme="nami"] :is([data-w="map"], [data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::before {
   content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit;
   background: var(--plate-art) right center / cover no-repeat;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 34%); mask-image: linear-gradient(90deg, transparent 0, #000 34%);
 }
 /* wall colour melting over the top and bottom of the still: the frame reads as a window rather than a crop. */
-html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::after {
+html[data-theme="nami"] :is([data-w="map"], [data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::after {
   content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
   background: linear-gradient(180deg, rgba(38, 87, 124, .52) 0%, rgba(38, 87, 124, .05) 20%, rgba(38, 87, 124, .03) 72%, rgba(38, 87, 124, .56) 100%);
 }
+html[data-theme="nami"] [data-w="map"] > .head    { --plate-art: url(nami/band-map.webp?v=1); }
 html[data-theme="nami"] [data-w="ledger"] > .head { --plate-art: url(nami/band-ledger.webp?v=1); }
 html[data-theme="nami"] [data-w="trend"] > .head  { --plate-art: url(nami/band-trend.webp?v=1); }
 html[data-theme="nami"] [data-w="term"] > .head   { --plate-art: url(nami/band-term.webp?v=1); }
@@ -91,13 +92,13 @@ html[data-theme="nami"] :is([data-w="term"], [data-w="wall"], [data-w="path"]) >
   background: rgba(25, 25, 25, .62); padding: 3px 12px; border-radius: 999px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
 @container (max-width: 430px) {
-  html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head { min-height: 96px; padding: 14px 16px; }
-  html[data-theme="nami"] :is([data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::before {
+  html[data-theme="nami"] :is([data-w="map"], [data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head { min-height: 96px; padding: 14px 16px; }
+  html[data-theme="nami"] :is([data-w="map"], [data-w="ledger"], [data-w="trend"], [data-w="term"], [data-w="wall"], [data-w="path"], [data-w="future"], [data-w="goals"]) > .head::before {
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44%); mask-image: linear-gradient(90deg, transparent 0, #000 44%); }
 }
 
 /* ---------- nothing here yet: Nami, asleep ---------- */
-html[data-theme="nami"] :is(.recent li.empty, .spines .empty, .goals .empty, .steps li.empty)::before {
+html[data-theme="nami"] :is(.recent li.empty, .spines .empty, .goals .empty, .steps li.empty, .mapinfo .empty)::before {
   content: ''; display: block; grid-column: 1 / -1; width: 100%; max-width: 250px; height: 100px; margin-bottom: 10px; border-radius: 12px;
   outline: 2px solid rgba(235, 228, 209, .5); outline-offset: 2px; background: url(nami/sleep.webp) 50% 38% / cover no-repeat; }
 html[data-theme="nami"] .recent li.empty { display: block; border-top: 0; }

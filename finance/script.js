@@ -1,14 +1,14 @@
 'use strict';
 /* Finance widgets: one page, many pieces.
    /finance/index.html?key=KEY&w=left   -> just that widget
-   w = add | left | ledger | trend | term | wall | path | future | goals | all  (comma-separate to combine)
+   w = add | left | map | ledger | trend | term | wall | path | future | goals | all  (comma-separate to combine)
    Optional: &bg=transparent | &bg=HEX     future-me defaults: &sip=300&rate=10&years=30&delay=10 */
 (() => {
   const API = '/api/finance';
   const params = new URLSearchParams(location.search);
   const KEY = params.get('key') || '';
-  const NEEDS = { add: 60, left: 35, ledger: 35, trend: 190, term: 0, wall: 0, path: 0, future: 0, goals: 0 };   // days of history each widget needs
-  const PARTS = { add: ['tx'], left: ['tx', 'budgets'], ledger: ['tx', 'budgets'], trend: ['tx', 'budgets'], term: ['glossary'], wall: ['glossary'], path: ['roadmap'], future: [], goals: ['goals'] };
+  const NEEDS = { add: 60, left: 35, map: 62, ledger: 35, trend: 190, term: 0, wall: 0, path: 0, future: 0, goals: 0 };   // days of history each widget needs
+  const PARTS = { add: ['tx'], left: ['tx', 'budgets'], map: ['tx', 'budgets'], ledger: ['tx', 'budgets'], trend: ['tx', 'budgets'], term: ['glossary'], wall: ['glossary'], path: ['roadmap'], future: [], goals: ['goals'] };
   const keyQ = sep => (KEY ? `${sep}key=${encodeURIComponent(KEY)}` : '');
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -33,7 +33,7 @@
   document.body.dataset.mode = shown.length === 1 ? 'single' : 'multi';
   if (unknown.length || !shown.length) {
     const b = $('bad'); b.hidden = false;
-    b.innerHTML = '<h2>Unknown widget</h2><p class="muted">Use w=add, left, ledger, trend, term, wall, path, future, goals or all.</p>';
+    b.innerHTML = '<h2>Unknown widget</h2><p class="muted">Use w=add, left, map, ledger, trend, term, wall, path, future, goals or all.</p>';
   }
   const has = w => shown.includes(w);
   const DAYS = Math.max(14, ...shown.map(w => NEEDS[w]));
@@ -45,7 +45,7 @@
     pending: 0, first: true, loaded: false, loadedAt: 0,
     mode: { left: store.get('left', 'month'), ledger: store.get('ledger', 'month'), trend: store.get('trend', 'week') },
     add: { type: 'Expense', category: null, mode: store.get('payMode', 'UPI'), day: 'today' },
-    termId: null, termSkip: 0, revealed: false, wallSel: null, pathOpen: new Set(),
+    termId: null, termSkip: 0, revealed: false, wallSel: null, mapSel: null, pathOpen: new Set(),
   };
 
   /* ---------- formatting & dates ---------- */
@@ -170,6 +170,92 @@
     $('days').innerHTML = html;
   }
 
+  /* ---------- map: where the month went, one tile per category ---------- */
+  // Squarified treemap: lays the areas out in strips, keeping the tiles as square as it can.
+  function squarify(vals, W, H) {
+    const total = vals.reduce((a, b) => a + b, 0) || 1;
+    const items = vals.map(v => v / total * W * H), out = [];
+    let x = 0, y = 0, w = W, h = H, i = 0;
+    const worst = (s, e, sum, side) => {
+      const thick = sum / side; let m = 1;
+      for (let k = s; k < e; k++) { const len = items[k] / thick; m = Math.max(m, Math.max(thick, len) / Math.max(.001, Math.min(thick, len))); }
+      return m;
+    };
+    while (i < items.length && w > .001 && h > .001) {
+      const vertical = w <= h, long = Math.max(w, h);
+      let end = i + 1, sum = items[i], best = worst(i, end, sum, long);
+      while (end < items.length) {
+        const s2 = sum + items[end], w2 = worst(i, end + 1, s2, long);
+        if (w2 > best) break;
+        best = w2; sum = s2; end++;
+      }
+      const thick = sum / (vertical ? h : w); let off = 0;
+      for (let k = i; k < end; k++) {
+        const len = items[k] / thick;
+        out.push(vertical ? { x, y: y + off, w: thick, h: len } : { x: x + off, y, w: len, h: thick });
+        off += len;
+      }
+      if (vertical) { x += thick; w -= thick; } else { y += thick; h -= thick; }
+      i = end;
+    }
+    return out;
+  }
+  function renderMap() {
+    const t = state.today, from = t.slice(0, 8) + '01';
+    const by = {}; spends(from, t).forEach(x => { const c = x.category || 'Other'; by[c] = (by[c] || 0) + x.amount; });
+    const cats = Object.keys(by);
+    const spent = cats.reduce((s, c) => s + by[c], 0);
+    const monthName = new Date(from + 'T00:00:00Z').toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' });
+    // the same number of days last month, so the comparison is fair
+    const dl = daysBetween(from, t) + 1, pFrom = shiftMonth(from, -1);
+    const pTo = addDays(pFrom, dl - 1) < monthEnd(pFrom) ? addDays(pFrom, dl - 1) : monthEnd(pFrom);
+    const prevBy = {}; spends(pFrom, pTo).forEach(x => { const c = x.category || 'Other'; prevBy[c] = (prevBy[c] || 0) + x.amount; });
+    const limits = {}; state.budgets.forEach(b => { if (b.bucket !== 'Savings') limits[b.category] = b.limit; });
+    const rows = cats.map(c => ({ c, v: by[c], prev: prevBy[c] || 0, limit: limits[c] || 0 })).sort((a, b) => b.v - a.v);
+
+    $('mapTotal').textContent = spent ? `${money(spent)} in ${monthName}` : '';
+    const names = [...new Set([...cats, ...Object.keys(prevBy)])];
+    let mover = null;
+    names.forEach(c => { const d = (by[c] || 0) - (prevBy[c] || 0); if (!mover || Math.abs(d) > Math.abs(mover.d)) mover = { c, d }; });
+    $('mapLine').textContent = !spent ? ''
+      : !mover || !mover.d ? 'Every category is level with the same days last month.'
+      : mover.d > 0 ? `${mover.c} took the biggest bite — ${money(by[mover.c] || 0)}${prevBy[mover.c] ? `, up ${money(mover.d)} on the same ${dl} days last month` : ''}.`
+      : `${mover.c} is ${money(-mover.d)} below the same ${dl} days last month${by[mover.c] ? `, at ${money(by[mover.c])}` : ', nothing logged yet'}.`;
+
+    const box = $('mapBox');
+    if (!rows.length) {
+      box.innerHTML = '';
+      $('mapInfo').innerHTML = '<p class="empty">No spends logged this month yet. Add one and the map fills in.</p>';
+      return;
+    }
+    state.mapSel = rows.some(r => r.c === state.mapSel) ? state.mapSel : null;
+    const W = Math.max(180, Math.round(box.clientWidth || 320)), H = Math.max(140, Math.round(box.clientHeight || 210));
+    const laid = squarify(rows.map(r => r.v), W, H), p = (n, d) => (n / d * 100).toFixed(2) + '%';
+    box.innerHTML = laid.map((l, k) => {
+      const r = rows[k], ratio = r.limit ? r.v / r.limit : 0;
+      const cls = !r.limit ? 't-none' : ratio > 1 ? 't-over' : ratio > .75 ? 't-near' : 't-ok';
+      const size = l.w >= 92 && l.h >= 44 ? '' : l.h >= 26 && l.w >= 42 ? ' sm' : ' xs';
+      const inner = size === ' xs' ? '' : `<span class="mn">${esc(r.c)}</span><span class="mv">${short(r.v)}</span>`;
+      return `<button type="button" class="mtile ${cls}${size ? ' ' + size : ''}${state.mapSel === r.c ? ' sel' : ''}" data-c="${esc(r.c)}"` +
+        ` style="left:${p(l.x, W)};top:${p(l.y, H)};width:${p(l.w, W)};height:${p(l.h, H)}"` +
+        ` title="${esc(r.c)}: ${money(r.v)} of ${money(spent)}" aria-label="${esc(r.c)}, ${money(r.v)}">${inner}</button>`;
+    }).join('');
+
+    const sel = rows.find(r => r.c === state.mapSel);
+    if (!sel) {
+      $('mapInfo').innerHTML = '<p class="muted">Tap a tile to compare it with last month. Cream is inside budget, orange has gone past it.</p>';
+      return;
+    }
+    const d = sel.v - sel.prev, share = spent ? Math.round(sel.v / spent * 100) : 0;
+    const cmp = sel.prev ? `${money(Math.abs(d))} ${d >= 0 ? 'more' : 'less'} than the same ${dl} days last month` : 'nothing in the same days last month';
+    const cap = !sel.limit ? 'no limit set for it'
+      : sel.v > sel.limit ? `<span class="over">${money(sel.v - sel.limit)} over</span> its ${money(sel.limit)} limit`
+      : `${money(sel.limit - sel.v)} of its ${money(sel.limit)} limit left`;
+    $('mapInfo').innerHTML = `<span class="miname">${esc(sel.c)}</span>` +
+      `<span class="minums"><b>${money(sel.v)}</b> · ${share}% of the month · ${money(sel.v / dl)} a day</span>` +
+      `<span class="muted small">${cmp.charAt(0).toUpperCase() + cmp.slice(1)}. ${cap.charAt(0).toUpperCase() + cap.slice(1)}.</span>`;
+  }
+
   /* ---------- ledger: a shelf of book spines ---------- */
   function renderLedger() {
     const m = state.mode.ledger, P = period(m), t = state.today;
@@ -177,17 +263,14 @@
     const rows = state.budgets.filter(b => b.bucket !== 'Savings').map(b => ({ name: b.category, limit: b.limit * P.factor, spent: by[b.category] || 0 }));
     Object.keys(by).forEach(c => { if (!rows.some(r => r.name === c)) rows.push({ name: c, limit: 0, spent: by[c] }); });
     rows.sort((a, b) => b.spent - a.spent || b.limit - a.limit);
-    const maxV = Math.max(1, ...rows.map(r => Math.max(r.limit, r.spent)));
+    const maxV = Math.max(1, ...rows.map(r => r.spent));
     const totalSpent = rows.reduce((s, r) => s + r.spent, 0), totalLimit = rows.reduce((s, r) => s + r.limit, 0);
-    $('ledgerLine').textContent = rows.length ? (totalLimit ? `${money(totalSpent)} of ${money(totalLimit)} this ${P.word}. Orange means past the budget.` : `${money(totalSpent)} spent this ${P.word}.`) : '';
+    $('ledgerLine').textContent = rows.length ? (totalLimit ? `${money(totalSpent)} of ${money(totalLimit)} this ${P.word}.` : `${money(totalSpent)} spent this ${P.word}.`) : '';
     $('spines').innerHTML = rows.length ? rows.map(r => {
-      const cap = Math.max(r.limit, r.spent) || 1, w = Math.max(10, cap / maxV * 100);
-      const inside = r.limit ? Math.min(r.spent, r.limit) : r.spent, ratio = r.limit ? r.spent / r.limit : 0;
-      const cls = !r.limit || ratio > .75 ? 'warm' : '';
-      const over = r.limit && r.spent > r.limit
-        ? `<i class="over" style="left:${(r.limit / cap * 100).toFixed(1)}%;width:${((r.spent - r.limit) / cap * 100).toFixed(1)}%"></i><b class="tick" style="left:${(r.limit / cap * 100).toFixed(1)}%"></b>` : '';
-      const amt = r.limit ? `<span class="${ratio > 1 ? 'over' : ''}"><em>${money(r.spent)}</em> of ${money(r.limit)}</span>` : `<span><em>${money(r.spent)}</em> no limit</span>`;
-      return `<div><div class="sp-top"><b>${esc(r.name)}</b>${amt}</div><div class="spine" style="width:${w.toFixed(1)}%"><i class="${cls}" style="width:${(inside / cap * 100).toFixed(1)}%"></i>${over}<span class="gl-hi"></span></div></div>`;
+      const w = Math.max(10, r.spent / maxV * 100), over = !!r.limit && r.spent > r.limit;
+      const amt = r.limit ? `<span class="${over ? 'over' : ''}"><em>${money(r.spent)}</em> of ${money(r.limit)}</span>` : `<span><em>${money(r.spent)}</em> no limit</span>`;
+      const bar = r.spent ? `<div class="spine${over ? ' over' : ''}" style="width:${w.toFixed(1)}%"><span class="gl-hi"></span></div>` : '';
+      return `<div><div class="sp-top"><b>${esc(r.name)}</b>${amt}</div>${bar}</div>`;
     }).join('') : '<p class="empty">Log a few spends and your categories will line up here.</p>';
   }
 
@@ -354,6 +437,7 @@
     const ready = state.loaded;
     if (ready) {
       if (has('left')) renderLeft();
+      if (has('map')) renderMap();
       if (has('ledger')) renderLedger();
       if (has('trend')) renderTrend();
       if (has('term')) renderTerm();
@@ -413,6 +497,7 @@
     if ((el = q('#addDay button'))) { state.add.day = el.dataset.v; return renderAdd(); }
     if (q('#addBtn')) return submitAdd();
     if ((el = q('.undo'))) return undoTx(el.dataset.id);
+    if ((el = q('.mtile'))) { state.mapSel = state.mapSel === el.dataset.c ? null : el.dataset.c; return renderMap(); }
     if ((el = q('#termBox [data-act]'))) {
       const a = el.dataset.act;
       if (a === 'reveal') { state.revealed = true; return renderTerm(); }
@@ -438,6 +523,13 @@
       e.target.value = v; updateAddBtn();
     });
     ['amt', 'note'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') submitAdd(); }));
+  }
+  if (has('map')) {
+    // the treemap needs real pixels to lay its tiles out, so redraw when the embed changes width
+    let last = 0;
+    try {
+      new ResizeObserver(() => { const w = $('mapBox').clientWidth; if (Math.abs(w - last) > 12) { last = w; if (state.loaded) renderMap(); } }).observe($('mapBox'));
+    } catch (e) { /* no ResizeObserver in this sandbox: the first render is enough */ }
   }
   if (has('future')) {
     const bind = (id, key) => { const el = $(id); el.value = F[key]; el.addEventListener('input', () => { F[key] = parseFloat(el.value); renderFuture(); $('sDelay').value = F.delay; }); };
