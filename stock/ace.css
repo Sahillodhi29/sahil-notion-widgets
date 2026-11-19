@@ -61,7 +61,7 @@ html[data-theme="ace"] .card > .head::after {
 html[data-theme="ace"] .card[data-w="add"]     > .head { --plate-art: url(/stock/art/2.webp?v=1); --plate-pos: 50% 44%; }
 html[data-theme="ace"] .card[data-w="shelf"]   > .head { --plate-art: url(/stock/art/3.webp?v=1); --plate-pos: 50% 34%; }
 html[data-theme="ace"] .card[data-w="restock"] > .head { --plate-art: url(/stock/art/1.webp?v=1); --plate-pos: 50% 30%; }
-html[data-theme="ace"] .card[data-w="cost"]    > .head { --plate-art: url(/stock/art/6.webp?v=1); --plate-pos: 50% 55%; }
+html[data-theme="ace"] .card[data-w="cost"]    > .head { --plate-art: url(/stock/art/7.webp?v=1); --plate-pos: 45% 50%; }
 
 html[data-theme="ace"] .ace-print {
   background-image: url(/stock/art/print-ace.webp?v=1);
