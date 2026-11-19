@@ -263,13 +263,13 @@
     const rows = state.budgets.filter(b => b.bucket !== 'Savings').map(b => ({ name: b.category, limit: b.limit * P.factor, spent: by[b.category] || 0 }));
     Object.keys(by).forEach(c => { if (!rows.some(r => r.name === c)) rows.push({ name: c, limit: 0, spent: by[c] }); });
     rows.sort((a, b) => b.spent - a.spent || b.limit - a.limit);
-    const maxV = Math.max(1, ...rows.map(r => r.spent));
-    const totalSpent = rows.reduce((s, r) => s + r.spent, 0), totalLimit = rows.reduce((s, r) => s + r.limit, 0);
-    $('ledgerLine').textContent = rows.length ? (totalLimit ? `${money(totalSpent)} of ${money(totalLimit)} this ${P.word}.` : `${money(totalSpent)} spent this ${P.word}.`) : '';
+    const maxV = Math.max(1, ...rows.map(r => Math.max(r.limit, r.spent)));
+    const totalSpent = rows.reduce((s, r) => s + r.spent, 0);
+    $('ledgerLine').textContent = totalSpent ? `${money(totalSpent)} this ${P.word}.` : '';
     $('spines').innerHTML = rows.length ? rows.map(r => {
       const w = Math.max(10, r.spent / maxV * 100), over = !!r.limit && r.spent > r.limit;
-      const amt = r.limit ? `<span class="${over ? 'over' : ''}"><em>${money(r.spent)}</em> of ${money(r.limit)}</span>` : `<span><em>${money(r.spent)}</em> no limit</span>`;
       const bar = r.spent ? `<div class="spine${over ? ' over' : ''}" style="width:${w.toFixed(1)}%"><span class="gl-hi"></span></div>` : '';
+      const amt = `<span class="${r.spent ? '' : 'zero'}"><em>${money(r.spent)}</em></span>`;
       return `<div><div class="sp-top"><b>${esc(r.name)}</b>${amt}</div>${bar}</div>`;
     }).join('') : '<p class="empty">Log a few spends and your categories will line up here.</p>';
   }
