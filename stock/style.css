@@ -101,19 +101,25 @@ body.has-theme-toggle #stage { padding-bottom: 58px; }
   /* Studio hooks: --plate-art/-pos (picture + focus), --plate-zoom, --plate-flip (1 | -1),
      --mask-dir (90deg | 270deg when flipped), --plate-origin, --plate-bright.  Defaults = the shipped look. */
   --z: var(--plate-zoom, 1);
+  --zi: max(var(--z), 1);           /* zooming in grows the picture box */
+  --zo: min(var(--z), 1);           /* zooming out shrinks it (with soft edges) */
+  --ev: calc((1 - var(--zo)) * 70%);
   --pw: var(--plate-w, var(--plate-w-def, 78%));
-  --p0: calc((var(--z) - 1) / (2 * var(--z)) * 100%);
-  --mask: linear-gradient(var(--mask-dir, 90deg), transparent var(--p0), rgba(0, 0, 0, .5) calc(var(--p0) + 16% / var(--z)), #000 calc(var(--p0) + 44% / var(--z)));
+  --p0: calc((var(--zi) - 1) / (2 * var(--zi)) * 100%);
+  --mask: linear-gradient(var(--mask-dir, 90deg), transparent var(--p0), rgba(0, 0, 0, .5) calc(var(--p0) + 16% / var(--zi)), #000 calc(var(--p0) + 44% / var(--zi))),
+          linear-gradient(180deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent),
+          linear-gradient(var(--mask-dir, 90deg), #000 calc(100% - var(--ev)), transparent);
   content: ''; position: absolute; z-index: -2;
-  width: calc(var(--pw) * var(--z)); height: calc(100% * var(--z));
-  top: calc(-50% * (var(--z) - 1)); right: calc(var(--pw) * (1 - var(--z)) / 2);
+  width: calc(var(--pw) * var(--zi)); height: calc(100% * var(--zi));
+  top: calc(-50% * (var(--zi) - 1)); right: calc(var(--pw) * (1 - var(--zi)) / 2);
   background: var(--plate-art) var(--plate-pos, 50% 50%) / cover no-repeat;
   -webkit-mask-image: var(--mask); mask-image: var(--mask);
+  -webkit-mask-composite: source-in; mask-composite: intersect;
   filter: saturate(1.1) contrast(1.05) brightness(var(--plate-bright, .95));
-  transform: scaleX(var(--plate-flip, 1)); transform-origin: var(--plate-origin, 80% 50%);
+  transform: scale(calc(var(--plate-flip, 1) * var(--zo)), var(--zo)); transform-origin: var(--plate-origin, 80% 50%);
   transition: transform .9s cubic-bezier(.2, .7, .2, 1);
 }
-.card:hover > .head::before { transform: scale(calc(var(--plate-flip, 1) * 1.045), 1.045); }
+.card:hover > .head::before { transform: scale(calc(var(--plate-flip, 1) * var(--zo) * 1.045), calc(var(--zo) * 1.045)); }
 .card > .head::after {                         /* grade, sheen, vignette and a keyline */
   content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
   background:

@@ -7,7 +7,7 @@
   const NW = window.NW, KEY = 'nw-studio-v1', $ = id => document.getElementById(id);
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const bc = (() => { try { return new BroadcastChannel('nw-studio'); } catch (e) { return null; } })();
-  let state = load(), pageId = Object.keys(NW.pages)[0], themeId = null, cardId = null, storageOk = true;
+  let state = load(), pageId = (NW.pages[new URLSearchParams(location.search).get('page')] ? new URLSearchParams(location.search).get('page') : Object.keys(NW.pages)[0]), themeId = null, cardId = null, storageOk = true;
 
   function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.pages) return s; } catch (e) { /* none yet */ } return { v: 1, pages: {} }; }
   function commit() {
@@ -92,7 +92,7 @@
     P().themes.forEach(t => {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'tab'; b.setAttribute('aria-pressed', String(t.id === themeId));
       b.innerHTML = `${t.name}${t.id === live ? '<span class="live" title="Showing on your widgets now"></span>' : ''}`;
-      b.onclick = () => { themeId = t.id; cardId = null; renderThemes(); renderGrid(); renderEditor(); };
+      b.onclick = () => { themeId = t.id; cardId = null; renderThemes(); renderGrid(); };
       el.appendChild(b);
     });
     if (live !== themeId) {
@@ -138,11 +138,11 @@
     mut(a); p.art[artKey()] = a; commit(); syncControls(); markTiles();
   }
   function renderGrid() {
-    const g = $('grid'); g.innerHTML = '';
+    const g = $('grid'); park(); g.innerHTML = '';
     P().cards.forEach(c => {
       const t = document.createElement('div'); t.className = 'tile'; t.dataset.card = c.id;
-      t.innerHTML = `<div class="frame"><iframe loading="lazy" tabindex="-1" title="${c.title}" src="/shared/preview.html?page=${pageId}&theme=${themeId}&card=${c.id}"></iframe><div class="cover"></div></div>
-        <div class="cap"><span><b>${c.title}</b></span><span class="tag"></span></div>`;
+      t.innerHTML = `<div class="pv"><div class="frame"><iframe loading="lazy" tabindex="-1" title="${c.title}" src="/shared/preview.html?page=${pageId}&theme=${themeId}&card=${c.id}"></iframe><div class="cover"></div></div>
+        <div class="cap"><span><b>${c.title}</b></span><span class="tag"></span></div></div>`;
       const cover = t.querySelector('.cover'); let drag = null;
       cover.addEventListener('pointerdown', e => {
         if (cardId !== c.id) { select(c.id); return; }
@@ -154,7 +154,7 @@
         editArt(a => { a.x = Math.round(clamp(drag.a0 + s * (e.clientX - drag.x) / r.width * 120, 0, 100)); a.y = Math.round(clamp(drag.b0 - (e.clientY - drag.y) / r.height * 150, 0, 100)); });
       });
       const end = () => { drag = null; }; cover.addEventListener('pointerup', end); cover.addEventListener('pointercancel', end);
-      cover.addEventListener('wheel', e => { if (cardId !== c.id) return; e.preventDefault(); editArt(a => { a.zoom = Math.round(clamp((a.zoom || 1) * (e.deltaY < 0 ? 1.06 : .943), 1, 2.5) * 100) / 100; }); }, { passive: false });
+      cover.addEventListener('wheel', e => { if (cardId !== c.id) return; e.preventDefault(); editArt(a => { a.zoom = Math.round(clamp((a.zoom || 1) * (e.deltaY < 0 ? 1.06 : .943), .5, 2.5) * 100) / 100; }); }, { passive: false });
       g.appendChild(t);
     });
     markTiles();
@@ -167,12 +167,13 @@
       t.querySelector('.tag').textContent = custom ? 'Your picture' : (t.dataset.card === cardId ? '' : 'Click to change');
     });
   }
+  const park = () => { const ed = $('editor'); ed.hidden = true; $('hPics').closest('.panel').appendChild(ed); };   // keep the editor out of tiles that are about to be rebuilt
   function select(id) {
     cardId = id; markTiles(); renderEditor();
-    $('editor').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const t = document.querySelector(`.tile[data-card="${id}"]`); if (t) { t.appendChild($('editor')); t.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
   }
   function renderEditor() {
-    const ed = $('editor'); ed.hidden = !cardId; if (!cardId) return;
+    const ed = $('editor'); ed.hidden = !cardId; if (!cardId) { park(); return; }
     const c = P().cards.find(x => x.id === cardId), th = P().themes.find(x => x.id === themeId);
     $('edKicker').textContent = `${P().name} · ${th.name}`; $('edTitle').textContent = c.title;
     $('linkNote').textContent = ''; $('linkNote').className = 'hint'; $('linkIn').value = '';
@@ -187,6 +188,7 @@
   }
   [['cX', 'x', 1], ['cY', 'y', 1], ['cZ', 'zoom', 1], ['cB', 'bright', 1]].forEach(([id, k]) => { $(id).oninput = e => editArt(a => { a[k] = Number(e.target.value); }); });
   $('cF').onchange = e => editArt(a => { a.flip = e.target.checked; });
+  $('edDone').onclick = () => { cardId = null; park(); markTiles(); };
   $('edReset').onclick = () => { const p = pg(); if (p && p.art) delete p.art[artKey()]; commit(); gc(); syncControls(); markTiles(); toast('Back to the original picture'); };
 
   async function useFile(file) {
@@ -239,6 +241,13 @@
       commit(); renderAll(); toast('Look imported.');
     } catch (err) { toast('That file is not a Studio export.'); }
   };
+
+  /* look: cute "Harbour" (sea and sky that follow your clock) or plain "Graphite" */
+  const LOOKS = { harbour: 'Harbour', graphite: 'Graphite' };
+  const setLook = l => { document.body.dataset.look = l; $('lookBtn').textContent = 'Look: ' + LOOKS[l]; try { localStorage.setItem('nw-studio-look', l); } catch (e) { /* fine */ } };
+  try { const l = localStorage.getItem('nw-studio-look'); if (LOOKS[l]) setLook(l); } catch (e) { /* default */ }
+  $('lookBtn').onclick = () => setLook(document.body.dataset.look === 'harbour' ? 'graphite' : 'harbour');
+  if (window.NWSky) NWSky.mount(document.querySelector('.bar'), { shipX: 54, shipH: 70, clouds: 2 });
 
   function renderAll() { renderPages(); renderColours(); renderThemes(); renderGrid(); renderEditor(); }
   try { localStorage.setItem('nw-probe', '1'); localStorage.removeItem('nw-probe'); } catch (e) { storageOk = false; toast('This browser is blocking saved settings for embedded pages.'); }

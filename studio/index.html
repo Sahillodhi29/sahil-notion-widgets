@@ -7,11 +7,12 @@
   <title>Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&family=Pacifico&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/sky.css">
   <link rel="stylesheet" href="/studio/studio.css">
   <script src="/shared/registry.js"></script>
 </head>
-<body>
+<body data-look="harbour">
   <main class="studio">
     <header class="bar">
       <div>
@@ -19,6 +20,7 @@
         <p class="lede">Make every widget yours: pictures, colours and themes, from one place.</p>
       </div>
       <div class="bar-actions">
+        <button id="lookBtn" class="btn ghost" type="button" aria-label="Change the Studio look">Look: Harbour</button>
         <button id="exportBtn" class="btn ghost" type="button">Export</button>
         <label class="btn ghost" for="importFile">Import</label>
         <input id="importFile" type="file" accept="application/json,.json" hidden>
@@ -47,7 +49,7 @@
       <div id="editor" class="editor" hidden>
         <div class="ed-head">
           <div><p class="eyebrow" id="edKicker"></p><h3 id="edTitle"></h3></div>
-          <button id="edReset" class="link" type="button">Back to the original picture</button>
+          <div class="ed-btns"><button id="edReset" class="link" type="button">Back to the original picture</button><button id="edDone" class="btn small" type="button">Done</button></div>
         </div>
         <div class="ed-grid">
           <div class="ed-src">
@@ -68,10 +70,10 @@
           <div class="ed-ctl">
             <label class="ctl"><span>Left ↔ right</span><input id="cX" type="range" min="0" max="100" step="1"><output id="oX"></output></label>
             <label class="ctl"><span>Up ↕ down</span><input id="cY" type="range" min="0" max="100" step="1"><output id="oY"></output></label>
-            <label class="ctl"><span>Zoom</span><input id="cZ" type="range" min="1" max="2.5" step="0.05"><output id="oZ"></output></label>
+            <label class="ctl"><span>Zoom</span><input id="cZ" type="range" min="0.5" max="2.5" step="0.05"><output id="oZ"></output></label>
             <label class="ctl"><span>Brightness</span><input id="cB" type="range" min="0.5" max="1.3" step="0.02"><output id="oB"></output></label>
             <label class="check"><input id="cF" type="checkbox"><span>Flip left ↔ right</span></label>
-            <p class="hint">Tip: drag on the preview to move the picture, scroll to zoom.</p>
+            <p class="hint">Tip: drag on the preview to move the picture, scroll to zoom. Below 1× the picture shrinks and fades into the header.</p>
           </div>
         </div>
       </div>
@@ -80,6 +82,7 @@
     <p class="foot">Saved on this device. Widgets in this browser update the moment you change something. Use Export / Import to move your look to another device.</p>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/shared/sky.js"></script>
   <script src="/studio/studio.js"></script>
 </body>
 </html>

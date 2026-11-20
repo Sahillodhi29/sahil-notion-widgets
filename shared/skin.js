@@ -55,9 +55,9 @@
       if (!theme || !card || !/^[\w-]+$/.test(theme) || !/^[\w-]+$/.test(card)) continue;
       const u = await resolve(a.src); if (me !== run) return;
       if (!u) continue;
-      const flip = !!a.flip, z = num(a.zoom, 1, 1, 3);
+      const flip = !!a.flip, z = num(a.zoom, 1, .5, 3);
       css += `html[data-skin][data-theme="${theme}"] .card[data-w="${card}"]>.head{--plate-art:url("${esc(u)}");--plate-pos:${num(a.x, 50, 0, 100)}% ${num(a.y, 50, 0, 100)}%;--plate-zoom:${z};`
-        + `--plate-bright:${num(a.bright, .94, .4, 1.5)};--plate-flip:${flip ? -1 : 1};--mask-dir:${flip ? '270deg' : '90deg'};--plate-origin:${flip || z > 1 ? '50% 50%' : '80% 50%'}}`;
+        + `--plate-bright:${num(a.bright, .94, .4, 1.5)};--plate-flip:${flip ? -1 : 1};--mask-dir:${flip ? '270deg' : '90deg'};--plate-origin:${flip || z !== 1 ? '50% 50%' : '80% 50%'}}`;
     }
     if (me !== run) return;
     root.setAttribute('data-skin', '1'); style.textContent = css; root.removeAttribute('data-skin-wait');
