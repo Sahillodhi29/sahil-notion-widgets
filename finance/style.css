@@ -1,3 +1,5 @@
+/* Studio colour roles: hue (deg) and saturation scale for accent (a), secondary (b) and wall (w). The Studio overrides these. */
+:root { --b-h: 21.9; --b-k: 1; --w-h: 205.8; --w-k: 1; }
 /* ============================================================
    Finance widgets: "The Navigator's Chart Room"
    The room on the Thousand Sunny where the navigator keeps her charts and her money:
@@ -8,9 +10,9 @@
    ============================================================ */
 :root {
   --bg:     #191919;   /* Notion dark page */
-  --blue:   #26577C;   /* Atlantic Blue: the wall */
+  --blue:   hsl(var(--w-h) calc(53.1% * var(--w-k)) 31.8%);   /* Atlantic Blue: the wall */
   --cream:  #EBE4D1;   /* Vanilla Canvas: paper, text, filled tiles */
-  --orange: #E55604;   /* Spice Orange: lamplight, alerts, the one loud accent */
+  --orange: hsl(var(--b-h) calc(96.6% * var(--b-k)) 45.7%);   /* Spice Orange: lamplight, alerts, the one loud accent */
   --ink:    #191919;   /* text that sits on cream or orange */
 
   --deep:   rgba(25, 25, 25, .34);     /* sunk tiles, tracks */
@@ -36,7 +38,7 @@
   /* the chart-room wall */
   --wall:
     radial-gradient(260px 160px at 0% 0%, rgba(235, 228, 209, .17), transparent 72%),        /* lamp, top left */
-    radial-gradient(260px 160px at 100% 0%, rgba(229, 86, 4, .16), transparent 72%),         /* tangerine glow, top right */
+    radial-gradient(260px 160px at 100% 0%, hsl(var(--b-h) calc(96.6% * var(--b-k)) 45.7% / .16), transparent 72%),         /* tangerine glow, top right */
     linear-gradient(180deg, transparent 58%, rgba(25, 25, 25, .38)),                         /* deep water at the foot */
     repeating-linear-gradient(90deg, transparent 0 53px, rgba(25, 25, 25, .2) 53px 54px, rgba(235, 228, 209, .035) 54px 55px),   /* panelling */
     linear-gradient(180deg, var(--blue), var(--blue));
