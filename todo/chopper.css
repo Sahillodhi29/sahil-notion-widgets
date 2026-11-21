@@ -51,22 +51,17 @@ html[data-theme="chopper"] .card.sweep .blk.todo .sw-count { padding: 4px 16px 8
 /* picture plates: one framed picture behind each card heading */
 html[data-theme="chopper"] .card:not(.sweep) > .head {
   isolation: isolate; min-height: 116px; padding: 16px 22px; margin: 3px 4px 4px; border-radius: 14px;
-  outline: 2px solid hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .55); outline-offset: 3px;
+  outline: 2px solid rgba(255, 249, 183, .55); outline-offset: 3px;
   box-shadow: inset 0 0 0 1px rgba(25, 25, 25, .4), inset 0 0 44px rgba(25, 25, 25, .32), 0 16px 24px -18px rgba(0, 0, 0, .9);
   background:
-    linear-gradient(90deg, hsl(calc(var(--b-h) + 6.4) calc(81.8% * var(--b-k)) 43.1% / .98) 0%, hsl(calc(var(--b-h) + 6.4) calc(81.8% * var(--b-k)) 43.1% / .72) 32%, hsl(calc(var(--b-h) + 6.4) calc(81.8% * var(--b-k)) 43.1% / 0) 58%),
-    repeating-linear-gradient(90deg, transparent 0 11px, hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .04) 11px 12px),
+    linear-gradient(90deg, rgba(200, 20, 76, .98) 0%, rgba(200, 20, 76, .72) 32%, rgba(200, 20, 76, 0) 58%),
+    repeating-linear-gradient(90deg, transparent 0 11px, rgba(255, 249, 183, .04) 11px 12px),
     var(--rasp);
 }
 html[data-theme="chopper"] .card:not(.sweep) > .head::before {
-  --z: var(--plate-zoom, 1); --zi: max(var(--z), 1); --zo: min(var(--z), 1); --ev: calc((1 - var(--zo)) * 70%); --pw: min(var(--plate-w, 60%), 420px);
-  content: ''; position: absolute; z-index: -1; width: calc(var(--pw) * var(--zi)); height: calc(100% * var(--zi));
-  top: calc(-50% * (var(--zi) - 1)); right: calc(var(--pw) * (1 - var(--zi)) / 2); border-radius: 0 14px 14px 0;
+  content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: min(var(--plate-w, 60%), 420px); border-radius: 0 14px 14px 0;
   background: var(--plate-art) var(--plate-pos, 50% 50%) / var(--plate-size, cover) no-repeat;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 42%), linear-gradient(180deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent), linear-gradient(90deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent);
-  mask-image: linear-gradient(90deg, transparent 0, #000 42%), linear-gradient(180deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent), linear-gradient(90deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent);
-  -webkit-mask-composite: source-in; mask-composite: intersect;
-  filter: brightness(var(--plate-bright, 1)); transform: scale(calc(var(--plate-flip, 1) * var(--zo)), var(--zo)); transform-origin: var(--plate-origin, 50% 50%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 42%); mask-image: linear-gradient(90deg, transparent 0, #000 42%);
 }
 html[data-theme="chopper"] .card[data-w="general"] { --plate-art: url(chopper/plate-hat.webp);   --plate-pos: 50% 22%; --plate-w: 58%; }
 html[data-theme="chopper"] .card[data-w="self"]    { --plate-art: url(chopper/hero.webp);        --plate-pos: 50% 62%; --plate-w: 62%; }
@@ -95,7 +90,7 @@ html[data-theme="chopper"] .sign { display: block; align-self: flex-end; flex: n
 
 /* the Add button glints, and the toast carries a pink dot */
 html[data-theme="chopper"] .btn:not(:disabled) { animation: glint 3.6s ease-in-out infinite; }
-@keyframes glint { 0%, 100% { filter: none; } 45% { filter: drop-shadow(0 0 10px hsl(var(--b-h) calc(91.0% * var(--b-k)) 73.7% / .85)); } }
+@keyframes glint { 0%, 100% { filter: none; } 45% { filter: drop-shadow(0 0 10px rgba(249, 127, 178, .85)); } }
 html[data-theme="chopper"] #toast::before { content: ''; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--petal); box-shadow: 0 0 0 2px var(--rasp); }
 
 /* nothing due: Chopper, asleep, on a polaroid */
@@ -111,7 +106,7 @@ html[data-theme="chopper"] .rows > .empty::after {
   html[data-theme="chopper"] .card.sweep .blk.todo::before { width: 76%; }
   html[data-theme="chopper"] .card.sweep .blk.fin::after { width: 44%; }
   html[data-theme="chopper"] .card:not(.sweep) > .head { min-height: 100px; padding: 14px 16px; }
-  html[data-theme="chopper"] .card:not(.sweep) > .head::before { --pw: 68%; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 58%), linear-gradient(180deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent), linear-gradient(90deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 58%), linear-gradient(180deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent), linear-gradient(90deg, transparent, #000 var(--ev), #000 calc(100% - var(--ev)), transparent); }
+  html[data-theme="chopper"] .card:not(.sweep) > .head::before { width: 68%; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 58%); mask-image: linear-gradient(90deg, transparent 0, #000 58%); }
   html[data-theme="chopper"] .rows > .empty { padding: 196px 0 6px; align-items: flex-start; }
   html[data-theme="chopper"] .rows > .empty::after { right: auto; left: 4px; top: 0; transform: rotate(-2deg); }
 }
