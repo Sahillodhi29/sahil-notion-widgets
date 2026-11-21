@@ -7,6 +7,7 @@
 <title>Widget preview</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/shared/registry.js"></script>
+  <script src="/shared/pages/todo.js"></script>
 <script>
 /* The Studio's live preview: a real card header + a little sample body, drawn with the page's OWN stylesheets,
    so a colour or picture change looks here exactly as it will in Notion.  ?page=mustdo&theme=shanks&card=check */
@@ -14,6 +15,7 @@
   const q = new URLSearchParams(location.search), page = q.get('page') || 'mustdo', theme = q.get('theme') || 'classic';
   const P = NW.pages[page] || NW.pages.mustdo;
   document.documentElement.dataset.theme = theme;
+  window.__P = P; if (P.htmlAttrs) Object.keys(P.htmlAttrs).forEach(k => document.documentElement.setAttribute(k, P.htmlAttrs[k]));
   P.css.forEach(f => document.write('<link rel="stylesheet" href="/' + P.folder + '/' + f + '">'));
   document.write('<script src="/shared/skin.js" data-page="' + P.id + '"><\/script>');
 })();
@@ -26,7 +28,8 @@
 (function () {
   const q = new URLSearchParams(location.search), P = NW.pages[q.get('page')] || NW.pages.mustdo, id = q.get('card');
   const c = P.cards.find(x => x.id === id) || P.cards[0];
-  document.getElementById('stage').innerHTML =
+  if (P.bodyAttrs) Object.keys(P.bodyAttrs).forEach(k => document.body.setAttribute(k, P.bodyAttrs[k]));
+  document.getElementById('stage').innerHTML = P.preview ? P.preview(c, q.get('theme')) : c.html ? `<article class="card${c.cls ? ' ' + c.cls : ''}" data-w="${c.id}">${c.html}</article>` :
     `<article class="card" data-w="${c.id}"><div class="head"><div class="ttl"><h2>${c.title}</h2>${c.sub ? `<p class="eyebrow">${c.sub}</p>` : ''}</div>${c.side}</div>${c.body}</article>`;
   document.body.style.pointerEvents = 'none';   // the preview is for looking; the Studio drags on top of it
 })();
