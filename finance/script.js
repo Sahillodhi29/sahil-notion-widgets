@@ -178,16 +178,13 @@
     Object.keys(by).forEach(c => { if (!rows.some(r => r.name === c)) rows.push({ name: c, limit: 0, spent: by[c] }); });
     rows.sort((a, b) => b.spent - a.spent || b.limit - a.limit);
     const maxV = Math.max(1, ...rows.map(r => Math.max(r.limit, r.spent)));
-    const totalSpent = rows.reduce((s, r) => s + r.spent, 0), totalLimit = rows.reduce((s, r) => s + r.limit, 0);
-    $('ledgerLine').textContent = rows.length ? (totalLimit ? `${money(totalSpent)} of ${money(totalLimit)} this ${P.word}. Orange means past the budget.` : `${money(totalSpent)} spent this ${P.word}.`) : '';
+    const totalSpent = rows.reduce((s, r) => s + r.spent, 0);
+    $('ledgerLine').textContent = totalSpent ? `${money(totalSpent)} this ${P.word}.` : '';
     $('spines').innerHTML = rows.length ? rows.map(r => {
-      const cap = Math.max(r.limit, r.spent) || 1, w = Math.max(10, cap / maxV * 100);
-      const inside = r.limit ? Math.min(r.spent, r.limit) : r.spent, ratio = r.limit ? r.spent / r.limit : 0;
-      const cls = !r.limit || ratio > .75 ? 'warm' : '';
-      const over = r.limit && r.spent > r.limit
-        ? `<i class="over" style="left:${(r.limit / cap * 100).toFixed(1)}%;width:${((r.spent - r.limit) / cap * 100).toFixed(1)}%"></i><b class="tick" style="left:${(r.limit / cap * 100).toFixed(1)}%"></b>` : '';
-      const amt = r.limit ? `<span class="${ratio > 1 ? 'over' : ''}"><em>${money(r.spent)}</em> of ${money(r.limit)}</span>` : `<span><em>${money(r.spent)}</em> no limit</span>`;
-      return `<div><div class="sp-top"><b>${esc(r.name)}</b>${amt}</div><div class="spine" style="width:${w.toFixed(1)}%"><i class="${cls}" style="width:${(inside / cap * 100).toFixed(1)}%"></i>${over}<span class="gl-hi"></span></div></div>`;
+      const w = Math.max(10, r.spent / maxV * 100), over = !!r.limit && r.spent > r.limit;
+      const bar = r.spent ? `<div class="spine${over ? ' over' : ''}" style="width:${w.toFixed(1)}%"><span class="gl-hi"></span></div>` : '';
+      const amt = `<span class="${r.spent ? '' : 'zero'}"><em>${money(r.spent)}</em></span>`;
+      return `<div><div class="sp-top"><b>${esc(r.name)}</b>${amt}</div>${bar}</div>`;
     }).join('') : '<p class="empty">Log a few spends and your categories will line up here.</p>';
   }
 
