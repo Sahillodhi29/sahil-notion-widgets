@@ -28,11 +28,10 @@
       { id: 'violet-rose',    name: 'Violet & Rose',    a: '#E58FB4', b: '#7A56C8', w: '#1C1233' },
       { id: 'ocean-coral',    name: 'Ocean & Coral',    a: '#FF7F6B', b: '#2A7FA8', w: '#0C2233' },
       { id: 'slate',          name: 'Slate',            a: '#C9CED6', b: '#7C8798', w: '#161A21' },
-      { id: 'sakura-peach',   name: 'Sakura & Peach',   a: '#FFB5A7', b: '#E0709A', w: '#2B1220' },
-      { id: 'mint-lavender',  name: 'Mint & Lavender',  a: '#9FE3C8', b: '#8D7BD9', w: '#171A33' },
-      { id: 'sunset-amber',   name: 'Sunset & Amber',   a: '#FFC15E', b: '#E8603C', w: '#2A1410' },
-      { id: 'forest-moss',    name: 'Forest & Moss',    a: '#C6D987', b: '#4F8A4B', w: '#0F2214' },
-      { id: 'midnight-neon',  name: 'Midnight & Neon',  a: '#52E5E7', b: '#B04CF0', w: '#0B0D24' },
+      { id: 'berry-fizz',     name: 'Berry Fizz',       a: '#E0B7EB', b: '#C366A9', w: '#A71842' },
+      { id: 'magenta-lemon',  name: 'Magenta & Lemon',  a: '#EBFF72', b: '#DE6DC5', w: '#75CCAC' },
+      { id: 'rose-citron',    name: 'Rose & Citron',    a: '#C9C769', b: '#ED809D', w: '#461312' },
+      { id: 'crimson-olive',  name: 'Crimson & Olive',  a: '#88B04C', b: '#9B1B30', w: '#0F4C81' },
     ],
     pages: {
       mustdo: {

@@ -7,6 +7,8 @@
   const NW = window.NW, KEY = 'nw-studio-v1', $ = id => document.getElementById(id);
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const bc = (() => { try { return new BroadcastChannel('nw-studio'); } catch (e) { return null; } })();
+  const Q = new URLSearchParams(location.search), W = (Q.get('w') || 'all').toLowerCase();
+  if (['colours', 'colors', 'pictures', 'header'].includes(W)) document.body.dataset.w = W === 'colors' ? 'colours' : W;
   let state = load(), pageId = (NW.pages[new URLSearchParams(location.search).get('page')] ? new URLSearchParams(location.search).get('page') : Object.keys(NW.pages)[0]), themeId = null, cardId = null, storageOk = true;
 
   function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.pages) return s; } catch (e) { /* none yet */ } return { v: 1, pages: {} }; }
@@ -80,7 +82,7 @@
     const el = $('pages'); el.innerHTML = '';
     Object.values(NW.pages).forEach(p => {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'tab'; b.textContent = p.name; b.setAttribute('aria-pressed', String(p.id === pageId));
-      b.onclick = () => { pageId = p.id; themeId = null; cardId = null; renderAll(); };
+      b.onclick = () => { pageId = p.id; themeId = null; cardId = null; try { localStorage.setItem('nw-studio-page', pageId); } catch (e) { /* fine */ } if (bc) bc.postMessage('page'); renderAll(); };
       el.appendChild(b);
     });
   }
@@ -251,6 +253,9 @@
 
   function renderAll() { renderPages(); renderColours(); renderThemes(); renderGrid(); renderEditor(); }
   try { localStorage.setItem('nw-probe', '1'); localStorage.removeItem('nw-probe'); } catch (e) { storageOk = false; toast('This browser is blocking saved settings for embedded pages.'); }
-  addEventListener('storage', e => { if (e.key === KEY) { state = load(); markTiles(); } });
+  const followPage = () => { try { const id = localStorage.getItem('nw-studio-page'); if (id && NW.pages[id] && id !== pageId) { pageId = id; themeId = null; cardId = null; renderAll(); } } catch (e) { /* fine */ } };
+  addEventListener('storage', e => { if (e.key === KEY) { state = load(); markTiles(); } else if (e.key === 'nw-studio-page') followPage(); });
+  if (bc) bc.addEventListener('message', e => { if (e.data === 'page') followPage(); });
+  if (!Q.get('page')) { try { const id = localStorage.getItem('nw-studio-page'); if (id && NW.pages[id]) pageId = id; } catch (e) { /* fine */ } }
   renderAll();
 })();

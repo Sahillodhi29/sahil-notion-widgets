@@ -6,7 +6,7 @@ html, body { height: 100%; background: #191919; overflow: hidden; font-family: '
 .hello { font-weight: 700; font-size: clamp(12px, 4.4cqh, 17px); letter-spacing: .04em; opacity: .92; }
 h1 { font: 400 clamp(30px, 17cqh, 62px)/1.05 'Pacifico', cursive; margin-top: .1em; }
 .when { margin-top: .5em; font-weight: 600; font-size: clamp(12px, 4.4cqh, 16px); opacity: .9; }
-.dock { position: absolute; z-index: 10; inset: 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: center; align-items: center; padding: 18% 14px 6%; }
+.dock { position: absolute; z-index: 10; left: 50%; top: 56%; transform: translate(-50%, -50%); width: max-content; max-width: calc(100% - 28px); display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
 /* little wooden signs, hung on the water */
 .plank { position: relative; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 9px 18px 9px 16px; border-radius: 14px; text-decoration: none; color: #FFF3DC;
   font-weight: 700; font-size: clamp(13px, 4.6cqh, 17px); line-height: 1.15; text-shadow: 0 1px 0 rgb(60 30 8 / .6);

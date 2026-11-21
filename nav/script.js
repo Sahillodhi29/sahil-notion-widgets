@@ -1,7 +1,7 @@
 /* Harbour: sea + sky that follow the time of day, a greeting, and signs to the other places.
    URL options (all optional):
      link=Name|https://…   add another sign (repeat up to 6 times), e.g. link=Workout|https://www.notion.so/your-page
-     studio=/studio/       where the Studio lives (default /studio/)
+     studio=https://…      where the Studio sign goes (default: your Notion Studio page)
      time=18:30  demo=60   preview a time of day / play a whole day in 60 seconds
      lat= lon=             where you are, for sunrise and sunset */
 (() => {
