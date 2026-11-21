@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Stock &amp; resources widgets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/stock/theme.js"></script>
+  <script src="/shared/skin.js" data-page="stock"></script>
+  <link rel="stylesheet" href="/stock/style.css">
+  <link rel="stylesheet" href="/stock/ace.css">
+</head>
+<body>
+  <main id="stage">
+
+    <article class="card" data-w="add" hidden>
+      <div class="head"><h2>New stock item</h2><span class="ace-print" aria-hidden="true"></span></div>
+      <label class="field"><span class="lbl">What is it?</span>
+        <input id="iName" type="text" maxlength="80" autocomplete="off" placeholder="Sweet Potato">
+      </label>
+      <div id="iCats" class="chips" role="group" aria-label="Category"></div>
+      <input id="iNewCat" class="note" type="text" maxlength="60" autocomplete="off" placeholder="Or a new category: Home, Cleaning, Stationery">
+      <label class="field"><span class="lbl">How much do you buy <i>optional</i></span>
+        <input id="iPack" type="text" maxlength="80" autocomplete="off" placeholder="3 trays, 150 g, 1 bottle">
+      </label>
+      <div class="row2">
+        <label class="field small"><span class="lbl">Every</span>
+          <input id="iEvery" type="text" inputmode="numeric" autocomplete="off" value="1" aria-label="How many">
+        </label>
+        <div id="iUnit" class="mini" role="group" aria-label="Unit"></div>
+      </div>
+      <label class="field"><span class="lbl">Cost each time (₹) <i>optional</i></span>
+        <input id="iCost" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+      </label>
+      <input id="iNote" class="note" type="text" maxlength="120" autocomplete="off" placeholder="Note (optional)">
+      <button id="iSave" class="btn" type="button" disabled>Add to stock</button>
+      <ul id="recent" class="recent" aria-label="Latest restocks"></ul>
+    </article>
+
+    <article class="card" data-w="shelf" hidden>
+      <div class="head">
+        <div class="ttl"><h2>The shelf</h2><p id="shelfNote" class="eyebrow"></p></div>
+      </div>
+      <div id="shelfCats" class="chips" role="group" aria-label="Category"></div>
+      <div id="shelfList" class="stocklist"></div>
+    </article>
+
+    <article class="card" data-w="restock" hidden>
+      <div class="head">
+        <div class="ttl"><h2>Restocking area</h2><p id="restockNote" class="eyebrow"></p></div>
+      </div>
+      <div id="restockCats" class="chips" role="group" aria-label="Category"></div>
+      <div id="restockList" class="stocklist"></div>
+    </article>
+
+    <article class="card" data-w="cost" hidden>
+      <div class="head">
+        <div class="ttl"><h2>Monthly run rate</h2><p id="costNote" class="eyebrow"></p></div>
+      </div>
+      <p class="hero"><span id="costNum" class="num">–</span></p>
+      <p id="costLine" class="muted"></p>
+      <div id="costBars" class="bars"></div>
+      <p id="costKey" class="muted small"></p>
+    </article>
+
+    <article class="card" id="bad" hidden></article>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/stock/script.js"></script>
+</body>
+</html>

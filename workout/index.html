@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workout widgets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,500;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/workout/theme.js"></script>
+  <link rel="stylesheet" href="/workout/style.css">
+  <link rel="stylesheet" href="/workout/zoro.css">
+</head>
+<body>
+  <main id="stage">
+
+    <article class="card" data-w="ripple" hidden>
+      <div class="ring-layout">
+        <div class="ring-wrap">
+          <svg id="ring" viewBox="0 0 200 200" role="img" aria-label="Session progress"></svg>
+          <div class="ring-center"><span id="ringDone" class="ring-num">–</span><span id="ringOf" class="ring-of"></span></div>
+        </div>
+        <div class="ring-text">
+          <h1 id="rTitle">Today's session</h1>
+          <p id="dateLine" class="date"></p>
+          <p id="statusLine" class="status"></p>
+        </div>
+      </div>
+      <img id="sticker" class="sticker" src="/workout/assets/guava.svg" alt="" hidden>
+    </article>
+
+    <article class="card" data-w="session" hidden>
+      <div class="head"><h2 id="sTitle">Today's session</h2><span id="sCount" class="muted"></span></div>
+      <div id="tiles" class="tiles"></div>
+      <p id="sFoot" class="muted foot"></p>
+    </article>
+
+    <article class="card" data-w="week" hidden>
+      <h2>This week</h2>
+      <div id="week" class="week"></div>
+      <p id="weekNote" class="muted foot"></p>
+    </article>
+
+    <article class="card" data-w="streak" hidden>
+      <h2>Streak</h2>
+      <p class="streak-main"><span id="stNum" class="stnum">–</span><span id="stUnit" class="stunit"></span></p>
+      <p id="stLine" class="muted"></p>
+      <div id="stDots" class="dots"></div>
+      <p id="stBest" class="muted"></p>
+    </article>
+
+    <article class="card" data-w="mosaic" hidden>
+      <h2>Last five weeks</h2>
+      <div id="mosaic" class="mosaic"></div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="c0"></i>No log</span><span><i class="rs"></i>Rest day</span><span><i class="c1"></i>Under half</span><span><i class="c2"></i>Half or more</span><span><i class="c3"></i>Session done</span><span><i class="cr"></i>Rest day done</span>
+      </div>
+    </article>
+
+    <article class="card" data-w="balance" hidden>
+      <h2>Push, pull, legs</h2>
+      <p id="balNote" class="muted"></p>
+      <div id="groups" class="groups"></div>
+      <h3 id="skipHead" hidden>Skipped most</h3>
+      <div id="skipped" class="skipped"></div>
+    </article>
+
+    <article class="card" data-w="fuel" hidden>
+      <h2>Fuel check</h2>
+      <p id="fuelNote" class="muted"></p>
+      <div id="fuel" class="fuel"></div>
+      <p id="fuelToday" class="fuel-today"></p>
+    </article>
+
+    <article class="card prog" data-w="program" hidden>
+      <div class="prog-head">
+        <div class="prog-title">
+          <h2>Your program</h2>
+          <p id="progSub" class="muted"></p>
+        </div>
+        <div class="prog-tabs" role="tablist" aria-label="Program sections">
+          <button type="button" role="tab" id="tabSplit" aria-selected="false" aria-controls="progSplit" data-tab="split">Split</button>
+          <button type="button" role="tab" id="tabEx" aria-selected="true" aria-controls="progEx" data-tab="ex">Exercises</button>
+          <button type="button" role="tab" id="tabDays" aria-selected="false" aria-controls="progDays" data-tab="days">Days</button>
+        </div>
+      </div>
+
+      <div id="progSplit" class="prog-pane" role="tabpanel" aria-labelledby="tabSplit" hidden>
+        <p class="muted prog-lead">Pick the shape of your training. Day types, exercises and days all follow it.</p>
+        <div id="progSplits" class="splits" role="radiogroup" aria-label="Your split"></div>
+        <label id="progNameWrap" class="prog-name" hidden>
+          <span>Name your split</span>
+          <input id="progSplitName" type="text" maxlength="32" placeholder="e.g. Arnold split" autocomplete="off">
+        </label>
+        <div id="progCatsWrap" class="prog-cats" hidden>
+          <div class="prog-cats-head"><span>Day types</span><span class="muted">what a day can be</span></div>
+          <div id="progCats" class="cat-list"></div>
+          <form id="progCatAdd" class="cat-add" autocomplete="off">
+            <input id="progCatName" type="text" maxlength="20" placeholder="Add a day type, e.g. Conditioning" aria-label="New day type">
+            <button type="submit">Add</button>
+          </form>
+        </div>
+        <p id="progSplitNote" class="muted prog-hint"></p>
+      </div>
+
+      <div id="progEx" class="prog-pane" role="tabpanel" aria-labelledby="tabEx">
+        <div id="progGroups" class="prog-groups"></div>
+        <div id="progRestoreWrap" class="prog-tray" hidden>
+          <span id="progRestoreLabel" class="muted"></span>
+          <span id="progRestore" class="chips"></span>
+        </div>
+        <form id="progAdd" class="prog-add" autocomplete="off">
+          <div class="prog-add-row">
+            <input id="progNewName" class="prog-new" type="text" maxlength="60" placeholder="Add an exercise, e.g. Bulgarian split squat" aria-label="New exercise name" required>
+            <select id="progNewGroup" class="ex-group" aria-label="Day type for the new exercise"></select>
+            <button class="prog-add-btn" type="submit">Add</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="progDays" class="prog-pane" role="tabpanel" aria-labelledby="tabDays" hidden>
+        <div id="progWeek" class="prog-week"></div>
+        <div id="progDayPick" class="day-pick" hidden>
+          <span id="progDayPickLabel" class="muted"></span>
+          <span id="progDayPickOpts" class="chips"></span>
+        </div>
+        <p id="progDaysNote" class="muted"></p>
+        <div class="prog-rule">
+          <span class="prog-rule-label">Session counts as done at</span>
+          <span class="prog-need">
+            <button id="progNeedMinus" type="button" aria-label="Fewer exercises needed for a done session">−</button>
+            <b id="progNeedNum">– of –</b>
+            <button id="progNeedPlus" type="button" aria-label="More exercises needed for a done session">+</button>
+          </span>
+        </div>
+        <p class="muted prog-hint">Every widget follows this week: the week strip, the streak, the mosaic and the fuel check. Rest days never break a streak.</p>
+      </div>
+
+      <div class="prog-foot">
+        <span id="progNote" class="muted" role="status" aria-live="polite"></span>
+        <span class="prog-actions">
+          <button id="progReset" class="ghost" type="button" disabled>Discard</button>
+          <button id="progSave" class="start prog-save" type="button" disabled>Save program</button>
+        </span>
+      </div>
+    </article>
+
+    <article class="card" id="bad" hidden></article>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/workout/script.js"></script>
+</body>
+</html>
