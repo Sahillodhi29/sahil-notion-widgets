@@ -1,3 +1,5 @@
+/* Studio colour roles: hue (deg) and saturation scale for accent (a), secondary (b) and wall (w). The Studio overrides these. */
+:root { --a-h: 55; --a-k: 1; --b-h: 334.9; --b-k: 1; }
 /* ============================================================
    To-Do widgets: "La Pâtisserie"  (Classic theme)
    A raspberry-glazed tart with lemon cream underneath. Each widget is one framed raspberry card with sugar pearls
@@ -8,17 +10,17 @@
    at partial opacity (or the page colour darkening a gradient). The Chopper theme is a separate layer (chopper.css).
    ============================================================ */
 :root {
-  --rasp:  #C8144C;   /* Raspberry */
-  --lemon: #FFF9B7;   /* Lemon */
-  --petal: #F97FB2;   /* petal pink */
-  --blush: #F7ABCE;   /* blush pink */
+  --rasp:  hsl(calc(var(--b-h) + 6.4) calc(81.8% * var(--b-k)) 43.1%);   /* Raspberry */
+  --lemon: hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9%);   /* Lemon */
+  --petal: hsl(var(--b-h) calc(91.0% * var(--b-k)) 73.7%);   /* petal pink */
+  --blush: hsl(calc(var(--b-h) - 2.5) calc(82.6% * var(--b-k)) 82.0%);   /* blush pink */
   --ink:   #191919;   /* Notion dark page */
 
-  --tint:   rgba(255, 249, 183, .09);    /* a quiet lemon wash on raspberry */
-  --tint2:  rgba(255, 249, 183, .17);
-  --line:   rgba(255, 249, 183, .24);
-  --line2:  rgba(255, 249, 183, .44);
-  --muted:  rgba(255, 249, 183, .92);
+  --tint:   hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .09);    /* a quiet lemon wash on raspberry */
+  --tint2:  hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .17);
+  --line:   hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .24);
+  --line2:  hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .44);
+  --muted:  hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .92);
   --well:   rgba(25, 25, 25, .26);       /* a sunk field */
 
   --serif: 'Gilda Display', 'Bodoni MT', Didot, Georgia, serif;
@@ -34,10 +36,10 @@
     radial-gradient(circle at 35% 30%, #fff 0 .8px, var(--pearl) 1.4px 2.2px, rgba(25, 25, 25, .45) 2.6px 3.2px, transparent 3.5px) calc(100% - 11px) calc(100% - 11px) / 8px 8px no-repeat;
   /* the glaze: lemon light top left, petal glow bottom right, a deeper foot, a fine satin ribbing */
   --glaze:
-    radial-gradient(320px 190px at 0% 0%, rgba(255, 249, 183, .22), transparent 70%),
-    radial-gradient(300px 170px at 100% 100%, rgba(249, 127, 178, .3), transparent 70%),
+    radial-gradient(320px 190px at 0% 0%, hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .22), transparent 70%),
+    radial-gradient(300px 170px at 100% 100%, hsl(var(--b-h) calc(91.0% * var(--b-k)) 73.7% / .3), transparent 70%),
     linear-gradient(180deg, transparent 50%, rgba(25, 25, 25, .3)),
-    repeating-linear-gradient(90deg, transparent 0 11px, rgba(255, 249, 183, .04) 11px 12px),
+    repeating-linear-gradient(90deg, transparent 0 11px, hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .04) 11px 12px),
     linear-gradient(180deg, var(--rasp), var(--rasp));
 }
 * { box-sizing: border-box; margin: 0; }
@@ -54,10 +56,10 @@ body[data-mode="multi"] .card[data-w="sweep"], body[data-mode="multi"] .card[dat
 /* ---------- the card: raspberry glaze in a framed pâtisserie box ---------- */
 .card {
   position: relative; container-type: inline-size; display: flex; flex-direction: column; gap: 14px; min-height: 0; min-width: 0; overflow: hidden;
-  padding: 22px 26px; border-radius: var(--r-card); border: 1px solid rgba(255, 249, 183, .55);
+  padding: 22px 26px; border-radius: var(--r-card); border: 1px solid hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .55);
   background: var(--pearls), var(--glaze);
   /* inner frame: an inset ring follows the corner radius and never scrolls away */
-  box-shadow: inset 0 0 0 7px var(--rasp), inset 0 0 0 8px rgba(255, 249, 183, .34), inset 0 2px 0 rgba(255, 255, 255, .14), 0 26px 40px -28px rgba(0, 0, 0, .95);
+  box-shadow: inset 0 0 0 7px var(--rasp), inset 0 0 0 8px hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .34), inset 0 2px 0 rgba(255, 255, 255, .14), 0 26px 40px -28px rgba(0, 0, 0, .95);
 }
 .card[hidden] { display: none; }
 .head { position: relative; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -89,14 +91,14 @@ body[data-mode="multi"] .card.sweep { height: 310px; }
   background:
     radial-gradient(circle at 35% 30%, #fff 0 .8px, var(--pearl) 1.4px 2.2px, rgba(25, 25, 25, .45) 2.6px 3.2px, transparent 3.5px) 11px 11px / 8px 8px no-repeat,
     radial-gradient(circle at 35% 30%, #fff 0 .8px, var(--pearl) 1.4px 2.2px, rgba(25, 25, 25, .45) 2.6px 3.2px, transparent 3.5px) calc(100% - 11px) 11px / 8px 8px no-repeat,
-    radial-gradient(320px 190px at 0% 0%, rgba(255, 249, 183, .22), transparent 70%),
-    radial-gradient(300px 170px at 100% 0%, rgba(249, 127, 178, .3), transparent 70%),
-    repeating-linear-gradient(90deg, transparent 0 11px, rgba(255, 249, 183, .04) 11px 12px),
+    radial-gradient(320px 190px at 0% 0%, hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .22), transparent 70%),
+    radial-gradient(300px 170px at 100% 0%, hsl(var(--b-h) calc(91.0% * var(--b-k)) 73.7% / .3), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 11px, hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .04) 11px 12px),
     linear-gradient(180deg, var(--rasp), var(--rasp)); }
 .blk.fin { min-height: 96px; padding: 30px 26px 14px; color: var(--rasp); display: flex; align-items: center; gap: 18px;
   background:
-    radial-gradient(260px 120px at 100% 100%, rgba(249, 127, 178, .3), transparent 70%),
-    repeating-linear-gradient(90deg, transparent 0 11px, rgba(200, 20, 76, .05) 11px 12px),
+    radial-gradient(260px 120px at 100% 100%, hsl(var(--b-h) calc(91.0% * var(--b-k)) 73.7% / .3), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 11px, hsl(calc(var(--b-h) + 6.4) calc(81.8% * var(--b-k)) 43.1% / .05) 11px 12px),
     linear-gradient(180deg, var(--lemon), var(--lemon)); }
 /* the glaze drip: raspberry hanging from the top of the cream (an SVG tile, repeated) */
 .blk.fin::before { content: ''; position: absolute; z-index: 0; top: -1px; left: 0; right: 0; height: 24px; pointer-events: none;
@@ -185,7 +187,7 @@ button.row.done:hover .tick { background: transparent; } button.row.done:hover .
 /* ---------- quick add ---------- */
 .in { width: 100%; background: var(--well); color: var(--lemon); border: 1px solid var(--line2); border-radius: 12px; padding: 10px 12px; font-weight: 600; transition: border-color .2s, box-shadow .2s; }
 .in::placeholder { color: var(--lemon); opacity: .7; }
-.in:focus { outline: none; border-color: var(--lemon); box-shadow: 0 0 0 3px rgba(255, 249, 183, .2); }
+.in:focus { outline: none; border-color: var(--lemon); box-shadow: 0 0 0 3px hsl(var(--a-h) calc(100.0% * var(--a-k)) 85.9% / .2); }
 .in option { background: var(--rasp); color: var(--lemon); }
 input[type="date"].in { color-scheme: dark; }
 .title-in { font-size: 17px; }

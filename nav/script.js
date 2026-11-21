@@ -16,10 +16,4 @@
     const a = document.createElement('a'); a.className = 'plank'; a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = name; $('dock').appendChild(a);
   });
 
-  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  sky.onTick(hr => {
-    const g = hr < 4.5 ? 'Still up, sailor?' : hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : hr < 21 ? 'Good evening' : 'Good night';
-    $('hello').textContent = g; const d = new Date();
-    $('when').textContent = `${DAYS[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;
-  });
 })();

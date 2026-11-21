@@ -56,8 +56,11 @@
       const u = await resolve(a.src); if (me !== run) return;
       if (!u) continue;
       const flip = !!a.flip, z = num(a.zoom, 1, .5, 3);
-      css += `html[data-skin][data-theme="${theme}"] .card[data-w="${card}"]>.head{--plate-art:url("${esc(u)}");--plate-pos:${num(a.x, 50, 0, 100)}% ${num(a.y, 50, 0, 100)}%;--plate-zoom:${z};`
+      // the picture's carrier differs per page: .head, the card's first h2, a program header or a band
+      const base = `html[data-skin][data-theme="${theme}"] .card[data-w="${card}"]`, sfx = ['', '>.head', '>h2:first-of-type', ' .prog-head', ' .band'];
+      css += sfx.map(x => base + x).join(',') + `{--plate-art:url("${esc(u)}");--plate-pos:${num(a.x, 50, 0, 100)}% ${num(a.y, 50, 0, 100)}%;--plate-zoom:${z};`
         + `--plate-bright:${num(a.bright, .94, .4, 1.5)};--plate-flip:${flip ? -1 : 1};--mask-dir:${flip ? '270deg' : '90deg'};--plate-origin:${flip || z !== 1 ? '50% 50%' : '80% 50%'}}`;
+      if (z > 1) css += sfx.slice(1).map(x => base + x).join(',') + '{overflow:hidden}';
     }
     if (me !== run) return;
     root.setAttribute('data-skin', '1'); style.textContent = css; root.removeAttribute('data-skin-wait');

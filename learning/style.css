@@ -1,3 +1,5 @@
+/* Studio colour roles: hue (deg) and saturation scale for accent (a), secondary (b) and wall (w). The Studio overrides these. */
+:root { --a-h: 42; --a-k: 1; --b-h: 268.5; --b-k: 1; --w-h: 280; --w-k: 1; }
 /* ============================================================
    Learning Planner: "The Reading Room"  (Classic theme)
    A cloth-bound book read by lamplight. Every widget is a night-purple book cover with a gilt frame and brass corner
@@ -9,17 +11,17 @@
    ============================================================ */
 :root {
   --page:  #191919;   /* Notion dark */
-  --night: #210B2C;   /* Dark purple: the cover cloth */
-  --wist:  #BC96E6;   /* Wisteria: text, ribbons, tiles */
-  --sun:   #FFD166;   /* Sunglow: lamplight, gilt, the accent */
+  --night: hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8%);   /* Dark purple: the cover cloth */
+  --wist:  hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5%);   /* Wisteria: text, ribbons, tiles */
+  --sun:   hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0%);   /* Sunglow: lamplight, gilt, the accent */
 
-  --tint:   rgba(188, 150, 230, .10);    /* a quiet wisteria wash on the cloth */
-  --tint2:  rgba(188, 150, 230, .18);
-  --line:   rgba(188, 150, 230, .28);
-  --line2:  rgba(188, 150, 230, .5);
-  --gilt:   rgba(255, 209, 102, .6);
-  --gilt2:  rgba(255, 209, 102, .32);
-  --soft:   rgba(188, 150, 230, .84);    /* secondary text */
+  --tint:   hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .10);    /* a quiet wisteria wash on the cloth */
+  --tint2:  hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .18);
+  --line:   hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .28);
+  --line2:  hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .5);
+  --gilt:   hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .6);
+  --gilt2:  hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .32);
+  --soft:   hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .84);    /* secondary text */
   --well:   rgba(25, 25, 25, .38);       /* a sunk field */
 
   --display: 'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, 'Times New Roman', serif;
@@ -36,11 +38,11 @@
     linear-gradient(var(--corner), var(--corner)) calc(100% - 13px) calc(100% - 13px) / 18px 2px no-repeat, linear-gradient(var(--corner), var(--corner)) calc(100% - 13px) calc(100% - 13px) / 2px 18px no-repeat;
   /* the cloth: a wisteria glow top left, lamplight top right, a deeper foot, and a fine linen weave */
   --cloth:
-    radial-gradient(320px 200px at 0% 0%, rgba(188, 150, 230, .24), transparent 70%),
-    radial-gradient(300px 190px at 100% 0%, rgba(255, 209, 102, .17), transparent 70%),
+    radial-gradient(320px 200px at 0% 0%, hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .24), transparent 70%),
+    radial-gradient(300px 190px at 100% 0%, hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .17), transparent 70%),
     linear-gradient(180deg, transparent 55%, rgba(25, 25, 25, .4)),
-    repeating-linear-gradient(0deg, transparent 0 3px, rgba(188, 150, 230, .03) 3px 4px),
-    repeating-linear-gradient(90deg, transparent 0 3px, rgba(188, 150, 230, .03) 3px 4px),
+    repeating-linear-gradient(0deg, transparent 0 3px, hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .03) 3px 4px),
+    repeating-linear-gradient(90deg, transparent 0 3px, hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .03) 3px 4px),
     linear-gradient(180deg, var(--night), var(--night));
 }
 * { box-sizing: border-box; margin: 0; }
@@ -72,7 +74,7 @@ body[data-mode="multi"] .card[data-w="topics"] { grid-column: 1 / -1; height: 64
 .band > div:first-child::before { content: ''; position: absolute; left: 0; top: 0; width: 42px; height: 52px; border-radius: 999px 999px 10px 10px; border: 2px solid var(--sun);
   background: var(--glyph, none) center 58% / 22px no-repeat, linear-gradient(180deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 55%), var(--wist);
   box-shadow: 0 10px 16px -8px rgba(0, 0, 0, .85), inset 0 0 0 2px var(--night); }
-h2 { font-family: var(--display); font-style: italic; font-weight: 700; font-size: 31px; line-height: 1; letter-spacing: .005em; color: var(--sun); text-shadow: 0 2px 14px rgba(255, 209, 102, .22); }
+h2 { font-family: var(--display); font-style: italic; font-weight: 700; font-size: 31px; line-height: 1; letter-spacing: .005em; color: var(--sun); text-shadow: 0 2px 14px hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .22); }
 .sub { margin-top: 7px; font-size: 11.5px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--soft); }
 .sub:empty { display: none; }
 .body { flex: 1; min-height: 0; padding: 18px 2px 4px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
@@ -115,14 +117,14 @@ h2 { font-family: var(--display); font-style: italic; font-weight: 700; font-siz
 .tabs button[aria-selected="true"] small { background: var(--sun); color: var(--night); }
 
 .field { width: 100%; background: var(--well); border: 1px solid var(--line2); border-radius: 16px; padding: 12px 15px; color: var(--wist); font-size: 15px; transition: border-color .2s, box-shadow .2s; }
-.field::placeholder { color: rgba(188, 150, 230, .6); }
-.field:focus { outline: none; border-color: var(--sun); box-shadow: 0 0 0 3px rgba(255, 209, 102, .18); }
+.field::placeholder { color: hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .6); }
+.field:focus { outline: none; border-color: var(--sun); box-shadow: 0 0 0 3px hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .18); }
 .field:focus-visible { outline: 2px solid var(--sun); outline-offset: 1px; }
 .field.slim { padding: 9px 15px; font-size: 14px; border-radius: 999px; }
 textarea.field { resize: none; line-height: 1.45; }
 input[type="date"].field { color-scheme: dark; }
 .name-input { width: 100%; background: transparent; border: 0; border-bottom: 2px solid var(--line2); padding: 6px 0 12px; font-family: var(--display); font-style: italic; font-weight: 700; font-size: 32px; line-height: 1.1; color: var(--sun); transition: border-color .2s; }
-.name-input::placeholder { color: rgba(188, 150, 230, .55); }
+.name-input::placeholder { color: hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .55); }
 .name-input:focus { outline: none; border-bottom-color: var(--sun); }
 .fld.bad .name-input { border-bottom-color: var(--sun); animation: nudge .35s; }
 @keyframes nudge { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
@@ -143,7 +145,7 @@ input[type="date"].field { color-scheme: dark; }
 .ring { position: relative; width: 84px; height: 84px; flex: none; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
 .ring .track { fill: none; stroke: var(--tint2); stroke-width: 9; }
-.ring .arc { fill: none; stroke: var(--sun); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset .8s var(--ease); filter: drop-shadow(0 0 6px rgba(255, 209, 102, .45)); }
+.ring .arc { fill: none; stroke: var(--sun); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset .8s var(--ease); filter: drop-shadow(0 0 6px hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .45)); }
 .ring .mid { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-size: 26px; line-height: 1; color: var(--sun); }
 .td-top .big { font-size: 22px; line-height: 1.15; color: var(--sun); }
 .td-top .hint { margin-top: 4px; }
@@ -182,7 +184,7 @@ input[type="date"].field { color-scheme: dark; }
 .fc-ring svg { position: absolute; inset: 14px; width: calc(100% - 28px); height: calc(100% - 28px); transform: rotate(-90deg); display: block; }
 .fc-ring .track { fill: none; stroke: var(--tint2); stroke-width: 11; }
 .fc-ring .arc { fill: none; stroke: var(--sun); stroke-width: 11; stroke-linecap: round; stroke-dasharray: 553; stroke-dashoffset: 553; }
-.fc-ring.run .arc { filter: drop-shadow(0 0 8px rgba(255, 209, 102, .7)); }
+.fc-ring.run .arc { filter: drop-shadow(0 0 8px hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .7)); }
 .fc-ring .mid { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
 .fc-time { font-size: 46px; font-weight: 500; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--sun); }
 .fc-of { margin-top: 6px; font-size: 11.5px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--soft); }
@@ -199,17 +201,17 @@ input[type="date"].field { color-scheme: dark; }
 /* ---------- Streak: the week is a row of book spines ---------- */
 .st-top { display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: end; margin-bottom: 22px; }
 .st-big { display: grid; gap: 2px; }
-.st-big .big { font-size: 76px; line-height: .9; color: var(--sun); text-shadow: 0 0 26px rgba(255, 209, 102, .3); }
+.st-big .big { font-size: 76px; line-height: .9; color: var(--sun); text-shadow: 0 0 26px hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .3); }
 .st-big .lab { font-size: 11.5px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--soft); }
 .st-facts { display: grid; gap: 4px; justify-items: end; text-align: right; font-size: 13px; color: var(--soft); }
 .st-facts b { color: var(--sun); font-weight: 600; font-size: 15px; }
 .wk { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 100px; margin-bottom: 8px; }
 .wk .col { display: grid; grid-template-rows: 1fr auto; gap: 6px; height: 100%; justify-items: center; min-width: 0; }
 .wk .bar { align-self: end; width: 100%; max-width: 32px; min-height: 5px; border-radius: 6px 6px 3px 3px; background: var(--wist);
-  background-image: linear-gradient(180deg, transparent 12%, rgba(33, 11, 44, .55) 12% 16%, transparent 16% 80%, rgba(33, 11, 44, .55) 80% 84%, transparent 84%), linear-gradient(90deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 45%);
+  background-image: linear-gradient(180deg, transparent 12%, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .55) 12% 16%, transparent 16% 80%, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .55) 80% 84%, transparent 84%), linear-gradient(90deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 45%);
   transition: height .7s var(--ease); }
 .wk .bar.zero { background-color: var(--tint2); background-image: none; }
-.wk .bar.low { background-color: rgba(188, 150, 230, .62); }
+.wk .bar.low { background-color: hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .62); }
 .wk .bar:not(.zero):not(.low) { background-color: var(--sun); }
 .wk .col.today .bar { box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--wist); }
 .wk .d { font-size: 11.5px; font-weight: 600; color: var(--soft); }
@@ -217,16 +219,16 @@ input[type="date"].field { color-scheme: dark; }
 .goal-line { position: absolute; left: 0; right: 0; border-top: 1.5px dashed var(--gilt); pointer-events: none; }
 .heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 13px); grid-auto-columns: 1fr; gap: 4px; margin-top: 14px; }
 .hc { border-radius: 4px; background: var(--tint); }
-.hc.l1 { background: rgba(188, 150, 230, .38); }
-.hc.l2 { background: rgba(188, 150, 230, .74); }
+.hc.l1 { background: hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .38); }
+.hc.l2 { background: hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .74); }
 .hc.l3 { background: var(--sun); }
 .hc.fut { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 .hc.today { box-shadow: 0 0 0 2px var(--night), 0 0 0 3.5px var(--sun); }
 .legend { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 12px; color: var(--soft); gap: 12px; flex-wrap: wrap; }
 .legend .keys { display: flex; align-items: center; gap: 4px; }
 .legend .keys i { width: 12px; height: 12px; border-radius: 3px; display: block; }
-.legend .keys i.k0 { background: var(--tint2); } .legend .keys i.k1 { background: rgba(188, 150, 230, .38); }
-.legend .keys i.k2 { background: rgba(188, 150, 230, .74); } .legend .keys i.k3 { background: var(--sun); }
+.legend .keys i.k0 { background: var(--tint2); } .legend .keys i.k1 { background: hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .38); }
+.legend .keys i.k2 { background: hsl(var(--b-h) calc(61.5% * var(--b-k)) 74.5% / .74); } .legend .keys i.k3 { background: var(--sun); }
 
 /* ---------- Topics: a shelf of books ---------- */
 .tgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -238,8 +240,8 @@ input[type="date"].field { color-scheme: dark; }
 .tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .tile .ini { position: absolute; right: 16px; top: 38px; font-family: var(--display); font-style: italic; font-weight: 700; font-size: 84px; line-height: 1; color: var(--sun); opacity: .92; }
 .tile::before { content: ''; position: absolute; z-index: 3; left: 0; top: 0; bottom: 0; width: 11px;           /* the spine, with two gilt bands */
-  background: linear-gradient(180deg, transparent 9%, var(--gilt) 9% 10.5%, transparent 10.5% 89.5%, var(--gilt) 89.5% 91%, transparent 91%), linear-gradient(90deg, rgba(33, 11, 44, .82), rgba(33, 11, 44, .5)); box-shadow: 1px 0 0 rgba(255, 209, 102, .25); }
-.tile::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(33, 11, 44, 0) 26%, rgba(33, 11, 44, .62) 56%, rgba(33, 11, 44, .97) 100%); }
+  background: linear-gradient(180deg, transparent 9%, var(--gilt) 9% 10.5%, transparent 10.5% 89.5%, var(--gilt) 89.5% 91%, transparent 91%), linear-gradient(90deg, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .82), hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .5)); box-shadow: 1px 0 0 hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .25); }
+.tile::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / 0) 26%, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .62) 56%, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .97) 100%); }
 .tile .tx { position: absolute; z-index: 2; left: 22px; right: 14px; bottom: 13px; display: grid; gap: 4px; }
 .tile .nm { font-family: var(--display); font-style: italic; font-weight: 700; font-size: 19px; line-height: 1.04; color: var(--sun); }
 .tile .mt { font-size: 12px; font-weight: 500; color: var(--wist); }
@@ -249,8 +251,8 @@ input[type="date"].field { color-scheme: dark; }
 .td { display: grid; gap: 16px; align-content: start; }
 .td-hero { position: relative; border-radius: 6px 20px 20px 6px; overflow: hidden; height: 104px; background: var(--tint2); box-shadow: 0 0 0 1px var(--gilt2); }
 .td-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.td-hero::before { content: ''; position: absolute; z-index: 3; left: 0; top: 0; bottom: 0; width: 11px; background: linear-gradient(90deg, rgba(33, 11, 44, .82), rgba(33, 11, 44, .5)); box-shadow: 1px 0 0 rgba(255, 209, 102, .25); }
-.td-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(33, 11, 44, 0) 18%, rgba(33, 11, 44, .6) 52%, rgba(33, 11, 44, .95)); }
+.td-hero::before { content: ''; position: absolute; z-index: 3; left: 0; top: 0; bottom: 0; width: 11px; background: linear-gradient(90deg, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .82), hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .5)); box-shadow: 1px 0 0 hsl(var(--a-h) calc(100.0% * var(--a-k)) 70.0% / .25); }
+.td-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / 0) 18%, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .6) 52%, hsl(var(--w-h) calc(60.0% * var(--w-k)) 10.8% / .95)); }
 .td-hero .ini { position: absolute; right: 18px; top: -6px; font-family: var(--display); font-style: italic; font-weight: 700; font-size: 100px; line-height: 1; color: var(--sun); opacity: .92; }
 .td-hero h3 { position: absolute; z-index: 2; left: 24px; bottom: 12px; right: 18px; font-family: var(--display); font-style: italic; font-weight: 700; font-size: 28px; line-height: 1; color: var(--sun); }
 .facts { display: flex; gap: 28px; flex-wrap: wrap; }

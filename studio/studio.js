@@ -69,11 +69,14 @@
   }
   const roleVal = (page, role, hex) => { const { h, s } = hexToHsl(hex); return { hex, h: Math.round(h * 10) / 10, k: Math.round(clamp(s / page.roles[role].s, .15, 1.6) * 100) / 100 }; };
   const defaultHex = (page, role) => hslToHex(page.roles[role].h, page.roles[role].s, role === 'w' ? .14 : role === 'a' ? .62 : .45);
-  const palHexes = (page, p) => ({ a: p && p.a ? p.a.hex : defaultHex(page, 'a'), b: p && p.b ? p.b.hex : defaultHex(page, 'b'), w: p && p.w ? p.w.hex : defaultHex(page, 'w') });
+  const rolesOf = page => Object.keys(page.roles);
+  const palHexes = (page, p) => { const o = {}; rolesOf(page).forEach(r => { o[r] = p && p[r] ? p[r].hex : defaultHex(page, r); }); return o; };
   function setPal(pid, hexes) {
-    const page = NW.pages[pid], p = state.pages[pid] || (state.pages[pid] = {});
-    p.pal = { a: roleVal(page, 'a', hexes.a), b: roleVal(page, 'b', hexes.b), w: roleVal(page, 'w', hexes.w) };
+    const page = NW.pages[pid], p = state.pages[pid] || (state.pages[pid] = {}); p.pal = p.pal || {};
+    rolesOf(page).forEach(r => { if (hexes[r]) p.pal[r] = roleVal(page, r, hexes[r]); });
+    if (!rolesOf(page).some(r => p.pal[r])) delete p.pal;
   }
+  const isPreset = (page, p, s) => !!p && rolesOf(page).every(r => p[r] && p[r].hex.toLowerCase() === s[r].toLowerCase());
 
   /* ---------- page + theme tabs ---------- */
   function renderPages() {
@@ -84,7 +87,7 @@
       el.appendChild(b);
     });
   }
-  function liveTheme() { try { return localStorage.getItem(P().themeKey) || P().themes[0].id; } catch (e) { return P().themes[0].id; } }
+  function liveTheme() { try { return (P().themeKey && localStorage.getItem(P().themeKey)) || P().themes[0].id; } catch (e) { return P().themes[0].id; } }
   function renderThemes() {
     const el = $('themes'); el.innerHTML = '';
     if (!themeId) themeId = liveTheme(); if (!P().themes.some(t => t.id === themeId)) themeId = P().themes[0].id;
@@ -92,10 +95,10 @@
     P().themes.forEach(t => {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'tab'; b.setAttribute('aria-pressed', String(t.id === themeId));
       b.innerHTML = `${t.name}${t.id === live ? '<span class="live" title="Showing on your widgets now"></span>' : ''}`;
-      b.onclick = () => { themeId = t.id; cardId = null; renderThemes(); renderGrid(); };
+      b.onclick = () => { themeId = t.id; cardId = null; renderThemes(); renderPics(); };
       el.appendChild(b);
     });
-    if (live !== themeId) {
+    if (live !== themeId && P().themeKey) {
       const u = document.createElement('button'); u.type = 'button'; u.className = 'btn ghost small'; u.textContent = `Show ${P().themes.find(t => t.id === themeId).name} on my widgets`;
       u.onclick = () => { try { localStorage.setItem(P().themeKey, themeId); toast(`${P().name} now shows ${themeId}. Open widgets pick it up when you click into them.`); } catch (e) { toast('Could not switch the theme from here.'); } renderThemes(); };
       el.appendChild(u);
@@ -108,13 +111,13 @@
     const pr = $('presets'); pr.innerHTML = '';
     NW.presets.forEach(s => {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'preset';
-      b.setAttribute('aria-pressed', String(!!p && p.a.hex.toLowerCase() === s.a.toLowerCase() && p.b.hex.toLowerCase() === s.b.toLowerCase() && p.w.hex.toLowerCase() === s.w.toLowerCase()));
+      b.setAttribute('aria-pressed', String(isPreset(page, p, s)));
       b.innerHTML = `<span class="dots"><i style="background:${s.w}"></i><i style="background:${s.b}"></i><i style="background:${s.a}"></i></span>${s.name}`;
       b.onclick = () => { setPal(pageId, s); commit(); renderColours(); toast(`${s.name} on ${page.name}`); };
       pr.appendChild(b);
     });
     const rl = $('roles'); rl.innerHTML = '';
-    ['a', 'b', 'w'].forEach(r => {
+    rolesOf(page).forEach(r => {
       const d = document.createElement('label'); d.className = 'role';
       d.innerHTML = `<input type="color" value="${h[r]}" aria-label="${page.roles[r].name} colour"><div><b>${page.roles[r].name}</b><span>${page.roles[r].note}</span></div>`;
       d.querySelector('input').oninput = e => { const cur = palHexes(page, (pg(true) || {}).pal); cur[r] = e.target.value; setPal(pageId, cur); commit(); markPresets(); };
@@ -122,7 +125,7 @@
     });
     $('palReset').hidden = !p; $('palAll').hidden = !p && false;
   }
-  function markPresets() { const p = (pg() || {}).pal; document.querySelectorAll('.preset').forEach((b, i) => { const s = NW.presets[i]; b.setAttribute('aria-pressed', String(!!p && p.a.hex.toLowerCase() === s.a.toLowerCase() && p.b.hex.toLowerCase() === s.b.toLowerCase() && p.w.hex.toLowerCase() === s.w.toLowerCase())); }); $('palReset').hidden = !p; }
+  function markPresets() { const p = (pg() || {}).pal; document.querySelectorAll('.preset').forEach((b, i) => b.setAttribute('aria-pressed', String(isPreset(P(), p, NW.presets[i])))); $('palReset').hidden = !p; }
   $('palReset').onclick = () => { const p = pg(); if (p) delete p.pal; commit(); renderColours(); toast('Back to the page\'s own colours'); };
   $('palAll').onclick = () => {
     const h = palHexes(P(), (pg() || {}).pal); Object.keys(NW.pages).forEach(id => setPal(id, h)); commit(); toast('These colours are now on every page'); renderColours();
@@ -249,7 +252,14 @@
   $('lookBtn').onclick = () => setLook(document.body.dataset.look === 'harbour' ? 'graphite' : 'harbour');
   if (window.NWSky) NWSky.mount(document.querySelector('.bar'), { shipX: 54, shipH: 70, clouds: 2 });
 
-  function renderAll() { renderPages(); renderColours(); renderThemes(); renderGrid(); renderEditor(); }
+  function renderPics() {
+    const panel = $('hPics').closest('.panel'), has = !P().colourOnly;
+    panel.hidden = !has; if (!has) { cardId = null; park(); return; }
+    const art = P().art[themeId];
+    $('picNote').hidden = !!art; if (!art) { cardId = null; park(); $('grid').innerHTML = ''; return; }
+    renderGrid(); renderEditor();
+  }
+  function renderAll() { renderPages(); renderColours(); renderThemes(); renderPics(); }
   try { localStorage.setItem('nw-probe', '1'); localStorage.removeItem('nw-probe'); } catch (e) { storageOk = false; toast('This browser is blocking saved settings for embedded pages.'); }
   addEventListener('storage', e => { if (e.key === KEY) { state = load(); markTiles(); } });
   renderAll();

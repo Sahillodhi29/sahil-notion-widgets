@@ -1,3 +1,5 @@
+/* Studio colour roles: hue (deg) and saturation scale for accent (a), secondary (b) and wall (w). The Studio overrides these. */
+:root { --b-h: 21.9; --b-k: 1; --w-h: 205.8; --w-k: 1; }
 /* ============================================================
    Finance widgets: "The Navigator's Chart Room"
    The room on the Thousand Sunny where the navigator keeps her charts and her money:
@@ -8,9 +10,9 @@
    ============================================================ */
 :root {
   --bg:     #191919;   /* Notion dark page */
-  --blue:   #26577C;   /* Atlantic Blue: the wall */
+  --blue:   hsl(var(--w-h) calc(53.1% * var(--w-k)) 31.8%);   /* Atlantic Blue: the wall */
   --cream:  #EBE4D1;   /* Vanilla Canvas: paper, text, filled tiles */
-  --orange: #E55604;   /* Spice Orange: lamplight, alerts, the one loud accent */
+  --orange: hsl(var(--b-h) calc(96.6% * var(--b-k)) 45.7%);   /* Spice Orange: lamplight, alerts, the one loud accent */
   --ink:    #191919;   /* text that sits on cream or orange */
 
   --deep:   rgba(25, 25, 25, .34);     /* sunk tiles, tracks */
@@ -36,7 +38,7 @@
   /* the chart-room wall */
   --wall:
     radial-gradient(260px 160px at 0% 0%, rgba(235, 228, 209, .17), transparent 72%),        /* lamp, top left */
-    radial-gradient(260px 160px at 100% 0%, rgba(229, 86, 4, .16), transparent 72%),         /* tangerine glow, top right */
+    radial-gradient(260px 160px at 100% 0%, hsl(var(--b-h) calc(96.6% * var(--b-k)) 45.7% / .16), transparent 72%),         /* tangerine glow, top right */
     linear-gradient(180deg, transparent 58%, rgba(25, 25, 25, .38)),                         /* deep water at the foot */
     repeating-linear-gradient(90deg, transparent 0 53px, rgba(25, 25, 25, .2) 53px 54px, rgba(235, 228, 209, .035) 54px 55px),   /* panelling */
     linear-gradient(180deg, var(--blue), var(--blue));
@@ -51,7 +53,6 @@ button { cursor: pointer; }
 #stage { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); }
 body[data-mode="multi"] #stage { height: auto; grid-template-rows: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 2px; align-items: start; }
 body[data-mode="multi"] .card[data-w="add"],
-body[data-mode="multi"] .card[data-w="map"],
 body[data-mode="multi"] .card[data-w="future"],
 body[data-mode="multi"] .card[data-w="path"] { grid-column: 1 / -1; }
 
@@ -144,39 +145,20 @@ h2.over { font-family: var(--sans); font-style: normal; font-weight: 700; font-s
 .legend i.t2 { background: linear-gradient(180deg, var(--cream) 0 55%, var(--orange) 55%); border-color: var(--cream); }
 .legend i.t1 { background: var(--orange); border-color: var(--orange); }
 
-/* ---------- map: where the month went, a chart of tiles ---------- */
-.mapbox { position: relative; width: 100%; height: clamp(178px, 50cqw, 236px); }
-.mtile { position: absolute; display: flex; flex-direction: column; justify-content: flex-end; gap: 1px; align-items: flex-start;
-  padding: 7px 9px; border: 3px solid transparent; background-clip: padding-box; border-radius: 9px; overflow: hidden;
-  text-align: left; line-height: 1.15; transition: filter .2s, box-shadow .2s; }
-.mtile:hover { filter: brightness(1.07); }
-.mtile.sel { outline: 2px solid var(--cream); outline-offset: 2px; z-index: 4; }
-.mtile .mn { font-size: 12.5px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mtile .mv { font-size: 12.5px; font-weight: 600; opacity: .92; }
-.mtile.t-ok { background: var(--cream); color: var(--blue); }
-.mtile.t-near { background: linear-gradient(180deg, var(--cream) 0 60%, var(--orange) 60%); color: var(--blue); }
-.mtile.t-over { background: var(--orange); color: var(--ink); }
-.mtile.t-none { background: var(--deeper); color: var(--cream); box-shadow: inset 0 0 0 1px var(--line2); }
-.mtile.t-none .mv { color: var(--muted); }
-.mtile.sm { padding: 4px 6px; }
-.mtile.sm .mn { display: none; }
-.mtile.xs { padding: 0; }
-.mtile.xs .mn, .mtile.xs .mv { display: none; }
-.mapinfo { display: grid; gap: 3px; min-height: 74px; align-content: start; }
-.mapinfo .miname { font-family: var(--serif); font-style: italic; font-size: 21px; line-height: 1.1; }
-.mapinfo .minums { font-size: 14px; }
-.mapinfo .minums b { font-weight: 700; }
-.mapinfo .over { background: var(--orange); color: var(--ink); padding: 1px 8px; border-radius: 999px; font-weight: 700; }
-
 /* ---------- ledger: a shelf of book spines ---------- */
 .spines { display: grid; gap: 9px; }
 .sp-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 14px; }
 .sp-top b { font-weight: 500; }
 .sp-top span { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .sp-top span em { font-style: normal; color: var(--cream); font-weight: 700; }
-.sp-top span.zero em { color: var(--muted); font-weight: 500; }
-.spine { position: relative; height: 16px; margin-top: 3px; border-radius: 4px 7px 7px 4px; background: linear-gradient(90deg, var(--orange), var(--cream) 92%); overflow: hidden; transition: width .5s ease; box-shadow: inset 0 0 0 1px rgba(25, 25, 25, .1), inset 0 -2px 4px rgba(25, 25, 25, .16); }
-.spine.over { background: linear-gradient(90deg, var(--orange), var(--orange) 55%, var(--cream)); }
+.sp-top span.over em { text-decoration: underline; text-decoration-color: var(--orange); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+.spine { position: relative; height: 16px; margin-top: 3px; border-radius: 4px 7px 7px 4px; background: var(--deep); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.spine i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cream); transition: width .5s ease; }
+.spine i.warm { background: repeating-linear-gradient(135deg, var(--cream) 0 6px, var(--orange) 6px 9px); }
+.spine i.over { background: var(--orange); }
+.spine::before, .spine::after { content: ''; position: absolute; top: 0; bottom: 0; width: 3px; background: rgba(25, 25, 25, .42); z-index: 2; }
+.spine::before { left: 12%; } .spine::after { right: 12%; }
+.spine .tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--cream); z-index: 3; }
 .spine .gl-hi { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, 0) 55%); z-index: 1; pointer-events: none; }
 
 /* ---------- trend ---------- */
