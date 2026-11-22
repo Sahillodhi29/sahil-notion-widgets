@@ -23,7 +23,7 @@ html[data-theme="enhance"] .deck::after {               /* soft inner frame + vi
 }
 .x-moon .halo { background: radial-gradient(circle, rgb(190 215 255 / .38) 0%, rgb(190 215 255 / .1) 34%, transparent 64%); }
 
-.x-isle { position: absolute; z-index: 1; bottom: 66px; height: 46px; aspect-ratio: 220 / 90; pointer-events: none; }
+.x-isle { position: absolute; z-index: 1; bottom: 66px; height: 46px; aspect-ratio: 220 / 90; pointer-events: none; opacity: calc(1 - var(--fog) * .9); }
 .x-isle.a { left: 27%; } .x-isle.b { left: 75%; height: 28px; }
 .x-isle svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .x-isle .land { fill: rgb(var(--sea-bot) / .82); } .x-isle .land.far { fill: rgb(var(--sea-top) / .7); }

@@ -23,21 +23,21 @@
   const place = () => {
     const { sr, ss } = estimate(), t0 = q.get('time'), m = t0 && /^(\d{1,2})(?::(\d{2}))?$/.exec(t0.trim());
     const now = new Date(), h = m ? +m[1] + (m[2] ? +m[2] / 60 : 0) : now.getHours() + now.getMinutes() / 60;
-    const stars = parseFloat(getComputedStyle(root).getPropertyValue('--stars')) || 0;
+    const stars = parseFloat(getComputedStyle(root).getPropertyValue('--stars')) || 0, ov = parseFloat(getComputedStyle(root).getPropertyValue('--ov')) || 0;
     const HZ = 128, RISE = 52, sink = e => (e >= 0 ? e : e * 2.2);
     const t = (h - sr) / (ss - sr);
     if (t > -.06 && t < 1.06) {
       const e = Math.sin(Math.PI * t), low = Math.pow(1 - clamp(e), 1.6);
-      sun.style.cssText = `display:block;left:${12 + t * 76}%;top:${HZ - RISE * sink(e)}px;--low:${low.toFixed(2)};opacity:${(clamp(1 - stars * 3) * clamp((t + .06) / .05) * clamp((1.06 - t) / .05)).toFixed(2)}`;
+      sun.style.cssText = `display:block;left:${12 + t * 76}%;top:${HZ - RISE * sink(e)}px;--low:${low.toFixed(2)};opacity:${(clamp(1 - stars * 3) * (1 - .82 * ov) * clamp((t + .06) / .05) * clamp((1.06 - t) / .05)).toFixed(2)}`;
     } else sun.style.display = 'none';
     const span = 24 - (ss - sr) - .25; let dm = (((h - (ss + .25)) % 24) + 24) % 24; if (dm > 23.6) dm -= 24;
     const tm = dm / span;
     if (tm > -.04 && tm < 1.06) {
       const e = Math.sin(Math.PI * tm);
-      moon.style.cssText = `display:block;left:${12 + tm * 76}%;top:${HZ - (RISE - 6) * sink(e)}px;opacity:${(clamp(stars * 1.8) * clamp((tm + .04) / .04) * clamp((1.06 - tm) / .05)).toFixed(2)}`;
+      moon.style.cssText = `display:block;left:${12 + tm * 76}%;top:${HZ - (RISE - 6) * sink(e)}px;opacity:${(clamp(stars * 1.8) * (1 - .88 * ov) * clamp((tm + .04) / .04) * clamp((1.06 - tm) / .05)).toFixed(2)}`;
     } else moon.style.display = 'none';
   };
-  place(); setInterval(place, 20000);
+  place(); setInterval(place, 20000); document.addEventListener('sky-updated', place);
 
   /* far islands, with a lighthouse that wakes at night */
   const LAND = 'M0 90C18 72 38 64 62 62C80 42 96 40 110 54C126 46 150 54 168 68C190 72 206 80 220 90Z';
