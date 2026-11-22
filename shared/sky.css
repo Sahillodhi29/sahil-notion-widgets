@@ -1,0 +1,37 @@
+/* Harbour sky: a small sea-and-sky scene that follows the real time of day (shared by the Navigation widget and the Studio).
+   Colours are set by /shared/sky.js through the variables below. */
+.nwsky { --sky-top: 9 24 64; --sky-mid: 14 52 112; --sky-bot: 28 92 158; --sea-top: 20 72 150; --sea-bot: 8 30 92; --cloud: 70 110 165; --cloud-a: .5;
+  --stars: 1; --sun-halo: 255 190 110; --sun-disk: 255 244 220; --ship-b: 1; --ship-s: 1; --spark: 210 240 255; --glit: 0; --glit-c: 255 230 180;
+  position: absolute; inset: 0; overflow: hidden; container-type: size; isolation: isolate; border-radius: inherit; }
+.nwsky .sky { position: absolute; left: 0; right: 0; top: 0; height: 72%; background: linear-gradient(to bottom, rgb(var(--sky-top)), rgb(var(--sky-mid)) 48%, rgb(var(--sky-bot))); }
+.nwsky .stars { position: absolute; left: 0; right: 0; top: 0; height: 66%; opacity: var(--stars); -webkit-mask-image: linear-gradient(#000 48%, transparent 96%); mask-image: linear-gradient(#000 48%, transparent 96%); }
+.nwsky .star { position: absolute; border-radius: 50%; background: #fff; animation: nwtw 3.4s ease-in-out infinite; }
+@keyframes nwtw { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
+.nwsky .orb { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; }
+.nwsky .orb .disk { position: absolute; width: var(--d); height: var(--d); left: calc(var(--d) / -2); top: calc(var(--d) / -2); border-radius: 50%; }
+.nwsky .orb .halo { position: absolute; width: calc(var(--d) * 4); height: calc(var(--d) * 4); left: calc(var(--d) * -2); top: calc(var(--d) * -2); border-radius: 50%; }
+.nwsky .sun .disk { background: rgb(var(--sun-disk)); box-shadow: 0 0 calc(var(--d) * .3) rgb(var(--sun-halo) / .7); }
+.nwsky .sun .halo { background: radial-gradient(circle, rgb(var(--sun-halo) / .5), rgb(var(--sun-halo) / .16) 30%, transparent 62%); }
+.nwsky .moon .disk { background: radial-gradient(circle at 34% 36%, rgb(205 215 235 / .55) 0 9%, transparent 10%), radial-gradient(circle at 62% 58%, rgb(205 215 235 / .45) 0 13%, transparent 14%), radial-gradient(circle at 40% 35%, #fbfcff, #dde6f6 70%); box-shadow: 0 0 calc(var(--d) * .5) rgb(190 215 255 / .55); }
+.nwsky .moon .halo { background: radial-gradient(circle, rgb(190 215 255 / .3), rgb(190 215 255 / .1) 32%, transparent 62%); }
+.nwsky .clouds { position: absolute; inset: 0; pointer-events: none; }
+.nwsky .cloud { position: absolute; left: 0; color: rgb(var(--cloud)); opacity: var(--cloud-a); animation: nwdrift linear infinite; }
+.nwsky .cloud svg { display: block; width: 100%; height: auto; }
+@keyframes nwdrift { from { transform: translateX(-34cqw) } to { transform: translateX(134cqw) } }
+.nwsky .sea { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; z-index: 5; overflow: hidden; background: linear-gradient(to bottom, rgb(var(--sea-top)), rgb(var(--sea-bot))); }
+.nwsky .sea::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5cqh; background: linear-gradient(rgb(var(--sky-bot) / .6), transparent); }
+.nwsky .wave { position: absolute; left: 0; width: 200%; animation: nwslide linear infinite; }
+.nwsky .wave svg { display: block; width: 100%; height: 100%; }
+.nwsky .wave.l path { fill: rgb(255 255 255 / .16); } .nwsky .wave.d path { fill: rgb(0 10 40 / .2); }
+@keyframes nwslide { to { transform: translateX(-50%) } }
+.nwsky .front { position: absolute; left: 0; width: 200%; z-index: 8; bottom: calc(30% - 7cqh); height: 7cqh; animation: nwslide 15s linear infinite; }
+.nwsky .front svg { display: block; width: 100%; height: 100%; } .nwsky .front path { fill: rgb(var(--sea-top) / .95); }
+.nwsky .glitter { position: absolute; top: 0; height: 100%; width: 20%; transform: translateX(-50%); opacity: var(--glit); }
+.nwsky .gbar { position: absolute; left: 50%; height: max(2px, .8cqh); border-radius: 6px; background: rgb(var(--glit-c)); transform: translateX(-50%); animation: nwsh 3.2s ease-in-out infinite; }
+@keyframes nwsh { 0%, 100% { transform: translateX(-50%) scaleX(.55); opacity: .35 } 50% { transform: translateX(-50%) scaleX(1); opacity: .95 } }
+.nwsky .ship { position: absolute; z-index: 7; left: var(--ship-x, 70%); bottom: calc(30% - 3cqh); height: var(--ship-h, 40cqh); transform: translateX(-50%); animation: nwbob 5.2s ease-in-out infinite; filter: brightness(var(--ship-b)) saturate(var(--ship-s)); transform-origin: 50% 90%; }
+.nwsky .ship img { display: block; height: 100%; width: auto; -webkit-user-drag: none; user-select: none; }
+@keyframes nwbob { 0%, 100% { transform: translateX(-50%) translateY(0) rotate(-.9deg) } 50% { transform: translateX(-50%) translateY(-1.3cqh) rotate(.9deg) } }
+.nwsky .spark { position: absolute; z-index: 9; width: var(--s); height: var(--s); background: rgb(var(--spark)); rotate: 45deg; opacity: 0; animation: nwsp 3.4s ease-in-out infinite; }
+@keyframes nwsp { 0%, 100% { opacity: 0; scale: .5 } 50% { opacity: .9; scale: 1 } }
+@media (prefers-reduced-motion: reduce) { .nwsky * { animation: none !important; } }
