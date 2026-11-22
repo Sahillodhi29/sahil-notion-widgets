@@ -82,7 +82,8 @@
      Time-synced sky (same palette + curve as the sky banner)
      ============================================================ */
   const num = (k, d) => { const v = parseFloat(q.get(k)); return Number.isFinite(v) ? v : d; };
-  const LAT = num('lat', 26.2183), LON = num('lon', 78.1828);
+  const PL = window.NWPlace && NWPlace.active ? NWPlace : null;
+  const LAT = num('lat', PL ? PL.lat : 26.2183), LON = num('lon', PL ? PL.lon : 78.1828);
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const smooth = t => t * t * (3 - 2 * t);
@@ -126,10 +127,10 @@
     const H = Math.acos(clamp(cosH, -1, 1)) / rad / 15;
     const B = 2 * Math.PI * (N - 81) / 364;
     const E = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
-    const noon = 12 + (-new Date().getTimezoneOffset() / 4 - LON) / 15 - E / 60;
+    const noon = 12 + ((window.NWPlace ? NWPlace.offsetMin() : -new Date().getTimezoneOffset()) / 4 - LON) / 15 - E / 60;
     return { sr: noon - H, ss: noon + H };
   }
-  { const s = estimateSun(new Date()); if (Number.isFinite(s.sr) && Number.isFinite(s.ss)) { SR = s.sr; SS = s.ss; } }
+  { const s = estimateSun((window.NWPlace ? NWPlace.now() : new Date())); if (Number.isFinite(s.sr) && Number.isFinite(s.ss)) { SR = s.sr; SS = s.ss; } }
 
   const PREVIEW = (() => {
     const t = q.get('time');
@@ -160,7 +161,7 @@
   const overcastOf = info => clamp(((info.cloud || 0) - .55) / .45);
 
   function applySky() {
-    const d = new Date();
+    const d = (window.NWPlace ? NWPlace.now() : new Date());
     const h = PREVIEW != null ? PREVIEW : d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
     const k = skyAt(h, SR, SS), ov = overcastOf(wx);
     const set = (n, v) => document.documentElement.style.setProperty(n, v);
@@ -522,7 +523,7 @@
 
   /* ---------- header / sync dot ---------- */
   function setSync() { /* the little status line was removed on purpose */ }
-  const clock = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const clock = () => new Date().toLocaleTimeString([], Object.assign({ hour: 'numeric', minute: '2-digit' }, window.NWPlace && NWPlace.active ? { timeZone: NWPlace.tz } : {}));
 
   /* ---------- toast ---------- */
   let toastTimer = null;

@@ -86,10 +86,25 @@
       </div>
     </section>
 
+    <section class="panel" id="placePanel" aria-labelledby="hPlace">
+      <div class="panel-head">
+        <div><h2 id="hPlace">Location</h2><p class="sub">Pick where you live. The sky widgets follow that place's time, sunrise, sunset and weather.</p></div>
+        <button id="plReset" class="btn ghost small" type="button">Back to Gwalior</button>
+      </div>
+      <div id="plNow" class="pl-now"></div>
+      <form id="plForm" class="link-form" autocomplete="off">
+        <input id="plIn" type="search" placeholder="Search a city, e.g. Tokyo, London, Pune" aria-label="Search a city">
+        <button class="btn" type="submit">Search</button>
+      </form>
+      <div id="plRes" class="pl-res" role="list"></div>
+      <p id="plNote" class="hint"></p>
+    </section>
+
     <p class="foot">Saved on this device. Widgets in this browser update the moment you change something. Use Export / Import to move your look to another device.</p>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
   <script src="/shared/sky.js"></script>
   <script src="/studio/studio.js"></script>
+  <script src="/studio/place-panel.js"></script>
 </body>
 </html>

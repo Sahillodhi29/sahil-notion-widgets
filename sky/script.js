@@ -21,9 +21,9 @@
   const num = (k, d) => { const v = parseFloat(q.get(k)); return Number.isFinite(v) ? v : d; };
 
   const CFG = {
-    lat: num('lat', 26.2183),
-    lon: num('lon', 78.1828),
-    city: q.get('city') ?? 'Gwalior',
+    lat: num('lat', window.NWPlace && NWPlace.active ? NWPlace.lat : 26.2183),
+    lon: num('lon', window.NWPlace && NWPlace.active ? NWPlace.lon : 78.1828),
+    city: q.get('city') ?? (window.NWPlace && NWPlace.active ? NWPlace.name : 'Gwalior'),
     ship: q.get('ship') || 'assets/merry.png',
     shipX: num('shipx', 58),
     shipY: num('shipy', 5),
@@ -93,12 +93,12 @@
     const H = Math.acos(clamp(cosH, -1, 1)) / rad / 15;
     const B = 2 * Math.PI * (N - 81) / 364;
     const E = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
-    const tzMeridian = -d.getTimezoneOffset() / 4;
+    const tzMeridian = (window.NWPlace ? NWPlace.offsetMin() : -new Date().getTimezoneOffset()) / 4;
     const noon = 12 + (tzMeridian - CFG.lon) / 15 - E / 60;
     return { sr: noon - H, ss: noon + H };
   }
   {
-    const s = estimateSun(new Date());
+    const s = estimateSun((window.NWPlace ? NWPlace.now() : new Date()));
     if (Number.isFinite(s.sr) && Number.isFinite(s.ss)) { SR = s.sr; SS = s.ss; }
   }
 
@@ -324,7 +324,7 @@
       const d = new Date(); d.setHours(+m[1], +m[2], 0, 0);
       return { h: +m[1] + +m[2] / 60, d };
     }
-    const d = new Date();
+    const d = (window.NWPlace ? NWPlace.now() : new Date());
     return { h: d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600, d };
   }
 

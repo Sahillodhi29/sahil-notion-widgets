@@ -178,6 +178,16 @@ body[data-look="harbour"] .bar .btn.ghost { background: rgba(20, 20, 20, .5); -w
 
 /* ---------- &w= : embed one part of the Studio on its own ---------- */
 body[data-w] { padding: 0; }
-body[data-w="colours"] .bar, body[data-w="colours"] #picPanel, body[data-w="colours"] .foot,
+body[data-w="colours"] .bar, body[data-w="colours"] #picPanel, body[data-w="colours"] #placePanel, body[data-w="pictures"] #placePanel, body[data-w="header"] #placePanel,
+body[data-w="location"] .bar, body[data-w="location"] #pages, body[data-w="location"] #colPanel, body[data-w="location"] #picPanel, body[data-w="location"] .foot, body[data-w="colours"] .foot,
 body[data-w="pictures"] .bar, body[data-w="pictures"] #colPanel, body[data-w="pictures"] .foot,
 body[data-w="header"] #pages, body[data-w="header"] #colPanel, body[data-w="header"] #picPanel, body[data-w="header"] .foot { display: none; }
+
+/* ---------- location ---------- */
+.pl-now { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 12px 16px; border-radius: 16px; background: rgba(0, 0, 0, .28); box-shadow: inset 0 0 0 1px var(--edge); }
+.pl-now b { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+.pl-now span { color: var(--muted); font-size: 14px; }
+.pl-res { display: grid; gap: 8px; }
+.pl-res button { text-align: left; display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 12px; background: rgba(233, 225, 209, .06); box-shadow: inset 0 0 0 1px var(--edge); color: var(--text); font: inherit; cursor: pointer; }
+.pl-res button:hover { background: rgba(233, 225, 209, .14); }
+.pl-res small { color: var(--faint); }

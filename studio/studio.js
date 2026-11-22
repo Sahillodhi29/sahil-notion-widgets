@@ -8,7 +8,7 @@
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const bc = (() => { try { return new BroadcastChannel('nw-studio'); } catch (e) { return null; } })();
   const Q = new URLSearchParams(location.search), W = (Q.get('w') || 'all').toLowerCase();
-  if (['colours', 'colors', 'pictures', 'header'].includes(W)) document.body.dataset.w = W === 'colors' ? 'colours' : W;
+  if (['colours', 'colors', 'pictures', 'header', 'location'].includes(W)) document.body.dataset.w = W === 'colors' ? 'colours' : W;
   let state = load(), pageId = (NW.pages[new URLSearchParams(location.search).get('page')] ? new URLSearchParams(location.search).get('page') : Object.keys(NW.pages)[0]), themeId = null, cardId = null, storageOk = true;
 
   function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.pages) return s; } catch (e) { /* none yet */ } return { v: 1, pages: {} }; }
