@@ -11,7 +11,7 @@
   --sea-top: 62 152 208; --sea-bot: 28 96 162; --sea-front: 52 130 190;
   --wave-l: 150 205 240; --wave-d: 20 70 130;
   --cloud: 255 255 255; --cloud-a: .9;
-  --spark: 255 255 255; --stars: 0; --aurora: 0;
+  --spark: 255 255 255; --stars: 0; --star-vis: 0; --aurora: 0; --rain: 0; --fog: 0;
   --sun-halo: 255 232 168; --sun-disk: 255 252 236;
   --moon-halo: 190 215 255; --glit-c: 255 240 205; --glit: 0;
   --horizon: 22.5%;
@@ -43,7 +43,7 @@ a { color: inherit; }
 .aurora.a1 { left: -10%; top: 4%; width: 80%; height: 60%; background: radial-gradient(ellipse at center, rgb(70 205 200 / .6), transparent 70%); transform: rotate(-8deg); animation: sway 26s ease-in-out infinite alternate; }
 .aurora.a2 { right: -8%; top: -10%; width: 55%; height: 55%; background: radial-gradient(ellipse at center, rgb(90 170 255 / .45), transparent 70%); transform: rotate(14deg); animation: sway 34s ease-in-out infinite alternate-reverse; }
 @keyframes sway { from { translate: -3% 0; } to { translate: 4% 8%; } }
-.stars { position: absolute; left: 0; right: 0; top: 0; height: 100%; opacity: var(--stars);
+.stars { position: absolute; left: 0; right: 0; top: 0; height: 100%; opacity: var(--star-vis, var(--stars));
   -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 96%); mask-image: linear-gradient(to bottom, #000 40%, transparent 96%); }
 .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle 3.4s ease-in-out infinite; }
 @keyframes twinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
@@ -153,3 +153,11 @@ h1 { font-family: 'Pacifico', 'Segoe Script', 'Brush Script MT', cursive; font-w
 @keyframes twinkleT { 0%, 100% { opacity: .4; transform: scale(.75); } 50% { opacity: 1; transform: scale(1.15); } }
 /* make room under the title: the ship sits a touch lower and smaller */
 #scene { transform: scale(.92); transform-origin: 50% 100%; }
+
+/* ---------- weather over the whole scene ---------- */
+.mist { position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: var(--fog); background: linear-gradient(to bottom, transparent 20%, rgb(225 232 242 / .5) 55%, rgb(225 232 242 / .3)); }
+.rain { position: absolute; inset: 0; z-index: 9; pointer-events: none; opacity: var(--rain); overflow: hidden; }
+.drop { position: absolute; top: -20%; width: 1.5px; border-radius: 2px; background: linear-gradient(to bottom, transparent, rgb(225 238 255 / .6)); transform: rotate(12deg); animation: fall linear infinite; }
+.rain.snow .drop { width: 4px !important; height: 4px !important; border-radius: 50%; background: rgb(255 255 255 / .85); transform: none; }
+@keyframes fall { to { translate: -10cqw 130cqh; } }
+@media (prefers-reduced-motion: reduce) { .drop { animation: none !important; } }

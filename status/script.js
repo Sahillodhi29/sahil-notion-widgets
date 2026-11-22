@@ -509,30 +509,57 @@
     const m = /^(\d{1,2})(?::(\d{2}))?$/.exec(t.trim());
     return m ? clamp(+m[1] + (m[2] ? +m[2] / 60 : 0), 0, 23.99) : null;
   })();
+  const FORCED = { clear: 0, partly: 2, cloudy: 3, overcast: 3, fog: 45, rain: 63, storm: 95, snow: 73 };
+  function classify(code) {
+    if (code === 0) return { cloud: .22 };
+    if (code === 1) return { cloud: .4 };
+    if (code === 2) return { cloud: .68 };
+    if (code === 3) return { cloud: 1 };
+    if (code === 45 || code === 48) return { cloud: .9, fog: 1 };
+    if (code >= 51 && code <= 57) return { cloud: 1, rain: .4 };
+    if (code === 61 || code === 80) return { cloud: 1, rain: .55 };
+    if (code === 63 || code === 81 || code === 66) return { cloud: 1, rain: .8 };
+    if (code === 65 || code === 82 || code === 67) return { cloud: 1, rain: 1 };
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { cloud: 1, snow: .6 };
+    if (code >= 95) return { cloud: 1, rain: 1 };
+    return { cloud: .22 };
+  }
+  let wx = classify(0);
+  const forced = new URLSearchParams(location.search).get('weather');
+  if (forced && forced in FORCED) wx = classify(FORCED[forced]);
   function applySky() {
     const d = new Date();
     const h = PREVIEW != null ? PREVIEW : d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
-    const k = skyAt(h, SR, SS);
+    const k = skyAt(h, SR, SS), ov = clamp(((wx.cloud || 0) - .55) / .45);
     const set = (n, v) => root.style.setProperty(n, v);
-    set('--sky-top', rgb(k.top)); set('--sky-mid', rgb(k.mid)); set('--sky-bot', rgb(k.bot));
-    set('--sea-top', rgb(k.seaTop)); set('--sea-bot', rgb(k.seaBot));
-    set('--spark', rgb(k.spark)); set('--stars', k.stars.toFixed(3));
-    set('--cloud', rgb(k.cloud)); set('--cloud-a', k.cloudA.toFixed(3));
-    set('--wave-l', rgb(mixC(k.seaTop, [255, 255, 255], .35))); set('--wave-d', rgb(mixC(k.seaBot, [0, 6, 30], .35)));
+    const wash = (c, amt, dark = .08) => { const l = 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]; return mixC(c, [l * .96, l, l * 1.06], amt).map(v => v * (1 - dark * ov)); };
+    const amt = .5 * ov, sTop = wash(k.seaTop, amt * .8), sBot = wash(k.seaBot, amt * .8);
+    set('--sky-top', rgb(wash(k.top, amt))); set('--sky-mid', rgb(wash(k.mid, amt))); set('--sky-bot', rgb(wash(k.bot, amt)));
+    set('--sea-top', rgb(sTop)); set('--sea-bot', rgb(sBot));
+    set('--spark', rgb(k.spark)); set('--stars', k.stars.toFixed(3));   /* --stars stays pure time (lamps, card shading) */
+    set('--star-vis', (k.stars * (1 - .9 * ov)).toFixed(3));
+    set('--cloud', rgb(wash(k.cloud, .6 * ov, .18))); set('--cloud-a', k.cloudA.toFixed(3));
+    set('--wave-l', rgb(mixC(sTop, [255, 255, 255], .35))); set('--wave-d', rgb(mixC(sBot, [0, 6, 30], .35)));
+    set('--rain', String(wx.rain || wx.snow || 0)); set('--fog', String((wx.fog || 0) * .8));
+    const rb = $('bRain'); if (rb) rb.classList.toggle('snow', !!wx.snow);
+    document.querySelectorAll('#bClouds .cld').forEach(c => c.style.setProperty('--cv', clamp(((wx.cloud || 0) - parseFloat(c.dataset.thr)) / .18).toFixed(3)));
   }
   async function fetchSun() {
+    if (forced && forced in FORCED) return;
     try {
       const ctl = new AbortController();
       const t = setTimeout(() => ctl.abort(), 8000);
-      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON + '&daily=sunrise,sunset&timezone=auto&forecast_days=1', { signal: ctl.signal });
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON + '&current=weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=1', { signal: ctl.signal });
       clearTimeout(t);
       if (!res.ok) return;
       const data = await res.json();
+      if (data.current && Number.isFinite(data.current.weather_code)) wx = classify(data.current.weather_code);
       const p = s => { const m = /T(\d\d):(\d\d)/.exec(s || ''); return m ? +m[1] + +m[2] / 60 : null; };
       const sr = p(data.daily && data.daily.sunrise && data.daily.sunrise[0]);
       const ss = p(data.daily && data.daily.sunset && data.daily.sunset[0]);
-      if (sr && ss && ss > sr) { SR = sr; SS = ss; applySky(); }
-    } catch { /* offline estimate is good enough */ }
+      if (sr && ss && ss > sr) { SR = sr; SS = ss; }
+      applySky();
+    } catch { /* offline estimate and clear sky are good enough */ }
   }
   function seeded(seed) {
     return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
@@ -548,11 +575,16 @@
       stars.appendChild(el);
     }
     const CL = '<svg viewBox="0 0 200 80" aria-hidden="true"><g fill="currentColor"><ellipse cx="60" cy="52" rx="48" ry="22"/><ellipse cx="108" cy="38" rx="44" ry="28"/><ellipse cx="152" cy="54" rx="42" ry="20"/><ellipse cx="100" cy="58" rx="74" ry="20"/></g></svg>';
-    [{ top: 8, w: 13, sp: 130, ph: .1 }, { top: 30, w: 9, sp: 170, ph: .42 }, { top: 12, w: 15, sp: 150, ph: .74 }, { top: 34, w: 8, sp: 190, ph: .9 }].forEach(c => {
-      const el = document.createElement('div'); el.className = 'cld'; el.innerHTML = CL;
+    [{ top: 8, w: 13, sp: 130, ph: .1, thr: 0 }, { top: 30, w: 9, sp: 170, ph: .42, thr: .3 }, { top: 12, w: 15, sp: 150, ph: .74, thr: .12 }, { top: 34, w: 8, sp: 190, ph: .9, thr: .5 }].forEach(c => {
+      const el = document.createElement('div'); el.className = 'cld'; el.innerHTML = CL; el.dataset.thr = c.thr;
       el.style.cssText = `top:${c.top}%;width:${c.w}%;animation-duration:${c.sp}s;animation-delay:-${(c.ph * c.sp).toFixed(1)}s`;
       $('bClouds').appendChild(el);
     });
+    const bn = $('banner'), mist = document.createElement('i'), rain = document.createElement('div');
+    mist.className = 'b-mist'; rain.className = 'b-rain'; rain.id = 'bRain';
+    for (let i = 0; i < 34; i++) { const d = document.createElement('i'); d.className = 'drop'; const len = 9 + r() * 12;
+      d.style.cssText = `left:${(r() * 115).toFixed(1)}%;height:${len.toFixed(1)}px;animation-duration:${(.7 + r() * .5).toFixed(2)}s;animation-delay:-${(r() * 2).toFixed(2)}s;opacity:${(.4 + r() * .5).toFixed(2)}`; rain.appendChild(d); }
+    bn.appendChild(mist); bn.appendChild(rain);
     const sea = $('bSea');
     const wave = (cls, top, height, half, amp, dur, rev) => {
       const wv = document.createElement('div'); wv.className = 'wv ' + cls;
@@ -565,9 +597,9 @@
   }
 
   /* ---------- go ---------- */
-  applySky();
-  if (PREVIEW == null) { setInterval(applySky, 30000); fetchSun(); }
   buildBanner();
+  applySky();
+  if (PREVIEW == null) { setInterval(applySky, 30000); fetchSun(); setInterval(fetchSun, 900000); }
   build();
   draw();
 
