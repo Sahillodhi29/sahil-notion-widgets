@@ -1,0 +1,79 @@
+/* ============================================================
+   Must Do's — SHANKS: "Red Hair"
+   The same wall, warmed through: deeper crimson walls, brighter red, the painting
+   behind each heading left unhidden, and the gold turned up to bright brass.
+   Only colour and light live here; every structure rule is in style.css.
+   ============================================================ */
+html[data-theme="shanks"] {
+  --ink:      hsl(calc(var(--w-h) - 15.0) calc(50.0% * var(--w-k)) 4.7%);
+  --card:     hsl(calc(var(--w-h) + 2.0) calc(55.6% * var(--w-k)) 7.1%);
+  --aub:      hsl(calc(var(--w-h) - 0.3) calc(58.6% * var(--w-k)) 11.4%);
+  --plum:     hsl(calc(var(--b-h) - 5.9) calc(59.2% * var(--b-k)) 20.2%);
+  --frame:    hsl(calc(var(--b-h) - 3.9) calc(55.2% * var(--b-k)) 22.7%);
+  --crimson:  hsl(calc(var(--b-h) - 2.5) calc(77.5% * var(--b-k)) 31.4%);
+  --red:      hsl(calc(var(--b-h) + 0.1) calc(67.9% * var(--b-k)) 48.8%);
+  --red-hi:   hsl(calc(var(--b-h) + 5.5) calc(86.5% * var(--b-k)) 56.3%);
+  --gold:     hsl(calc(var(--a-h) - 1.2) calc(53.0% * var(--a-k)) 50.8%);
+  --gold-hi:  hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8%);
+  --gold-lo:  hsl(calc(var(--a-h) - 1.4) calc(60.9% * var(--a-k)) 36.1%);
+  --text:     #FBEFE0;
+  --rose:     #FFEACB;
+  --muted:    hsl(calc(var(--a-h) - 7.8) calc(46.2% * var(--a-k)) 71.6%);
+  --faint:    hsl(calc(var(--a-h) - 8.1) calc(27.6% * var(--a-k)) 54.5%);
+  --edge:     hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .44);
+  --edge-soft: hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .18);
+
+  --wall:
+    radial-gradient(300px 200px at 100% -8%, hsl(calc(var(--b-h) + 0.1) calc(67.9% * var(--b-k)) 48.8% / .34), transparent 72%),
+    radial-gradient(260px 160px at 0% 0%, hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .12), transparent 74%),
+    linear-gradient(180deg, transparent 56%, hsl(calc(var(--b-h) - 2.5) calc(77.5% * var(--b-k)) 31.4% / .18)),
+    repeating-linear-gradient(90deg, transparent 0 53px, rgba(0, 0, 0, .22) 53px 54px, rgba(255, 236, 210, .024) 54px 55px),
+    linear-gradient(180deg, hsl(calc(var(--w-h) + 0.9) calc(61.1% * var(--w-k)) 14.1%), hsl(calc(var(--w-h) + 2.0) calc(55.6% * var(--w-k)) 7.1%));
+
+  --gilt:      linear-gradient(180deg, hsl(calc(var(--a-h) + 3.2) calc(90.4% * var(--a-k)) 83.7%), hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8%) 62%, hsl(calc(var(--a-h) - 2.1) calc(58.1% * var(--a-k)) 57.8%));
+  --gilt-line: hsl(calc(var(--a-h) + 0.9) calc(78.3% * var(--a-k)) 76.5%);
+  --gilt-glow: 0 10px 20px -12px hsl(calc(var(--b-h) + 5.5) calc(86.5% * var(--b-k)) 56.3% / 1);
+}
+html[data-theme="shanks"] ::selection { background: hsl(calc(var(--b-h) - 2.5) calc(77.5% * var(--b-k)) 31.4% / .9); color: #FFF4E0; }
+
+/* ---------- the pictures: a second set for this theme, shown a little wider ---------- */
+html[data-theme="shanks"] .card > .head {
+  outline-color: hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .6);
+  background: linear-gradient(100deg, hsl(calc(var(--w-h) + 1.0) calc(55.6% * var(--w-k)) 10.6%), hsl(calc(var(--w-h) + 9.5) calc(63.9% * var(--w-k)) 16.3%) 62%, hsl(calc(var(--w-h) - 0.5) calc(55.9% * var(--w-k)) 11.6%));
+}
+html[data-theme="shanks"] .card > .head { --plate-w-def: 84%; }
+html[data-theme="shanks"] .card > .head::after {
+  background:
+    linear-gradient(90deg, hsl(calc(var(--w-h) + 2.0) calc(55.6% * var(--w-k)) 7.1% / .9) 0%, hsl(calc(var(--w-h) + 2.0) calc(55.6% * var(--w-k)) 7.1% / .5) 25%, hsl(calc(var(--w-h) + 2.0) calc(55.6% * var(--w-k)) 7.1% / 0) 52%),
+    linear-gradient(0deg, hsl(calc(var(--b-h) - 2.5) calc(77.5% * var(--b-k)) 31.4% / .34), hsl(calc(var(--b-h) - 2.5) calc(77.5% * var(--b-k)) 31.4% / 0) 42%),
+    linear-gradient(180deg, rgba(255, 236, 200, .12), rgba(255, 236, 200, 0) 34%),
+    radial-gradient(130% 150% at 100% 50%, hsl(calc(var(--w-h) - 8.3) calc(60.0% * var(--w-k)) 2.9% / 0) 55%, hsl(calc(var(--w-h) - 8.3) calc(60.0% * var(--w-k)) 2.9% / .5));
+}
+html[data-theme="shanks"] .card[data-w="check"]  > .head { --plate-art: url(/mustdo/art/4.webp?v=1); --plate-pos: 50% 40%; }
+html[data-theme="shanks"] .card[data-w="week"]   > .head { --plate-art: url(/mustdo/art/5.webp?v=1); --plate-pos: 50% 0%; }
+html[data-theme="shanks"] .card[data-w="month"]  > .head { --plate-art: url(/mustdo/art/6.webp?v=1); --plate-pos: 58% 50%; }
+html[data-theme="shanks"] .card[data-w="manage"] > .head { --plate-art: url(/mustdo/art/7.webp?v=1); --plate-pos: 82% 30%; }
+
+/* ---------- tiles, bars, cells: warmer reds ---------- */
+html[data-theme="shanks"] .item:not(.done) {
+  background: linear-gradient(150deg, hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .09), transparent 42%), linear-gradient(150deg, var(--aub), var(--card) 88%);
+  border-color: hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .28);
+}
+html[data-theme="shanks"] .item:not(.done):hover { border-color: hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .65); }
+html[data-theme="shanks"] .meter i { background: linear-gradient(90deg, var(--crimson), var(--red-hi) 50%, var(--gold-hi)); }
+html[data-theme="shanks"] .bbar i { background: linear-gradient(180deg, var(--red-hi), var(--crimson)); }
+html[data-theme="shanks"] .heat i.l1 { background: hsl(calc(var(--b-h) - 2.6) calc(63.8% * var(--b-k)) 29.2%); }
+html[data-theme="shanks"] .heat i.l2 { background: var(--red); }
+html[data-theme="shanks"] .legend i.l1 { background: hsl(calc(var(--b-h) - 2.6) calc(63.8% * var(--b-k)) 29.2%); border-color: hsl(calc(var(--b-h) - 2.6) calc(63.8% * var(--b-k)) 29.2%); }
+html[data-theme="shanks"] .legend i.l2 { background: var(--red); border-color: var(--red); }
+
+/* ---------- the streak: gold on crimson ---------- */
+html[data-theme="shanks"] [data-w="month"] > .head > .count {
+  background: var(--gilt); color: hsl(calc(var(--b-h) - 2.0) calc(77.2% * var(--b-k)) 24.1%);
+  box-shadow: 0 10px 20px -14px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .7);
+}
+
+/* ---------- toast & switch ---------- */
+html[data-theme="shanks"] #toast { background: hsl(calc(var(--w-h) - 0.5) calc(52.4% * var(--w-k)) 8.2% / .97); border-color: hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .55); }
+html[data-theme="shanks"] .theme-toggle { background: hsl(calc(var(--w-h) - 3.6) calc(53.8% * var(--w-k)) 5.1% / .94); border-color: hsl(calc(var(--a-h) - 0.9) calc(68.6% * var(--a-k)) 68.8% / .55); }
+html[data-theme="shanks"] .theme-toggle i { background: linear-gradient(135deg, hsl(calc(var(--b-h) + 5.5) calc(86.5% * var(--b-k)) 56.3%), hsl(calc(var(--b-h) - 2.5) calc(77.5% * var(--b-k)) 31.4%)); }

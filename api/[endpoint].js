@@ -14,8 +14,10 @@
    Handlers load only when first used, so a problem in one endpoint cannot take down the others.
    ============================================================ */
 const ROUTES = {
+  'face':             () => require('../lib/handlers/face'),
   'finance':          () => require('../lib/handlers/finance'),
   'finance-health':   () => require('../lib/handlers/finance-health'),
+  'hair':             () => require('../lib/handlers/hair'),
   'health':           () => require('../lib/handlers/health'),
   'learning':         () => require('../lib/handlers/learning'),
   'learning-health':  () => require('../lib/handlers/learning-health'),

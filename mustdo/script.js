@@ -11,7 +11,8 @@
    week chart and the month heatmap are simply that history.
    ============================================================ */
 (() => {
-  const API = '/api/mustdo';
+  const TRACKER = document.documentElement.dataset.tracker || 'mustdo';
+  const API = '/api/' + TRACKER;
   const params = new URLSearchParams(location.search);
   const KEY = params.get('key') || '';
   const WIDGETS = ['check', 'week', 'month', 'manage'];
@@ -57,10 +58,15 @@
   function toast(msg, ms) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms || 2800); }
   const errText = e => `${e.message}${e.hint ? ' ' + e.hint : ''}`;
 
+  /* ---------- which items count today (@opt = never, @wed / @sat,sun = only those weekdays) ---------- */
+  const dowOf = () => (state.today ? parse(state.today).getUTCDay() : -1);
+  const counts = h => !h.opt && (!h.days || h.days.includes(dowOf()));
+  const todays = () => state.habits.filter(counts);
+
   /* ---------- data ---------- */
   function pctOf(date) {
     const r = state.rows.get(date);
-    const total = state.habits.length || (r && r.total) || 0;
+    const total = r ? r.total : 0;
     if (!r || !total) return null;
     return Math.max(0, Math.min(1, r.done / total));
   }
@@ -94,7 +100,7 @@
       if (!state.todayRowId) {
         const made = await post({ action: 'ensure' });
         state.todayRowId = made.id;
-        state.rows.set(made.date, { id: made.id, date: made.date, done: made.done || 0, total: made.total || state.habits.length });
+        state.rows.set(made.date, { id: made.id, date: made.date, done: made.done || 0, total: made.total || todays().length });
       }
       await post({ action: 'toggle', pageId: state.todayRowId, prop: key, value: !before });
       recalcToday();
@@ -110,16 +116,16 @@
     }
   }
   function recalcToday() {
-    const done = state.habits.filter(h => state.checks[h.key]).length;
+    const done = todays().filter(h => state.checks[h.key]).length;
     const row = state.rows.get(state.today);
-    if (row) { row.done = done; row.total = state.habits.length; }
-    else state.rows.set(state.today, { id: state.todayRowId, date: state.today, done, total: state.habits.length });
+    if (row) { row.done = done; row.total = todays().length; }
+    else state.rows.set(state.today, { id: state.todayRowId, date: state.today, done, total: todays().length });
   }
 
   /* ---------- widget: tick them off ---------- */
   function paintToday() {
-    const n = state.habits.filter(h => state.checks[h.key]).length;
-    const total = state.habits.length;
+    const n = todays().filter(h => state.checks[h.key]).length;
+    const total = todays().length;
     if ($('checkCount')) $('checkCount').textContent = total ? `${n} / ${total}` : '–';
     if ($('checkMeter')) $('checkMeter').style.width = total ? Math.round(n / total * 100) + '%' : '0%';
     document.querySelectorAll('#checkList .item').forEach(li => {
@@ -134,11 +140,16 @@
     $('checkDate').textContent = state.today ? longDate(state.today) : '';
     const box = $('checkList');
     if (!state.habits.length) { box.innerHTML = '<li class="empty">No must do\'s yet. Add some in “Your must do\'s”.</li>'; paintToday(); return; }
+    let lastGroup = null;
     box.innerHTML = state.habits.map(h => {
       const on = !!state.checks[h.key];
-      return `<li class="item${on ? ' done' : ''}" data-k="${esc(h.key)}">
+      const off = !counts(h) && !h.opt;                         // a weekday item on a day it does not apply
+      const head = h.group && h.group !== lastGroup ? `<li class="grp">${esc(h.group)}</li>` : '';
+      lastGroup = h.group || lastGroup;
+      const tag = h.opt ? '<span class="meta">optional</span>' : off ? '<span class="meta">not today</span>' : '';
+      return head + `<li class="item${on ? ' done' : ''}${off ? ' off' : ''}${h.opt ? ' opt' : ''}" data-k="${esc(h.key)}">
         <button type="button" class="tick" aria-pressed="${on}" aria-label="${esc(h.label)}" data-k="${esc(h.key)}"></button>
-        <span class="name">${esc(h.label)}</span>
+        <span class="name">${esc(h.label)}${h.detail ? `<small class="det">${esc(h.detail)}</small>` : ''}</span>${tag}
       </li>`;
     }).join('');
     paintToday();
@@ -210,7 +221,7 @@
     $('manageNote').textContent = state.habits.length ? `${state.habits.length} on the list` : 'nothing on the list yet';
     $('manageList').innerHTML = state.habits.map(h =>
       `<li class="item" data-k="${esc(h.key)}">
-        <span class="name">${esc(h.label)}</span>
+        <span class="name">${esc(h.label)}${h.detail ? `<small class="det">${esc(h.detail)}</small>` : ''}</span>
         <button type="button" class="del" data-k="${esc(h.key)}" aria-label="Remove ${esc(h.label)}" title="Remove">×</button>
       </li>`
     ).join('') || '<li class="empty">Add your first must do above.</li>';
@@ -263,12 +274,12 @@
   }
 
   let bc = null;
-  try { bc = new BroadcastChannel('mustdo-widgets'); bc.onmessage = () => setTimeout(refresh, 400); } catch (e) { /* not available */ }
+  try { bc = new BroadcastChannel(TRACKER + '-widgets'); bc.onmessage = () => setTimeout(refresh, 400); } catch (e) { /* not available */ }
 
   /* ---------- events ---------- */
   document.addEventListener('click', e => {
     const tick = e.target.closest('#checkList .item, #checkList .tick');
-    if (tick) { const li = tick.closest('.item'); if (li) return toggleHabit(li.dataset.k); }
+    if (tick) { const li = tick.closest('.item'); if (li && !li.classList.contains('off')) return toggleHabit(li.dataset.k); }
     const del = e.target.closest('.del');
     if (del) {
       const h = state.habits.find(x => x.key === del.dataset.k);
